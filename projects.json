@@ -1,0 +1,69 @@
+[
+  {
+    "title": "Mailplate",
+    "description": "A simple editor for creating minimalist email newsletter templates. Design clean, readable newsletters without the bloat.",
+    "url": "https://mailplate.gianlucasavino.com/",
+    "tags": ["Email", "Editor", "JavaScript"],
+    "image": "/images/projects/mailplate.png"
+  },
+  {
+    "title": "Personal Website",
+    "description": "A minimal, Swiss-style personal website built with vanilla HTML, CSS, and JavaScript. No frameworks, no build step.",
+    "url": "https://github.com/gianlucasavino",
+    "tags": ["HTML", "CSS", "JavaScript"]
+  },
+  {
+    "title": "Task CLI",
+    "description": "A command-line task manager written in Go. Stores tasks in a local SQLite database with support for priorities, due dates, and tags.",
+    "url": "https://github.com/gianlucasavino",
+    "tags": ["Go", "SQLite", "CLI"]
+  },
+  {
+    "title": "Markdown Note Server",
+    "description": "A lightweight HTTP server that serves a directory of Markdown files as a browsable wiki. Built with Node.js and zero dependencies.",
+    "url": "https://github.com/gianlucasavino",
+    "tags": ["Node.js", "Markdown", "HTTP"]
+  },
+  {
+    "title": "Budget Tracker",
+    "description": "A single-page budgeting app that stores data in localStorage. Tracks income, expenses, and recurring transactions with simple charts.",
+    "url": "https://github.com/gianlucasavino",
+    "tags": ["JavaScript", "CSS", "LocalStorage"]
+  },
+  {
+    "title": "Git Stats",
+    "description": "A Python script that analyzes a Git repository and generates a summary of commit frequency, contributor activity, and file churn.",
+    "url": "https://github.com/gianlucasavino",
+    "tags": ["Python", "Git", "Data"]
+  },
+  {
+    "title": "DNS Lookup Tool",
+    "description": "A terminal-based DNS lookup utility that supports A, AAAA, MX, CNAME, and TXT records. Written in Rust with colored output.",
+    "url": "https://github.com/gianlucasavino",
+    "tags": ["Rust", "Networking", "CLI"]
+  },
+  {
+    "title": "RSS Reader",
+    "description": "A minimal RSS feed reader with a clean reading interface. Fetches and caches feeds locally, supports OPML import and export.",
+    "url": "https://github.com/gianlucasavino",
+    "tags": ["TypeScript", "RSS", "SQLite"]
+  },
+  {
+    "title": "Image Resizer API",
+    "description": "A small HTTP API that resizes and converts images on the fly. Accepts URL or file upload, returns optimized WebP or JPEG.",
+    "url": "https://github.com/gianlucasavino",
+    "tags": ["Go", "REST", "Images"]
+  },
+  {
+    "title": "Pomodoro Timer",
+    "description": "A distraction-free Pomodoro timer for the terminal. Tracks sessions, plays a bell sound, and logs completed work blocks to a CSV file.",
+    "url": "https://github.com/gianlucasavino",
+    "tags": ["Python", "CLI", "Productivity"]
+  },
+  {
+    "title": "Static Site Generator",
+    "description": "A bare-bones static site generator that converts Markdown files into HTML pages using a single template. Under 300 lines of code.",
+    "url": "https://github.com/gianlucasavino",
+    "tags": ["Python", "Markdown", "HTML"]
+  }
+]
