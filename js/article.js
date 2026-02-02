@@ -6,21 +6,21 @@
     var slug = window.location.hash.slice(1);
 
     if (!slug) {
-      container.innerHTML = '<p>No article specified. <a href="/writing.html">Browse articles</a>.</p>';
+      container.innerHTML = '<p>No article specified. <a href="writing.html">Browse articles</a>.</p>';
       return;
     }
 
     if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
-      container.innerHTML = '<p>Invalid article. <a href="/writing.html">Browse articles</a>.</p>';
+      container.innerHTML = '<p>Invalid article. <a href="writing.html">Browse articles</a>.</p>';
       return;
     }
 
     Promise.all([
-      fetch('/articles/manifest.json').then(function (r) {
+      fetch('articles/manifest.json').then(function (r) {
         if (!r.ok) throw new Error('Manifest not found');
         return r.json();
       }),
-      fetch('/articles/' + slug + '.md').then(function (r) {
+      fetch('articles/' + slug + '.md').then(function (r) {
         if (!r.ok) throw new Error('Article not found');
         return r.text();
       }),
@@ -56,7 +56,7 @@
         container.innerHTML = headerHtml + '<div class="article-body">' + bodyHtml + '</div>';
       })
       .catch(function (err) {
-        container.innerHTML = '<p>Article not found. <a href="/writing.html">Browse articles</a>.</p>';
+        container.innerHTML = '<p>Article not found. <a href="writing.html">Browse articles</a>.</p>';
         console.error(err);
       });
   }

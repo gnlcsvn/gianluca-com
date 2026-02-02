@@ -2,7 +2,7 @@
   var container = document.getElementById('project-list');
   if (!container) return;
 
-  fetch('/projects.json')
+  fetch('projects.json')
     .then(function (res) {
       if (!res.ok) throw new Error('Failed to load projects');
       return res.json();

@@ -2,7 +2,7 @@
   var container = document.getElementById('article-list');
   if (!container) return;
 
-  fetch('/articles/manifest.json')
+  fetch('articles/manifest.json')
     .then(function (res) {
       if (!res.ok) throw new Error('Failed to load articles');
       return res.json();
@@ -28,7 +28,7 @@
           return (
             '<article class="article-preview">' +
             '<time class="article-preview__date" datetime="' + article.date + '">' + date + '</time>' +
-            '<h2 class="article-preview__title"><a href="/article.html#' + article.slug + '">' + article.title + '</a></h2>' +
+            '<h2 class="article-preview__title"><a href="article.html#' + article.slug + '">' + article.title + '</a></h2>' +
             '<p class="article-preview__desc">' + article.description + '</p>' +
             '</article>'
           );
