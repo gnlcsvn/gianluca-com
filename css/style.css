@@ -145,6 +145,7 @@ a:hover {
   color: var(--color-black);
   text-decoration: none;
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .site-nav__name:hover {
@@ -232,6 +233,43 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   text-decoration: underline;
+}
+
+/* ==============================
+   Home Sections
+   ============================== */
+
+.home-section {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-black);
+}
+
+.home-section__title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-3);
+}
+
+.home-section__more {
+  display: inline-block;
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.article-preview--home {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.project-card--home {
+  max-width: 24rem;
 }
 
 /* ==============================
@@ -548,6 +586,24 @@ a:hover {
 /* ==============================
    Responsive
    ============================== */
+
+@media (max-width: 480px) {
+  .site-nav {
+    flex-wrap: wrap;
+  }
+
+  .site-nav__name {
+    font-size: var(--text-lg);
+  }
+
+  .site-nav__links {
+    gap: var(--space-2);
+  }
+
+  .site-nav__link {
+    font-size: var(--text-xs);
+  }
+}
 
 @media (min-width: 640px) {
   .container {
