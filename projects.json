@@ -4,7 +4,7 @@
     "description": "A simple editor for creating minimalist email newsletter templates. Design clean, readable newsletters without the bloat.",
     "url": "https://mailplate.gianlucasavino.com/",
     "tags": ["Email", "Editor", "JavaScript"],
-    "image": "/images/projects/mailplate.png"
+    "image": "images/projects/mailplate.png"
   },
   {
     "title": "Personal Website",
