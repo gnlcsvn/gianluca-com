@@ -422,6 +422,7 @@ a:hover {
   color: var(--color-gray-700);
   line-height: var(--leading-base);
   margin-top: var(--space-1);
+  min-height: 3.6em;
 }
 
 /* ==============================
