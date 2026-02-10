@@ -182,7 +182,7 @@ a:hover {
    ============================== */
 
 .site-main {
-  padding-top: var(--space-4);
+  padding-top: 0;
   padding-bottom: var(--space-6);
 }
 
