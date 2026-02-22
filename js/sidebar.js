@@ -10,13 +10,13 @@
     entries.forEach(function (entry) {
       if (entry.isIntersecting) {
         var id = entry.target.getAttribute('id');
-        sidebarLinks.forEach(function (link) {
-          if (link.getAttribute('data-section') === id) {
-            link.classList.add('site-sidebar__link--active');
+        for (var i = 0; i < sidebarLinks.length; i++) {
+          if (sidebarLinks[i].getAttribute('data-section') === id) {
+            sidebarLinks[i].classList.add('site-sidebar__link--active');
           } else {
-            link.classList.remove('site-sidebar__link--active');
+            sidebarLinks[i].classList.remove('site-sidebar__link--active');
           }
-        });
+        }
       }
     });
   }, {
@@ -24,7 +24,7 @@
     threshold: 0
   });
 
-  sections.forEach(function (section) {
-    observer.observe(section);
-  });
+  for (var i = 0; i < sections.length; i++) {
+    observer.observe(sections[i]);
+  }
 })();

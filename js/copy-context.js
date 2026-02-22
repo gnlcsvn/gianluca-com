@@ -50,18 +50,19 @@
 
     lines.push('## Interests');
     lines.push('');
-    p.interests.forEach(function (i) {
-      lines.push('- ' + i);
-    });
+    for (var i = 0; i < p.interests.length; i++) {
+      lines.push('- ' + p.interests[i]);
+    }
     lines.push('');
 
     lines.push('## Projects');
     lines.push('');
-    data.projects.forEach(function (proj) {
+    for (var i = 0; i < data.projects.length; i++) {
+      var proj = data.projects[i];
       lines.push('- **' + proj.title + '** — ' + proj.description);
       lines.push('  Tags: ' + proj.tags.join(', '));
       lines.push('  URL: ' + proj.url);
-    });
+    }
     lines.push('');
 
     lines.push('## Writing');
@@ -69,19 +70,20 @@
     var sorted = data.articles.slice().sort(function (a, b) {
       return b.date.localeCompare(a.date);
     });
-    sorted.forEach(function (article) {
-      lines.push('- ' + article.title + ' (' + article.date + ')');
-      lines.push('  ' + article.description);
-    });
+    for (var i = 0; i < sorted.length; i++) {
+      lines.push('- ' + sorted[i].title + ' (' + sorted[i].date + ')');
+      lines.push('  ' + sorted[i].description);
+    }
     lines.push('');
 
     lines.push('## Links');
     lines.push('');
-    Object.keys(p.links).forEach(function (key) {
-      var label = key.replace(/_/g, ' ');
+    var keys = Object.keys(p.links);
+    for (var i = 0; i < keys.length; i++) {
+      var label = keys[i].replace(/_/g, ' ');
       label = label.charAt(0).toUpperCase() + label.slice(1);
-      lines.push('- ' + label + ': ' + p.links[key]);
-    });
+      lines.push('- ' + label + ': ' + p.links[keys[i]]);
+    }
     lines.push('');
 
     lines.push('## Agent Context');
@@ -114,27 +116,28 @@
     lines.push('');
 
     lines.push('PROJECTS');
-    data.projects.forEach(function (proj) {
-      lines.push('  ' + proj.title + ' - ' + proj.description);
-      lines.push('  ' + proj.url);
-    });
+    for (var i = 0; i < data.projects.length; i++) {
+      lines.push('  ' + data.projects[i].title + ' - ' + data.projects[i].description);
+      lines.push('  ' + data.projects[i].url);
+    }
     lines.push('');
 
     lines.push('WRITING');
     var sorted = data.articles.slice().sort(function (a, b) {
       return b.date.localeCompare(a.date);
     });
-    sorted.forEach(function (article) {
-      lines.push('  ' + article.title + ' (' + article.date + ') - ' + article.description);
-    });
+    for (var i = 0; i < sorted.length; i++) {
+      lines.push('  ' + sorted[i].title + ' (' + sorted[i].date + ') - ' + sorted[i].description);
+    }
     lines.push('');
 
     lines.push('LINKS');
-    Object.keys(p.links).forEach(function (key) {
-      var label = key.replace(/_/g, ' ');
+    var keys = Object.keys(p.links);
+    for (var i = 0; i < keys.length; i++) {
+      var label = keys[i].replace(/_/g, ' ');
       label = label.charAt(0).toUpperCase() + label.slice(1);
-      lines.push('  ' + label + ': ' + p.links[key]);
-    });
+      lines.push('  ' + label + ': ' + p.links[keys[i]]);
+    }
     lines.push('');
 
     lines.push('AGENT CONTEXT: ' + p.agent_instructions);
@@ -163,6 +166,8 @@
       output.textContent = 'Loading...';
       fetchAllData().then(function () {
         renderOutput();
+      }).catch(function () {
+        output.textContent = 'Failed to load context data.';
       });
     } else {
       renderOutput();
@@ -190,16 +195,18 @@
     }
   });
 
-  tabs.forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      tabs.forEach(function (t) {
-        t.classList.remove('copy-modal__tab--active');
+  for (var i = 0; i < tabs.length; i++) {
+    (function (tab) {
+      tab.addEventListener('click', function () {
+        for (var j = 0; j < tabs.length; j++) {
+          tabs[j].classList.remove('copy-modal__tab--active');
+        }
+        tab.classList.add('copy-modal__tab--active');
+        currentFormat = tab.getAttribute('data-format');
+        renderOutput();
       });
-      tab.classList.add('copy-modal__tab--active');
-      currentFormat = tab.getAttribute('data-format');
-      renderOutput();
-    });
-  });
+    })(tabs[i]);
+  }
 
   if (copyBtn) {
     copyBtn.addEventListener('click', function () {

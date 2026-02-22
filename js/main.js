@@ -54,15 +54,42 @@
 
   chrome.innerHTML = sidebarHTML + topbarHTML + overlayHTML;
 
+  // Build and inject modal HTML (single source of truth)
+  var modalHTML =
+    '<div class="copy-modal" id="copy-modal" hidden>' +
+      '<div class="copy-modal__overlay"></div>' +
+      '<div class="copy-modal__content" role="dialog" aria-modal="true" aria-label="Copy context">' +
+        '<div class="copy-modal__header">' +
+          '<h2 class="copy-modal__title">Copy Context</h2>' +
+          '<button class="copy-modal__close" aria-label="Close">&times;</button>' +
+        '</div>' +
+        '<p class="copy-modal__desc">Structured information about me, ready for AI agents or humans.</p>' +
+        '<div class="copy-modal__tabs">' +
+          '<button class="copy-modal__tab copy-modal__tab--active" data-format="markdown">Markdown</button>' +
+          '<button class="copy-modal__tab" data-format="json">JSON</button>' +
+          '<button class="copy-modal__tab" data-format="text">Plain Text</button>' +
+        '</div>' +
+        '<div class="copy-modal__body">' +
+          '<pre class="copy-modal__output" id="copy-output"></pre>' +
+        '</div>' +
+        '<div class="copy-modal__footer">' +
+          '<button class="copy-modal__copy-btn" id="copy-output-btn">Copy to clipboard</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
   // Set active sidebar link for subpages
   if (!isHome) {
+    var pageName = path.split('/').pop() || '';
     var sidebarLinks = document.querySelectorAll('.site-sidebar__link');
-    sidebarLinks.forEach(function (link) {
-      var href = link.getAttribute('href');
-      if (href && href.replace(/\/$/, '') === path) {
-        link.classList.add('site-sidebar__link--active');
+    for (var i = 0; i < sidebarLinks.length; i++) {
+      var href = sidebarLinks[i].getAttribute('href');
+      if (href && href === pageName) {
+        sidebarLinks[i].classList.add('site-sidebar__link--active');
       }
-    });
+    }
   }
 
   // Mobile hamburger toggle
