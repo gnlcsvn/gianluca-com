@@ -3,6 +3,7 @@
     "title": "Portfolio Tracker",
     "description": "A portfolio tracker prototype for monitoring and managing investment portfolios. Built with Next.js and React.",
     "url": "https://portfoliotracker.gianlucasavino.com/",
+    "demo": "demos/depotracker.html",
     "tags": ["Next.js", "React", "Finance"],
     "image": "images/projects/portfolio.png"
   },

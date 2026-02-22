@@ -8,9 +8,6 @@
   // Build sidebar HTML
   var sidebarHTML =
     '<aside class="site-sidebar" id="site-sidebar">' +
-      '<div class="site-sidebar__logo">' +
-        '<a href="index.html">Gian-Luca Savino</a>' +
-      '</div>' +
       '<nav class="site-sidebar__nav">' +
         '<div class="site-sidebar__section">' +
           '<ul class="site-sidebar__list">' +
@@ -18,12 +15,17 @@
               ? '<li><a href="#about" class="site-sidebar__link" data-section="about">About</a></li>' +
                 '<li><a href="#projects" class="site-sidebar__link" data-section="projects">Projects</a></li>' +
                 '<li><a href="#writing" class="site-sidebar__link" data-section="writing">Writing</a></li>' +
-                '<li><a href="https://scholar.google.com/citations?user=R2AuVGkAAAAJ&hl=de&oi=ao" class="site-sidebar__link site-sidebar__external" target="_blank" rel="noopener">Research</a></li>'
-              : '<li><a href="index.html" class="site-sidebar__link">Home</a></li>' +
-                '<li><a href="index.html#about" class="site-sidebar__link">About</a></li>' +
+                '<li><a href="https://scholar.google.com/citations?user=R2AuVGkAAAAJ&hl=de&oi=ao" class="site-sidebar__link site-sidebar__external" target="_blank" rel="noopener">Research</a></li>' +
+                '<li><a href="https://github.com/gnlcsvn" class="site-sidebar__link site-sidebar__external" target="_blank" rel="noopener">GitHub</a></li>' +
+                '<li><a href="https://www.linkedin.com/in/gianlucasavino/" class="site-sidebar__link site-sidebar__external" target="_blank" rel="noopener">LinkedIn</a></li>' +
+                '<li><a href="https://x.com/gnlcsvn" class="site-sidebar__link site-sidebar__external" target="_blank" rel="noopener">X</a></li>'
+              : '<li><a href="index.html#about" class="site-sidebar__link">About</a></li>' +
                 '<li><a href="index.html#projects" class="site-sidebar__link">Projects</a></li>' +
                 '<li><a href="index.html#writing" class="site-sidebar__link">Writing</a></li>' +
-                '<li><a href="https://scholar.google.com/citations?user=R2AuVGkAAAAJ&hl=de&oi=ao" class="site-sidebar__link site-sidebar__external" target="_blank" rel="noopener">Research</a></li>'
+                '<li><a href="https://scholar.google.com/citations?user=R2AuVGkAAAAJ&hl=de&oi=ao" class="site-sidebar__link site-sidebar__external" target="_blank" rel="noopener">Research</a></li>' +
+                '<li><a href="https://github.com/gnlcsvn" class="site-sidebar__link site-sidebar__external" target="_blank" rel="noopener">GitHub</a></li>' +
+                '<li><a href="https://www.linkedin.com/in/gianlucasavino/" class="site-sidebar__link site-sidebar__external" target="_blank" rel="noopener">LinkedIn</a></li>' +
+                '<li><a href="https://x.com/gnlcsvn" class="site-sidebar__link site-sidebar__external" target="_blank" rel="noopener">X</a></li>'
             ) +
           '</ul>' +
         '</div>' +
@@ -32,53 +34,49 @@
           '<ul class="site-sidebar__list">' +
             '<li><a href="writing.html" class="site-sidebar__link">All Articles</a></li>' +
             '<li><a href="projects.html" class="site-sidebar__link">All Projects</a></li>' +
+            '<li><a href="resume.html" class="site-sidebar__link">Resume</a></li>' +
           '</ul>' +
         '</div>' +
       '</nav>' +
     '</aside>';
 
-  // Build topbar HTML
+  // Build copy button group HTML
+  var copyBtnHTML =
+    '<div class="copy-btn-group" id="copy-btn-group">' +
+      '<button class="copy-btn-group__main" id="copy-context-btn" type="button">' +
+        '<span class="copy-btn-group__icon">' +
+          '<svg class="copy-btn-group__icon-default" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"></path></svg>' +
+          '<svg class="copy-btn-group__icon-success" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z"></path></svg>' +
+        '</span>' +
+        '<span>Copy about me</span>' +
+      '</button>' +
+      '<button class="copy-btn-group__toggle" id="copy-format-toggle" type="button" aria-label="Choose what to copy">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path></svg>' +
+      '</button>' +
+      '<div class="copy-btn-group__menu" id="copy-format-menu" hidden>' +
+        '<button class="copy-btn-group__menu-item" data-copy="about" type="button">About me</button>' +
+        '<button class="copy-btn-group__menu-item" data-copy="resume" type="button">Full resume</button>' +
+      '</div>' +
+    '</div>';
+
+  // Build topbar HTML (full width, logo on left)
   var topbarHTML =
     '<div class="site-topbar">' +
-      '<button class="site-topbar__menu-btn" id="menu-toggle" aria-label="Toggle navigation">' +
-        '<span></span><span></span><span></span>' +
-      '</button>' +
-      '<span class="site-topbar__breadcrumb"></span>' +
-      '<button class="site-topbar__copy-btn" id="copy-context-btn">' +
-        'Copy about me' +
-      '</button>' +
+      '<div class="site-topbar__left">' +
+        '<button class="site-topbar__menu-btn" id="menu-toggle" aria-label="Toggle navigation">' +
+          '<span></span><span></span><span></span>' +
+        '</button>' +
+        '<div class="site-topbar__logo" id="logo-wrap">' +
+          '<canvas id="logo-canvas"></canvas>' +
+        '</div>' +
+      '</div>' +
+      copyBtnHTML +
     '</div>';
 
   // Build sidebar overlay for mobile
   var overlayHTML = '<div class="sidebar-overlay" id="sidebar-overlay"></div>';
 
   chrome.innerHTML = sidebarHTML + topbarHTML + overlayHTML;
-
-  // Build and inject modal HTML (single source of truth)
-  var modalHTML =
-    '<div class="copy-modal" id="copy-modal" hidden>' +
-      '<div class="copy-modal__overlay"></div>' +
-      '<div class="copy-modal__content" role="dialog" aria-modal="true" aria-label="Copy context">' +
-        '<div class="copy-modal__header">' +
-          '<h2 class="copy-modal__title">Copy Context</h2>' +
-          '<button class="copy-modal__close" aria-label="Close">&times;</button>' +
-        '</div>' +
-        '<p class="copy-modal__desc">Structured information about me, ready for AI agents or humans.</p>' +
-        '<div class="copy-modal__tabs">' +
-          '<button class="copy-modal__tab copy-modal__tab--active" data-format="markdown">Markdown</button>' +
-          '<button class="copy-modal__tab" data-format="json">JSON</button>' +
-          '<button class="copy-modal__tab" data-format="text">Plain Text</button>' +
-        '</div>' +
-        '<div class="copy-modal__body">' +
-          '<pre class="copy-modal__output" id="copy-output"></pre>' +
-        '</div>' +
-        '<div class="copy-modal__footer">' +
-          '<button class="copy-modal__copy-btn" id="copy-output-btn">Copy to clipboard</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
 
   // Set active sidebar link for subpages
   if (!isHome) {
