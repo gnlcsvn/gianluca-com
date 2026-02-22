@@ -4,53 +4,67 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gian-Luca Savino</title>
-  <meta name="description" content="Personal website of Gian-Luca Savino.">
+  <meta name="description" content="Personal website of Gian-Luca Savino. Researcher, software builder, PhD in Computer Science.">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to content</a>
 
-  <header class="site-header">
-    <nav class="container site-nav">
-      <a href="index.html" class="site-nav__name">Gian-Luca Savino</a>
-      <ul class="site-nav__links">
-        <li><a href="writing.html" class="site-nav__link">Writing</a></li>
-        <li><a href="projects.html" class="site-nav__link">Projects</a></li>
-        <li><a href="https://scholar.google.com/citations?user=R2AuVGkAAAAJ&hl=de&oi=ao" class="site-nav__link" target="_blank" rel="noopener">Research</a></li>
-      </ul>
-    </nav>
-  </header>
+  <div class="site-layout">
+    <div id="site-chrome"></div>
 
-  <main id="main" class="site-main">
-    <div class="container">
-      <section class="hero">
-        <h1 class="visually-hidden">Gian-Luca Savino</h1>
-        <p class="hero__bio">
-          I study how emerging technologies reshape society and business. Currently a researcher at the Gottlieb Duttweiler Institute in Zürich, I hold a PhD in Computer Science from the University of St. Gallen. I also like building useful software tools for myself and my friends.
-        </p>
-      </section>
+    <main id="main" class="site-main">
+      <div class="container">
+        <section id="about" class="docs-section">
+          <h1 class="docs-section__title">About</h1>
+          <div class="docs-section__content">
+            <p>
+              I study how emerging technologies reshape society and business. Currently a researcher at the Gottlieb Duttweiler Institute in Zurich, I hold a PhD in Computer Science from the University of St. Gallen. I also like building useful software tools for myself and my friends.
+            </p>
+          </div>
+        </section>
 
-      <section class="home-section">
-        <h2 class="home-section__title">Latest Post</h2>
-        <div id="latest-post"></div>
-        <a href="writing.html" class="home-section__more">All posts</a>
-      </section>
+        <section id="projects" class="docs-section">
+          <h2 class="docs-section__title">Projects</h2>
+          <div class="docs-section__content" id="home-projects"></div>
+          <a href="projects.html" class="docs-section__more">View all projects</a>
+        </section>
 
-      <section class="home-section">
-        <h2 class="home-section__title">Latest Project</h2>
-        <div id="latest-project"></div>
-        <a href="projects.html" class="home-section__more">All projects</a>
-      </section>
+        <section id="writing" class="docs-section">
+          <h2 class="docs-section__title">Writing</h2>
+          <div class="docs-section__content" id="home-articles"></div>
+          <a href="writing.html" class="docs-section__more">View all articles</a>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Copy Context Modal -->
+  <div class="copy-modal" id="copy-modal" hidden>
+    <div class="copy-modal__overlay"></div>
+    <div class="copy-modal__content" role="dialog" aria-modal="true" aria-label="Copy context">
+      <div class="copy-modal__header">
+        <h2 class="copy-modal__title">Copy Context</h2>
+        <button class="copy-modal__close" aria-label="Close">&times;</button>
+      </div>
+      <p class="copy-modal__desc">Structured information about me, ready for AI agents or humans.</p>
+      <div class="copy-modal__tabs">
+        <button class="copy-modal__tab copy-modal__tab--active" data-format="markdown">Markdown</button>
+        <button class="copy-modal__tab" data-format="json">JSON</button>
+        <button class="copy-modal__tab" data-format="text">Plain Text</button>
+      </div>
+      <div class="copy-modal__body">
+        <pre class="copy-modal__output" id="copy-output"></pre>
+      </div>
+      <div class="copy-modal__footer">
+        <button class="copy-modal__copy-btn" id="copy-output-btn">Copy to clipboard</button>
+      </div>
     </div>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container">
-      <p>&copy; 2025 Gian-Luca Savino</p>
-    </div>
-  </footer>
+  </div>
 
   <script src="js/main.js"></script>
   <script src="js/home.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/copy-context.js"></script>
 </body>
 </html>
