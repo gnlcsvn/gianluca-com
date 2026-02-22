@@ -6,6 +6,8 @@
 
   // Fetch and display articles
   if (articlesContainer) {
+    articlesContainer.innerHTML = '<p>Loading articles...</p>';
+
     fetch('articles/manifest.json')
       .then(function (res) {
         if (!res.ok) throw new Error('Failed to load articles');
@@ -52,6 +54,8 @@
 
   // Fetch and display projects
   if (projectsContainer) {
+    projectsContainer.innerHTML = '<p>Loading projects...</p>';
+
     fetch('projects.json')
       .then(function (res) {
         if (!res.ok) throw new Error('Failed to load projects');
