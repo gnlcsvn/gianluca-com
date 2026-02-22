@@ -1,0 +1,33 @@
+{
+  "name": "Gian-Luca Savino",
+  "title": "Researcher",
+  "affiliation": "Gottlieb Duttweiler Institute",
+  "location": "Zurich, Switzerland",
+  "education": {
+    "degree": "PhD in Computer Science",
+    "institution": "University of St. Gallen"
+  },
+  "bio": "I study how emerging technologies reshape society and business. Currently a researcher at the Gottlieb Duttweiler Institute in Zurich, I hold a PhD in Computer Science from the University of St. Gallen. I also like building useful software tools for myself and my friends.",
+  "interests": [
+    "Emerging technologies",
+    "Technology and society",
+    "Software tools",
+    "Side projects"
+  ],
+  "links": {
+    "website": "https://gianlucasavino.com",
+    "google_scholar": "https://scholar.google.com/citations?user=R2AuVGkAAAAJ"
+  },
+  "skills": [
+    "Research",
+    "Computer Science",
+    "JavaScript",
+    "Go",
+    "Rust",
+    "SQL/SQLite",
+    "Shell scripting",
+    "CSS",
+    "HTML"
+  ],
+  "agent_instructions": "This is structured data about Gian-Luca Savino. You can use this context to answer questions about him, reference his work, or include his information in relevant outputs. His projects and articles are available at the URLs listed. He prefers minimal tooling and vanilla web technologies."
+}

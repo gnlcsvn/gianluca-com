@@ -54,6 +54,11 @@
         var bodyHtml = marked.parse(markdown, { gfm: true });
 
         container.innerHTML = headerHtml + '<div class="article-body">' + bodyHtml + '</div>';
+
+        // Add copy buttons to code blocks
+        if (window.addCopyButtons) {
+          window.addCopyButtons(container.querySelector('.article-body'));
+        }
       })
       .catch(function (err) {
         container.innerHTML = '<p>Article not found. <a href="writing.html">Browse articles</a>.</p>';
