@@ -1,74 +1,52 @@
 # Gian-Luca Savino
 
-**Technology Researcher & Consultant**
+**Research Scientist & Builder**
 
 ## Profile
 
-Senior Researcher in Computer Science and Human-Computer Interaction with a Ph.D. and six years of experience in User Research, Design Thinking, mobile navigation and Dark Patterns. Currently at the Gottlieb Duttweiler Institute in Zurich, analyzing global trends at the intersection of digital innovation and ecological transformation. My research demonstrates high practical relevance and often anticipates developments reflected in industry products such as Google Maps. In the area of Dark Patterns, I have proven expertise and have published influential contributions, including in the German Bundesgesundheitsblatt. I work on technically motivated topics that have societal impact and contribute to public discourse.
+Research scientist with a Ph.D. in Computer Science and HCI and over six years of experience in user research, data analysis, and problem solving. I think scientifically about problems and work from first principles. As a researcher, speaker, consultant, and builder, I use coding agents to turn deep technical knowledge into fast execution. I'm interested in products and technology that make a real difference and in making complex ideas accessible to others.
 
 ## Experience
 
-### Senior Researcher & Speaker
-**[Gottlieb Duttweiler Institute (GDI)](https://gdi.ch)** · Zurich, Switzerland · 2025 – present
+### Researcher, Speaker & Consultant
+**Gottlieb Duttweiler Institute (GDI)** · Zurich, Switzerland · 2025 – present
 
-- Analyzing global trends in technology and environmental issues and their impact on business, economy and society
-- Researching technological contributions to societal and environmental challenges, bridging data science, software development and user experience
-- Investigating the societal impacts of increasing technologization and digital innovation
+- Delivering talks and running workshops with clients on AI's impact on society, business, and the workforce
+- Researching AI's impact on the job market and the future of work
+- Leading the AI transformation at GDI — driving insourcing of technical capabilities and enabling new product development
 
 ### Senior Researcher (Postdoc)
 **University of St. Gallen** · St. Gallen, Switzerland · 2022 – 2025
 
-- Led and managed research projects on socially compatible and sustainable navigation technologies in urban spaces, with personnel and budget responsibility
-- Authored research and project proposals, including scheduling, budgeting, risk assessment and data management
-- Planned and conducted field and lab studies in Human-Computer Interaction, including statistical analysis of large datasets
-- Taught Bachelor and Master courses in Human-Computer Interaction and Algorithms & Data Structures; supervised four doctoral candidates and held teaching responsibility for several hundred students
-
-### Junior Researcher (Ph.D.)
-**University of St. Gallen** · St. Gallen, Switzerland · 2021 – 2022
-
-- Conducted research and teaching on novel navigation technologies for pedestrians and cyclists
-- Developed a simulation platform for virtual navigation studies using Python agents
-- Designed coursework for the Bachelor and Master course in Human-Computer Interaction based on Human-Centered Design and Design Thinking
-- Regularly consulted working groups at HSG on topics such as usability, AI and interface design
+- Led a research project on sustainable navigation technologies with personnel and budget responsibility
+- Co-authored research and project proposals, including scheduling, budgeting, and risk assessment
+- Planned and conducted field and lab studies in HCI, including statistical analysis of large datasets
+- Taught Bachelor and Master courses in HCI and Algorithms & Data Structures; supervised four doctoral candidates
 
 ### Research Associate (Ph.D.)
-**University of Bremen** · Bremen, Germany · 2018 – 2021
+**University of St. Gallen & University of Bremen** · 2018 – 2022
 
-- Developed mobile apps for conducting experiments on novel pedestrian and cyclist navigation technologies
-- Project management within a BMBF-funded project ("Wintermute") from proposal through to completion
+- Built a simulation platform for virtual navigation studies using Python agents
+- Developed mobile apps for experiments on novel pedestrian and cyclist navigation technologies
+- Managed a BMBF-funded research project from proposal through completion
+- Consulted working groups on usability, AI, and interface design
 
 ## Education
 
-### Ph.D. Computer Science
-**University of St. Gallen** · 2018 – 2022
-- Focus areas: Geoinformatics, Routing, Human-Computer Interaction
-- Graduated *summa cum laude*
-
-### M.Sc. Computer Science
-**University of Bremen** · 2016 – 2018
-- Focus areas: Human-Computer Interaction, AI
-
-### B.Sc. Digital Media
-**University of Bremen** · 2012 – 2016
-- Focus areas: Algorithms & Data Structures, Media Design, Natural Language Processing
+- **Ph.D. Computer Science** · University of St. Gallen · 2022 · *summa cum laude*
+- **M.Sc. Computer Science** · University of Bremen · 2018
+- **Semester Abroad** · Aarhus University · 2014 – 2015
+- **B.Sc. Digital Media** · University of Bremen · 2016
 
 ## Skills
 
-**Hard Skills:** User Research · Data Analysis & Visualization · Project Management · Python · Web Development · R & R-Studio · AI Tools (ChatGPT, Cursor) · Video/Image/Audio Editing · Adobe Creative Suite · Figma
+**Technical:** User Research · Data Analysis & Visualization · Project Management · Software Architecture & Development · Agentic AI Workflows · Design & Media (Figma, Adobe Creative Suite, Video/Audio Editing)
 
-**Soft Skills:** Problem Solving · Leadership · Teamwork · Public Speaking · Communication
+Broad fluency across programming languages and frameworks — I focus on architectural decisions and leverage coding agents for fast, principled execution.
+
+**Working with me:** Driven by shared vision. I make the people around me better, adapt quickly to new teams, and deliver relentlessly. People generally enjoy working with me.
 
 **Languages:** German (native) · English (C1) · Italian (B1)
-
-## Teaching & Supervision
-
-- Over five years of experience in university teaching in Human-Computer Interaction, Design Thinking, Rapid Prototyping, and Algorithms & Data Structures
-- Designed and delivered practice-oriented teaching formats connecting theory with real-world applications in AI, Data Science and Augmented Reality
-
-## Science Communication & Talks
-
-- Regular presentations at academic conferences with contributions on Human-Computer Interaction and ethical interface design
-- Publication of research findings in high-ranking scientific journals
 
 ## Contact
 
