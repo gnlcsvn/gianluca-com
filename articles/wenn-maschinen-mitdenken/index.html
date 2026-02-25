@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wenn Maschinen mitdenken — Gian-Luca Savino</title>
+  <meta name="description" content="Wie KI unsere Arbeitswelt neu definiert — von der gesellschaftlichen Stimmungslage über den Skill Mismatch bis hin zum vollautomatisierten Bewerbungsprozess.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+/* ---- Article layout ---- */
+.article-col-text {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+.article-col-wide {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+/* ---- Article body typography ---- */
+.article-editorial {
+  font-family: var(--font-heading);
+  color: var(--color-black);
+  line-height: 1.8;
+  font-size: 19px;
+}
+
+.article-editorial p {
+  margin-bottom: 1.25rem;
+}
+.article-editorial p:last-child { margin-bottom: 0; }
+
+.article-editorial h2 {
+  font-family: var(--font-heading);
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 3rem 0 1rem;
+  letter-spacing: -0.01em;
+}
+
+.article-editorial h3 {
+  font-family: var(--font-stack);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-gray-700);
+  margin: 2.5rem 0 0.75rem;
+}
+
+.article-editorial ul, .article-editorial ol {
+  padding-left: 1.35rem;
+  margin-bottom: 1.25rem;
+}
+.article-editorial li {
+  margin-bottom: 0.4rem;
+}
+
+.article-editorial strong { font-weight: 700; }
+.article-editorial em { font-style: italic; }
+
+/* ---- Hero image ---- */
+.article-hero-image {
+  width: 100%;
+  max-height: 520px;
+  object-fit: cover;
+  display: block;
+}
+
+/* ---- Headline ---- */
+.article-headline {
+  padding-top: 2.5rem;
+  padding-bottom: 0.5rem;
+}
+.article-headline .kicker {
+  font-family: var(--font-stack);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  margin-bottom: 0.75rem;
+}
+.article-headline h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(2.2rem, 5.5vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+.article-headline .dek {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  color: var(--color-gray-500);
+  line-height: 1.55;
+  font-style: italic;
+}
+
+/* ---- Byline ---- */
+.article-byline {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.25rem 0 1.25rem;
+  border-top: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
+  margin: 1.5rem 0 2rem;
+}
+.article-byline img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.article-byline-text {
+  font-family: var(--font-stack);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--color-gray-700);
+  flex: 1;
+}
+.article-byline-text strong { font-weight: 600; color: var(--color-black); }
+.article-byline-text span { color: var(--color-gray-500); }
+
+/* ---- Action buttons (download / print) ---- */
+.article-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+.article-action-btn {
+  font-family: var(--font-stack);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  border-radius: 4px;
+  border: 1px solid var(--color-gray-300);
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.article-action-btn:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+  text-decoration: none;
+}
+.article-action-btn svg { width: 13px; height: 13px; }
+
+/* ---- Section break ---- */
+.article-section-break {
+  text-align: center;
+  margin: 3.5rem 0;
+  color: var(--color-gray-300);
+  font-size: 1.4rem;
+  letter-spacing: 0.5em;
+}
+
+/* ---- Images ---- */
+.article-editorial figure {
+  margin: 2rem 0;
+}
+.article-editorial figure img {
+  width: 100%;
+  display: block;
+}
+.article-editorial figure.article-breakout {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+.article-editorial figure.article-full-bleed {
+  max-width: 100%;
+  padding: 0;
+}
+.article-editorial figure.article-full-bleed img {
+  width: 100%;
+}
+.article-editorial figcaption {
+  font-family: var(--font-stack);
+  font-size: 0.78rem;
+  color: var(--color-gray-500);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+  padding: 0 1.25rem;
+}
+.article-editorial figure.article-breakout figcaption { padding: 0; }
+
+/* ---- Pull quote ---- */
+.article-pull-quote {
+  margin: 2.5rem 0;
+  padding: 0.5rem 0;
+  border-top: 3px solid var(--color-black);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+.article-pull-quote p {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0;
+}
+.article-pull-quote cite {
+  display: block;
+  font-family: var(--font-stack);
+  font-size: 0.8rem;
+  font-style: normal;
+  color: var(--color-gray-500);
+  margin-top: 0.5rem;
+}
+
+/* ---- Key figure ---- */
+.article-key-figure {
+  text-align: center;
+  margin: 2.5rem 0;
+  padding: 2rem 0;
+}
+.article-key-figure .number {
+  font-family: var(--font-heading);
+  font-size: 4.5rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-black);
+}
+.article-key-figure .caption {
+  font-family: var(--font-stack);
+  font-size: 0.9rem;
+  color: var(--color-gray-500);
+  margin-top: 0.4rem;
+}
+
+/* ---- Two column comparison ---- */
+.article-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+.article-comparison h4 {
+  font-family: var(--font-stack);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--color-black);
+}
+.article-comparison ul {
+  padding-left: 1.1rem;
+  margin-bottom: 0;
+}
+.article-comparison li { margin-bottom: 0.35rem; }
+
+/* ---- Skill model ---- */
+.article-skill-model {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-gray-200);
+  font-family: var(--font-stack);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.article-skill-col {
+  padding: 1.25rem;
+  border-right: 1px solid var(--color-gray-200);
+}
+.article-skill-col:last-child { border-right: none; }
+.article-skill-col.featured { background: var(--color-black); color: var(--color-white); }
+.article-skill-col h4 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+  opacity: 0.6;
+}
+.article-skill-col.featured h4 { opacity: 0.5; }
+.article-skill-col ul { list-style: none; padding: 0; }
+.article-skill-col li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  margin: 0;
+}
+.article-skill-col.featured li { border-bottom-color: rgba(255,255,255,0.1); }
+.article-skill-col li:last-child { border-bottom: none; }
+
+/* ---- Image pair ---- */
+.article-image-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 2rem 0;
+}
+.article-image-pair img {
+  width: 100%;
+  display: block;
+  border: 1px solid var(--color-gray-200);
+}
+
+/* ---- Author end card ---- */
+.article-author-end {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin: 3rem 0 1.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-gray-200);
+}
+.article-author-end img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.article-author-end-text {
+  font-family: var(--font-stack);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--color-gray-500);
+}
+.article-author-end-text strong {
+  color: var(--color-black);
+  font-size: 0.95rem;
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+/* ---- QR end ---- */
+.article-qr-end {
+  text-align: center;
+  margin: 2rem 0 3rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--color-gray-200);
+}
+.article-qr-end img {
+  width: 120px;
+  display: block;
+  margin: 0 auto 0.6rem;
+}
+.article-qr-end p {
+  font-family: var(--font-stack);
+  font-size: 0.8rem;
+  color: var(--color-gray-500);
+  margin: 0;
+}
+
+/* ---- Inline source ---- */
+.article-source {
+  font-family: var(--font-stack);
+  font-size: 0.75rem;
+  color: var(--color-gray-300);
+  margin-top: -0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ---- Horizontal bar chart ---- */
+.article-h-bar-chart {
+  margin: 1.5rem 0;
+  font-family: var(--font-stack);
+}
+.article-h-bar-chart .bar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+.article-h-bar-chart .bar-label {
+  width: 220px;
+  flex-shrink: 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--color-black);
+  text-align: right;
+  padding-right: 1rem;
+  line-height: 1.3;
+}
+.article-h-bar-chart .bar-track {
+  flex: 1;
+  height: 36px;
+  background: var(--color-gray-100);
+  position: relative;
+  overflow: hidden;
+}
+.article-h-bar-chart .bar-fill {
+  height: 100%;
+  background: rgba(217, 119, 87, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-black);
+}
+.article-h-bar-chart .chart-axis {
+  display: flex;
+  align-items: center;
+  margin-top: 0.35rem;
+  padding-left: 220px;
+}
+.article-h-bar-chart .chart-axis .axis-line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--color-black);
+}
+.article-h-bar-chart .chart-footer {
+  text-align: right;
+  font-size: 0.78rem;
+  color: var(--color-gray-500);
+  margin-top: 0.3rem;
+  padding-left: 220px;
+}
+
+/* ---- Remove container padding for article pages ---- */
+.site-main .article-container {
+  max-width: none;
+  padding: 0;
+}
+
+/* ---- Print ---- */
+@media print {
+  .site-topbar, .site-sidebar, .sidebar-overlay, .article-actions { display: none; }
+  body { font-size: 16px; }
+  .article-editorial figure.article-breakout,
+  .article-editorial figure.article-full-bleed { max-width: 100%; padding: 0; }
+  .article-hero-image { max-height: 300px; }
+  .article-skill-model, .article-comparison { break-inside: avoid; }
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 700px) {
+  .article-editorial { font-size: 17px; }
+  .article-headline h1 { font-size: 2rem; }
+  .article-headline .dek { font-size: 1.08rem; }
+  .article-pull-quote p { font-size: 1.25rem; }
+  .article-comparison { grid-template-columns: 1fr; gap: 1.25rem; }
+  .article-skill-model { grid-template-columns: 1fr; }
+  .article-skill-col { border-right: none; border-bottom: 1px solid var(--color-gray-200); }
+  .article-skill-col:last-child { border-bottom: none; }
+  .article-image-pair { grid-template-columns: 1fr; }
+  .article-key-figure .number { font-size: 3.2rem; }
+  .article-author-end { flex-direction: column; }
+  .article-hero-image { max-height: 300px; }
+  .article-h-bar-chart .bar-row {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+  .article-h-bar-chart .bar-label {
+    width: auto;
+    text-align: left;
+    padding-right: 0;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+  }
+  .article-h-bar-chart .bar-track {
+    width: 100%;
+    height: 32px;
+  }
+  .article-h-bar-chart .chart-axis { padding-left: 0; }
+  .article-h-bar-chart .chart-footer { padding-left: 0; }
+}
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <div class="site-layout">
+    <div id="site-chrome"></div>
+
+    <main id="main" class="site-main">
+      <div class="article-container">
+
+        <img class="article-hero-image" src="images/slide3_img2.png" alt="Vollautomatisierter KI-Luxus — Illustration einer KI-geprägten Zukunft">
+
+        <article class="article-editorial">
+
+          <div class="article-col-text">
+
+            <div class="article-headline">
+              <div class="kicker">Künstliche Intelligenz &amp; Arbeitswelt</div>
+              <h1>Wenn Maschinen mitdenken</h1>
+              <p class="dek">Wie KI unsere Arbeitswelt neu definiert &mdash; von der gesellschaftlichen Stimmungslage über den Skill Mismatch bis hin zum vollautomatisierten Bewerbungsprozess.</p>
+            </div>
+
+            <div class="article-byline">
+              <img src="images/slide35_img26.jpg" alt="Dr. Gian-Luca Savino">
+              <div class="article-byline-text">
+                <strong>Dr. Gian-Luca Savino</strong>
+                <span>Technologieforscher, Gottlieb Duttweiler Institut</span>
+              </div>
+              <div class="article-actions">
+                <a class="article-action-btn" href="downloads/Wenn Maschinen Mitdenken - Savino_Ohne Video.pptx" download>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 12l4.5 4.5m0 0l4.5-4.5m-4.5 4.5V3"/></svg>
+                  PPTX
+                </a>
+                <button class="article-action-btn" onclick="window.print()">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.75 12h.008v.008h-.008V12zm-2.25 0h.008v.008H16.5V12z"/></svg>
+                  PDF
+                </button>
+              </div>
+            </div>
+
+            <p>Künstliche Intelligenz hat in den letzten Jahren nicht nur unser technologisches, sondern inzwischen auch unser Arbeitsleben grundlegend verändert. Wir sind zwar noch nicht bei der allmächtigen Superintelligenz angekommen, doch die Auswirkungen auf Gesellschaft, Arbeitsmarkt und Recruiting sind bereits heute spürbar. In einer kürzlich veröffentlichten Studie hat das Gottlieb Duttweiler Institut diesen gesellschaftlichen Wandel genauer untersucht.</p>
+
+            <h2>Was die Menschen über KI denken</h2>
+
+            <p>Mithilfe einer repräsentativen Umfrage im DACH-Raum &mdash; 3&rsquo;031 Konsument*innen und 287 Manager*innen mit Führungsverantwortung &mdash; hat das GDI gefragt: Was denken die Menschen über KI, und welche Entwicklungen erwarten sie?</p>
+
+            <p>Die Antwort ist ambivalent. 31 Prozent der Befragten stehen KI im Allgemeinen positiv gegenüber, 27 Prozent eher negativ. Die Menschen verspüren Unsicherheit beim Gedanken an die Zukunft &mdash; sie haben gemischte Gefühle.</p>
+
+          </div>
+
+          <figure class="article-breakout">
+            <img src="images/slide5_img5.png" alt="Gemischte Gefühle: 27% negativ, 31% positiv eingestellt gegenüber KI">
+            <figcaption>Einstellung zu KI im DACH-Raum: Fast gleich viele Optimisten wie Pessimisten. Quelle: GDI Konsument*innenbefragung (2024), N&nbsp;=&nbsp;3031</figcaption>
+          </figure>
+
+          <div class="article-col-text">
+
+            <p>Wenn es um konkrete Erwartungen geht, zeigt sich ein differenzierteres Bild. Die meisten Veränderungen werden im Beruf antizipiert: 64 Prozent erwarten dort grosse Umwälzungen. Ähnlich hoch sind die Erwartungen beim Lernen und Weiterbilden. Etwas weniger, aber immer noch deutlich, erwarten die Befragten Veränderungen im Alltag, beim Einkaufen und in der sozialen Kommunikation.</p>
+
+          </div>
+
+          <figure class="article-breakout">
+            <div class="article-h-bar-chart">
+              <div class="bar-row">
+                <div class="bar-label">Aufgaben im Beruf</div>
+                <div class="bar-track"><div class="bar-fill" style="width:64%">64 %</div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">Lernen und Weiterbilden</div>
+                <div class="bar-track"><div class="bar-fill" style="width:61%">61 %</div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">Alltag gestalten</div>
+                <div class="bar-track"><div class="bar-fill" style="width:44%">44 %</div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">Shoppen und Einkaufen</div>
+                <div class="bar-track"><div class="bar-fill" style="width:40%">40 %</div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">Soziale Kommunikationen</div>
+                <div class="bar-track"><div class="bar-fill" style="width:39%">39 %</div></div>
+              </div>
+              <div class="chart-axis"><div class="axis-line"></div></div>
+              <div class="chart-footer">Anteil Personen, die eine grosse Veränderung erwarten</div>
+            </div>
+            <figcaption>Quelle: GDI Konsument*innenbefragung (2024), N&nbsp;=&nbsp;3031</figcaption>
+          </figure>
+
+          <div class="article-col-text">
+
+            <p>Schaut man genauer hin, welche Veränderungen positiv und welche negativ erwartet werden, überwiegen die Befürchtungen. Die Befragten sehen zwar einige Verbesserungen &mdash; speziell bei der Effizienz der öffentlichen Verwaltung. Doch die Sorgen drehen sich vor allem um Geld und Arbeit: 60 Prozent erwarten eine Verschlechterung bei der Anzahl der Geschäfte in Innenstädten, 50 Prozent bei den verfügbaren Arbeitsplätzen.</p>
+
+          </div>
+
+          <figure class="article-breakout">
+            <img src="images/slide7_img7.png" alt="KI in Wirtschaft, Gesellschaft, Politik: Erwartete Verbesserungen und Verschlechterungen">
+            <figcaption>Erwartete Verbesserungen (grün) und Verschlechterungen (rosa) durch KI. Die Sorge um den Arbeitsmarkt dominiert. Quelle: GDI (2024)</figcaption>
+          </figure>
+
+          <div class="article-col-text">
+
+            <div class="article-pull-quote">
+              <p>50% der Befragten erwarten eine Verschlechterung bei der Anzahl der Arbeitsplätze &mdash; das klassische Argument, dass KI Jobs ersetzen wird.</p>
+              <cite>GDI Konsument*innenbefragung, 2024</cite>
+            </div>
+
+            <h2>Der Schweizer Arbeitsmarkt spürt die Folgen</h2>
+
+            <p>Die Sorge ist nicht unbegründet. Eine kürzlich veröffentlichte Studie des KOF an der ETH Zürich zeigt einen eindeutigen Zusammenhang: Seit der Einführung von ChatGPT im November 2022 steigt die Zahl der Stellensuchenden in KI-betroffenen Berufen deutlich stärker als in weniger betroffenen Berufen &mdash; und das über alle Altersgruppen hinweg.</p>
+
+          </div>
+
+          <figure class="article-breakout">
+            <img src="images/slide10_img10.png" alt="Entwicklung Stellensuchende nach Altersgruppe und KI-Betroffenheit, ETH KOF 2025">
+            <figcaption>Stellensuchende nach Altersgruppe: Die schwarze Linie (hohe KI-Betroffenheit) steigt seit November 2022 deutlich stärker. Quelle: ETH KOF (2025)</figcaption>
+          </figure>
+
+          <div class="article-col-text">
+
+            <p>Programmierer und Softwareentwickler gehören zu den Verlierern. Jüngere Beschäftigte sind stärker betroffen als Ältere &mdash; allerdings ist der Unterschied kleiner als in den USA. Die Frage drängt sich auf: Wenn KI vor allem Programmier- und administrative Arbeit ersetzt, welche Skills sind dann noch gefragt?</p>
+
+            <div class="article-section-break">&bull; &bull; &bull;</div>
+
+            <h2>Der Skill Mismatch</h2>
+
+            <p>Ein aktueller Bericht der Wharton University liefert Antworten. Die Forscher haben systematisch untersucht, welche Fähigkeiten Arbeitnehmende in ihren Lebensläufen anbieten und welche Unternehmen in Stellenanzeigen nachfragen. Das Ergebnis ist aufschlussreich.</p>
+
+          </div>
+
+          <figure class="article-breakout">
+            <img src="images/slide12_img12.jpg" alt="Team diskutiert am Whiteboard">
+          </figure>
+
+          <div class="article-col-text">
+
+            <div class="article-comparison">
+              <div>
+                <h4>Stärker nachgefragt als angeboten</h4>
+                <ul>
+                  <li>Public Speaking</li>
+                  <li>Digital Marketing</li>
+                  <li>Public Relations</li>
+                </ul>
+              </div>
+              <div>
+                <h4>Stärker angeboten als nachgefragt</h4>
+                <ul>
+                  <li>Problem Solving</li>
+                  <li>Communication</li>
+                  <li>Leadership &amp; Accountability</li>
+                </ul>
+              </div>
+            </div>
+
+            <p>Die am stärksten nachgefragten Skills sind nicht technisch, sondern drehen sich um zwischenmenschliche Fähigkeiten. Gleichzeitig werben viele Bewerber*innen mit breiten, generalistischen Signalen wie &laquo;Kommunikation&raquo; oder &laquo;Leadership&raquo; &mdash; Fähigkeiten, die so verbreitet sind, dass sie kaum noch differenzieren.</p>
+
+            <p>Mit KI wird das noch relevanter: Standardarbeit und Routine werden automatisiert. Damit rückt das in den Vordergrund, was knapp, spezifisch und wertschöpfend ist.</p>
+
+            <h3>Was daraus folgt</h3>
+
+            <div class="article-comparison">
+              <div>
+                <h4>Für Arbeitgeber</h4>
+                <ul>
+                  <li>Fähigkeiten systematisch messen &mdash; Überangebote und Engpässe sichtbar machen</li>
+                  <li>Rollen in konkrete Tasks zerlegen &mdash; menschliche Stärken klar von KI-Aufgaben trennen</li>
+                  <li>Vergütung an den tatsächlichen Wert von Skills koppeln, nicht an Jobtitel</li>
+                </ul>
+              </div>
+              <div>
+                <h4>Für Arbeitnehmende</h4>
+                <ul>
+                  <li>Ein Skill-Portfolio aufbauen statt nur einen Lebenslauf pflegen</li>
+                  <li>Spezifische, rollenrelevante Fähigkeiten steigern den Marktwert</li>
+                  <li>KI gezielt nutzen, um Umsetzungskompetenz schneller aufzubauen</li>
+                </ul>
+              </div>
+            </div>
+            <p class="article-source">Quelle: Wharton University &amp; Accenture</p>
+
+            <h2>Soft Skills schlagen technische Fähigkeiten</h2>
+
+            <p>Die wachsende Bedeutung sozialer Kompetenzen lässt sich auch empirisch belegen. Eine in der Financial Times veröffentlichte Studie zeigt: Soziale Kompetenzen sind heute stärker mit Beschäftigung und Löhnen verbunden als rein technische Fähigkeiten. Berufe, die hohe soziale <em>und</em> hohe mathematische Anforderungen stellen, verzeichnen den grössten Lohnanstieg seit 1980.</p>
+
+          </div>
+
+          <figure class="article-breakout">
+            <img src="images/slide15_img13.png" alt="Financial Times Grafik: Social Skills und Beschäftigung seit 1980">
+            <figcaption>Beschäftigung und Löhne nach Anforderungsprofil: Berufe mit hohen sozialen Anforderungen schneiden durchweg besser ab. Quelle: Financial Times (2025), basierend auf Deming (2017)</figcaption>
+          </figure>
+
+          <div class="article-col-text">
+
+            <p>KI automatisiert zunehmend standardisierte, quantitative Arbeit. Der Wert menschlicher Arbeit verlagert sich hin zu Zusammenarbeit, Kommunikation, Urteilsvermögen und Teamkoordination.</p>
+
+            <div class="article-section-break">&bull; &bull; &bull;</div>
+
+            <h2>Wissen, Wollen, Wirken</h2>
+
+            <p>Das GDI hat in seiner Future-Skills-Studie ein Modell entwickelt, das erklärt, welche menschlichen Fähigkeiten in einer KI-geprägten Zukunft bestehen bleiben. Es basiert auf drei Säulen:</p>
+
+            <div class="article-skill-model">
+              <div class="article-skill-col">
+                <h4>Wissen</h4>
+                <ul>
+                  <li>Online-Kompetenzen</li>
+                  <li>Statistiken verstehen</li>
+                  <li>KI-Verständnis</li>
+                  <li>Lebenslange Lernfähigkeit</li>
+                  <li>Wissenschaftliches Denken</li>
+                </ul>
+              </div>
+              <div class="article-skill-col featured">
+                <h4>Wollen</h4>
+                <ul>
+                  <li>Langfristige Ziele formulieren</li>
+                  <li>Unternehmerisch denken</li>
+                  <li>Kreativität &amp; Fantasie</li>
+                  <li>Neugier &amp; Explorationslust</li>
+                  <li>Selbstbestimmung</li>
+                </ul>
+              </div>
+              <div class="article-skill-col">
+                <h4>Wirken</h4>
+                <ul>
+                  <li>Teamfähigkeit</li>
+                  <li>Selbstwirksamkeit</li>
+                  <li>Gruppenentscheidungen</li>
+                  <li>Anpassungsfähigkeit</li>
+                  <li>Mut, Fehler zu machen</li>
+                </ul>
+              </div>
+            </div>
+
+            <p>Maschinen werden immer besser im <em>Wissen</em> &mdash; Systeme wie ChatGPT haben quasi das Wissen der Welt gelesen. Und auch im <em>Wirken</em> machen sie Fortschritte: Von der Landwirtschaft über die Baubranche bis hin zu den aktuellen Entwicklungen in der Robotik.</p>
+
+            <div class="article-pull-quote">
+              <p>Aber Maschinen wollen nichts. Sie haben keine Ambitionen, keine Träume, keine Ziele. Das bleibt den Menschen vorbehalten. Ziele definieren wird zum Future&nbsp;Skill.</p>
+              <cite>GDI Future Skills Studie, 2020</cite>
+            </div>
+
+            <p>Auch wenn der Fokus auf menschlichen Fähigkeiten liegt, bleibt KI-Kompetenz unverzichtbar: ein technologisches Verständnis, die Fähigkeit Statistiken zu interpretieren, und die Einschätzung, wie sich KI auf die eigene Arbeit auswirkt.</p>
+
+          </div>
+
+          <figure class="article-breakout">
+            <img src="images/slide22_img16.png" alt="Menschen vor holographischem KI-Gehirn" style="max-height: 420px; object-fit: cover; object-position: center;">
+          </figure>
+
+          <div class="article-col-text">
+
+            <div class="article-section-break">&bull; &bull; &bull;</div>
+
+            <h2>KI im HR: Der Agentic Bewerbungsprozess</h2>
+
+            <p>Wie konkret sich KI bereits auf die tägliche Arbeit im Personalwesen auswirkt, zeigt ein Beispiel aus der Schweiz.</p>
+
+            <div class="article-key-figure">
+              <div class="number">200&rsquo;000</div>
+              <div class="caption">Bewerbungsdossiers gingen 2024 bei der Schweizer Laufschuhfirma On ein</div>
+            </div>
+
+            <p>Bewerbungsdossiers werden dank KI immer einfacher zu erstellen. Das senkt die Aufwandshürde, eine Bewerbung zu verschicken &mdash; dramatisch. Die Nutzung von ChatGPT zum Aufhübschen von Anschreiben ist dabei nur der Anfang.</p>
+
+            <h3>Vibe Application</h3>
+
+            <p>Hergeleitet vom aktuell beliebten Begriff &laquo;Vibe Coding&raquo; &mdash; den Code nicht mehr selbst schreiben, sondern einem Agenten sagen was man will. Das gleiche Prinzip funktioniert bereits für den Bewerbungsprozess: Einem KI-Agenten sagen, welchen Job man sucht, und ihn die ganze Arbeit machen lassen.</p>
+
+            <p>Mithilfe von Claude Code, dem KI-Agenten von Anthropic, lässt sich eine vollständige Bewerbungspipeline automatisieren: Jobprofile automatisch scannen, CVs passgenau auf jede Stelle ausrichten, Skillmatching nutzen, Massenbewerbungen verschicken.</p>
+
+            <div class="article-pull-quote">
+              <p>100 Bewerbungen am Tag pro Person ist keine Zukunftsmusik. Das passiert heute.</p>
+            </div>
+
+          </div>
+
+          <figure class="article-breakout">
+            <div class="article-image-pair">
+              <img src="images/slide27_img18.png" alt="Claude Code scannt automatisch Migros-Jobportal und erstellt Bewerbungen">
+              <img src="images/slide29_img21.png" alt="Automatische CV-Erstellung und Stellenabgleich bei Galaxus">
+            </div>
+            <figcaption>Live-Demo: Claude Code scannt das Migros-Jobportal, erstellt PDFs und passt CVs passgenau für jede Stellenausschreibung an.</figcaption>
+          </figure>
+
+          <div class="article-col-text">
+
+            <h2>Was bedeutet das für HR?</h2>
+
+            <p>70 Prozent der Firmen, die mit KI experimentieren, tun dies im HR-Bereich. Die häufigsten Anwendungen: Stelleninserate verfassen, administrative Aufgaben automatisieren und Kandidaten-Matching nach Kompetenzen.</p>
+
+            <div class="article-comparison">
+              <div>
+                <h4>Chancen</h4>
+                <ul>
+                  <li>Schnell in KI-gestützte Filterprozesse investieren</li>
+                  <li>Persönliche Kontakte rücken in den Fokus</li>
+                  <li>Effizienz: tausende Matches in Sekunden</li>
+                  <li>Breitere Talentpools, schnellere Besetzung</li>
+                </ul>
+              </div>
+              <div>
+                <h4>Risiken</h4>
+                <ul>
+                  <li>Gefahr von Fehlbesetzungen bei Vollautomatisierung</li>
+                  <li>Soft Skills und Cultural Fit werden unsichtbar</li>
+                  <li>Schlechtere Bewerbungserfahrungen</li>
+                  <li>Authentizitätsverlust: Erst am ersten Arbeitstag treffen echte Menschen aufeinander</li>
+                </ul>
+              </div>
+            </div>
+
+            <h3>Agentic Hiring: Agent vs. Agent</h3>
+
+          </div>
+
+          <figure class="article-breakout">
+            <img src="images/slide33_img24.jpg" alt="Code auf transparenten Oberflächen — Symbolbild für Agent vs. Agent" style="max-height: 360px; object-fit: cover;">
+          </figure>
+
+          <div class="article-col-text">
+
+            <p>Die Zukunft des Recruitings könnte so aussehen: KI-Agenten bewerben sich autonom bei KI-Recruiting-Systemen. Agent spricht mit Agent. Die Effizienzgewinne sind enorm &mdash; aber die Frage bleibt, ob ein Prozess, in dem sich Menschen erst am ersten Arbeitstag wirklich begegnen, noch zu den richtigen Besetzungen führt.</p>
+
+            <p>Die Empfehlung: Kandidatenorientierung priorisieren, menschliche Interaktion beibehalten, regulatorische Entwicklungen beobachten &mdash; und in die Weiterbildung der eigenen Recruiter investieren.</p>
+
+            <div class="article-section-break">&bull; &bull; &bull;</div>
+
+            <div class="article-author-end">
+              <img src="images/slide35_img26.jpg" alt="Dr. Gian-Luca Savino">
+              <div class="article-author-end-text">
+                <strong>Dr. Gian-Luca Savino</strong>
+                Technologieforscher am Gottlieb Duttweiler Institut (GDI). Forschung zu den gesellschaftlichen Auswirkungen von KI, Future Skills und der Zukunft der Arbeit.
+              </div>
+            </div>
+
+            <div class="article-qr-end">
+              <img src="images/slide35_img27.png" alt="QR-Code zu den GDI-Studien">
+              <p>Studien zum Nachlesen</p>
+            </div>
+
+          </div>
+
+        </article>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/logo-anim.js"></script>
+</body>
+</html>

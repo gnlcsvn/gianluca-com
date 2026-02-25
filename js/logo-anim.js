@@ -168,7 +168,7 @@
   var logoWrap = document.getElementById('logo-wrap');
   if (logoWrap) {
     logoWrap.addEventListener('click', function () {
-      window.location.href = 'index.html';
+      window.location.href = logoWrap.getAttribute('data-home') || 'index.html';
     });
     // Animation disabled — uncomment to re-enable morph on click:
     // logoWrap.addEventListener('click', function (e) {
