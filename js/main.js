@@ -60,4 +60,15 @@
       nav.classList.remove('site-topbar__nav--open');
     }
   });
+
+  // Open all external links in new tabs
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('a');
+    if (!link) return;
+    var href = link.getAttribute('href') || '';
+    if (href.indexOf('http') === 0 && !link.hasAttribute('target')) {
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener');
+    }
+  });
 })();
