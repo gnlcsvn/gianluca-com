@@ -19,6 +19,12 @@
         '</button>' +
         '<div class="article-body resume-body">' + bodyHtml + '</div>';
 
+      var links = container.querySelectorAll('.resume-body a');
+      for (var i = 0; i < links.length; i++) {
+        links[i].setAttribute('target', '_blank');
+        links[i].setAttribute('rel', 'noopener');
+      }
+
       var btn = document.getElementById('copy-resume-btn');
       btn.addEventListener('click', function () {
         var plainText = resumeMarkdown

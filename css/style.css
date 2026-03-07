@@ -525,6 +525,15 @@ a:hover {
   margin-bottom: var(--space-2);
 }
 
+.resume-body h3 a {
+  color: var(--color-black);
+}
+
+.resume-body h3 + p:not(:has(strong)) {
+  font-size: var(--text-base);
+  color: var(--color-black);
+}
+
 .resume-body ul {
   margin-top: var(--space-1);
 }
