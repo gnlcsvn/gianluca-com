@@ -21,11 +21,25 @@
 
       var btn = document.getElementById('copy-resume-btn');
       btn.addEventListener('click', function () {
+        var plainText = resumeMarkdown
+          // mailto links: [text](mailto:...) → text
+          .replace(/\[([^\]]+)\]\(mailto:[^)]+\)/g, '$1')
+          // Links: [text](url) → text (url)
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)')
+          // Headers: remove # symbols
+          .replace(/^#{1,6}\s+/gm, '')
+          // Bold: **text** → text
+          .replace(/\*\*([^*]+)\*\*/g, '$1')
+          // Italic: *text* → text
+          .replace(/\*([^*]+)\*/g, '$1')
+          // Clean up extra blank lines
+          .replace(/\n{3,}/g, '\n\n');
+
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(resumeMarkdown);
+          navigator.clipboard.writeText(plainText);
         } else {
           var textarea = document.createElement('textarea');
-          textarea.value = resumeMarkdown;
+          textarea.value = plainText;
           textarea.style.position = 'fixed';
           textarea.style.opacity = '0';
           document.body.appendChild(textarea);

@@ -4,50 +4,62 @@
 
 ## Profile
 
-Research scientist with a Ph.D. in Computer Science and HCI and over six years of experience in user research, data analysis, and problem solving. I think scientifically about problems and work from first principles. As a researcher, speaker, consultant, and builder, I use coding agents to turn deep technical knowledge into fast execution. I'm interested in products and technology that make a real difference and in making complex ideas accessible to others.
+Research scientist with a Ph.D. in Computer Science/HCI and over six years of experience in user research, data analysis, and problem solving. I think scientifically about problems and work from first principles. As a researcher, speaker, consultant, and builder, I use coding agents to turn deep technical knowledge into fast execution. I'm interested in products and technology that make a real difference and in making complex ideas accessible to others.
 
 ## Experience
 
-### Researcher, Speaker & Consultant
+### Researcher & Consultant
 **Gottlieb Duttweiler Institute (GDI)** · Zurich, Switzerland · 2025 – present
 
-- Delivering talks and running workshops with clients on AI's impact on society, business, and the workforce
-- Researching AI's impact on the job market and the future of work
-- Leading the AI transformation at GDI — driving insourcing of technical capabilities and enabling new product development
+- Delivering talks and workshops for audiences of 50–400 decision-makers on AI, future skills, and the evolving role of expertise
+- Researching and publishing on AI's impact on the job market, future skills, and societal trends
+- Driving AI adoption across the organization — coaching staff on AI workflows and insourcing design and web development previously handled by external agencies
 
 ### Senior Researcher (Postdoc)
 **University of St. Gallen** · St. Gallen, Switzerland · 2022 – 2025
 
-- Led a research project on sustainable navigation technologies with personnel and budget responsibility
-- Co-authored research and project proposals, including scheduling, budgeting, and risk assessment
-- Planned and conducted field and lab studies in HCI, including statistical analysis of large datasets
-- Taught Bachelor and Master courses in HCI and Algorithms & Data Structures; supervised four doctoral candidates
+- Led a research project on sustainable navigation technologies with full personnel and budget responsibility
+- Co-authored a successfully funded CHF 800k Swiss National Science Foundation research proposal
+- Planned and conducted multiple field and lab studies in HCI with hundreds of participants, including statistical analysis of large datasets
+- Taught multiple Bachelor and Master courses (30–40 students each) in HCI and Algorithms & Data Structures; mentored four doctoral candidates
 
 ### Research Associate (Ph.D.)
 **University of St. Gallen & University of Bremen** · 2018 – 2022
 
-- Built a simulation platform for virtual navigation studies using Python agents
-- Developed mobile apps for experiments on novel pedestrian and cyclist navigation technologies
-- Managed a BMBF-funded research project from proposal through completion
-- Consulted working groups on usability, AI, and interface design
+- Built mobile apps to track real-world usage of map applications, a virtual environment simulation platform, and a compass-based navigation simulator
+- Ran multiple user studies from design through analysis; published results at peer-reviewed HCI conferences
+- Served as teaching assistant for Human-Computer Interaction courses
 
 ## Education
 
 - **Ph.D. Computer Science** · University of St. Gallen · 2022 · *summa cum laude*
 - **M.Sc. Computer Science** · University of Bremen · 2018
-- **Semester Abroad** · Aarhus University · 2014 – 2015
 - **B.Sc. Digital Media** · University of Bremen · 2016
+
+## Projects
+
+### [AI Pulse](https://gnlcsvn.github.io/ai-pulse/)
+Fully automated knowledge pipeline that discovers, transcribes, and analyzes AI leader interviews from the web, extracts predictions and risk signals, and serves them as interactive visualizations. Built to explore agentic workflows for automating knowledge work at scale.
+
+### [LocalWhisper](https://gnlcsvn.github.io/local-whisper/)
+Open-source Mac app for private, offline speech-to-text using locally running AI models. Built as a daily driver and the way I interact most efficiently with the many AI agents I work with simultaneously every day. I also built it to learn and explore local LLMs.
+
+## Selected Publications
+
+- **Savino** et al. [MapRecorder: Analysing real-world usage of mobile map applications.](https://doi.org/10.1080/0144929X.2020.1714733) *Behaviour & Information Technology, 2021*
+- **Savino** et al. [Free as a bird, but at what cost? The impact of street networks on the user experience of as-the-crow-flies navigation for cyclists.](https://doi.org/10.1145/3546744) *MobileHCI 2022*
+- Mildner, **Savino** et al. [About engaging and governing strategies: A thematic analysis of dark patterns in social networking services.](https://doi.org/10.1145/3544548.3580695) *CHI 2023*
 
 ## Skills
 
-**Technical:** User Research · Data Analysis & Visualization · Project Management · Software Architecture & Development · Agentic AI Workflows · Design & Media (Figma, Adobe Creative Suite, Video/Audio Editing)
+**Technical:** User Research · Data Analysis & Visualization · Project Management · Software Architecture · Design & Media (Figma, Adobe Creative Suite, Video/Audio Editing)
 
-Broad fluency across programming languages and frameworks — I focus on architectural decisions and leverage coding agents for fast, principled execution.
+Technically fluent across Python, R, Java, JavaScript, SQL, and web technologies. I read and evaluate code, make architectural decisions, and use coding agents to execute — shipping real software without being bottlenecked by any single stack.
 
-**Working with me:** Driven by shared vision. I make the people around me better, adapt quickly to new teams, and deliver relentlessly. People generally enjoy working with me.
+**Communication:** Public Speaking · Cross-Functional Collaboration · Stakeholder Engagement · Translating Research for Non-Technical Audiences
 
 **Languages:** German (native) · English (C1) · Italian (B1)
 
 ## Contact
 
-contact@gianlucasavino.com
+Zurich, Switzerland · [contact@gianlucasavino.com](mailto:contact@gianlucasavino.com) · [gianlucasavino.com](https://gianlucasavino.com) · [LinkedIn](https://www.linkedin.com/in/gianlucasavino/)
