@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI and the Future Job Market — Gian-Luca Savino</title>
+  <meta name="description" content="How AI is redefining the world of work — from public sentiment to the skill mismatch to the fully automated hiring process.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+/* ---- Width containers ---- */
+.ra-text {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+.ra-media {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ---- Header (centered, full-width) ---- */
+.ra-header {
+  text-align: center;
+  padding: 4rem 1.25rem 2.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.ra-category {
+  font-family: var(--font-stack);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-black);
+  margin-bottom: 1.5rem;
+}
+.ra-title {
+  font-family: var(--font-stack);
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--color-black);
+  margin-bottom: 1.25rem;
+  text-wrap: balance;
+}
+.ra-subtitle {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  color: var(--color-gray-500);
+  line-height: 1.55;
+  font-style: italic;
+}
+.ra-date {
+  font-family: var(--font-stack);
+  font-size: 0.92rem;
+  color: var(--color-gray-500);
+  margin-top: 1rem;
+}
+
+/* ---- Hero image ---- */
+.ra-hero {
+  max-width: 880px;
+  margin: 0 auto 3rem;
+  padding: 0 1.25rem;
+}
+.ra-hero img {
+  width: 100%;
+  display: block;
+  border-radius: 12px;
+}
+
+/* ---- Key findings (plain text, no box) ---- */
+.ra-findings {
+  margin-bottom: 2.5rem;
+}
+.ra-findings h2 {
+  font-family: var(--font-stack);
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+.ra-findings ul {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--color-black);
+  padding-left: 1.35rem;
+  margin: 0;
+}
+.ra-findings li {
+  margin-bottom: 0.75rem;
+}
+.ra-findings li:last-child {
+  margin-bottom: 0;
+}
+
+/* ---- Body typography ---- */
+.ra-body {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--color-black);
+}
+.ra-body p {
+  margin-bottom: 1rem;
+}
+.ra-body p:last-child { margin-bottom: 0; }
+
+.ra-body h2 {
+  font-family: var(--font-stack);
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 3rem 0 1rem;
+}
+.ra-body h3 {
+  font-family: var(--font-stack);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 2.5rem 0 0.75rem;
+}
+
+.ra-body ul, .ra-body ol {
+  padding-left: 1.35rem;
+  margin-bottom: 1rem;
+}
+.ra-body li {
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+}
+
+.ra-body strong { font-weight: 700; }
+.ra-body em { font-style: italic; }
+
+.ra-body a {
+  color: var(--color-black);
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 0.2em;
+  transition: color 0.15s;
+}
+.ra-body a:hover {
+  color: var(--color-accent);
+}
+
+/* ---- Section divider ---- */
+.ra-divider {
+  text-align: center;
+  margin: 3rem 0;
+  color: var(--color-gray-300);
+  font-size: 1.2rem;
+  letter-spacing: 0.5em;
+}
+
+/* ---- Figures ---- */
+.ra-figure {
+  margin: 2.5rem 0;
+}
+.ra-figure img {
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+}
+.ra-figure figcaption {
+  font-family: var(--font-stack);
+  font-size: 14px;
+  color: var(--color-gray-500);
+  line-height: 1.4;
+  margin-top: 0.6rem;
+  letter-spacing: 0.01em;
+}
+.ra-figure figcaption strong {
+  color: var(--color-gray-700);
+}
+
+/* ---- Callout block ---- */
+.ra-callout {
+  margin: 2.5rem 0;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+}
+.ra-callout p {
+  font-family: var(--font-stack);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--color-gray-700);
+  margin-bottom: 0.5rem;
+}
+.ra-callout p:last-child { margin-bottom: 0; }
+
+/* ---- Pull quote ---- */
+.ra-pull-quote {
+  margin: 2.5rem 0;
+  padding: 0.5rem 0;
+  border-top: 3px solid var(--color-black);
+}
+.ra-pull-quote p {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0;
+}
+.ra-pull-quote cite {
+  display: block;
+  font-family: var(--font-stack);
+  font-size: 0.8rem;
+  font-style: normal;
+  color: var(--color-gray-500);
+  margin-top: 0.5rem;
+}
+
+/* ---- Key figure / stat ---- */
+.ra-stat {
+  text-align: center;
+  margin: 2.5rem 0;
+  padding: 2rem 0;
+}
+.ra-stat-number {
+  font-family: var(--font-heading);
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-accent);
+}
+.ra-stat-label {
+  font-family: var(--font-stack);
+  font-size: 0.88rem;
+  color: var(--color-gray-500);
+  margin-top: 0.4rem;
+}
+
+/* ---- Two column comparison ---- */
+.ra-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+.ra-comparison h4 {
+  font-family: var(--font-stack);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--color-black);
+}
+.ra-comparison ul {
+  padding-left: 1.1rem;
+  margin-bottom: 0;
+}
+.ra-comparison li { margin-bottom: 0.35rem; }
+
+/* ---- Skill model ---- */
+.ra-skill-model {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-gray-200);
+  font-family: var(--font-stack);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.ra-skill-col {
+  padding: 1.25rem;
+  border-right: 1px solid var(--color-gray-200);
+}
+.ra-skill-col:last-child { border-right: none; }
+.ra-skill-col.featured { background: var(--color-black); color: var(--color-white); }
+.ra-skill-col h4 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+  opacity: 0.6;
+}
+.ra-skill-col.featured h4 { opacity: 0.5; }
+.ra-skill-col ul { list-style: none; padding: 0; }
+.ra-skill-col li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  margin: 0;
+}
+.ra-skill-col.featured li { border-bottom-color: rgba(255,255,255,0.1); }
+.ra-skill-col li:last-child { border-bottom: none; }
+
+/* ---- Image pair ---- */
+.ra-image-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 2rem 0;
+}
+.ra-image-pair img {
+  width: 100%;
+  display: block;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 8px;
+}
+
+/* ---- Horizontal bar chart ---- */
+.ra-h-bar-chart {
+  margin: 1.5rem 0;
+  font-family: var(--font-stack);
+}
+.ra-h-bar-chart .bar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+.ra-h-bar-chart .bar-label {
+  width: 220px;
+  flex-shrink: 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--color-black);
+  text-align: right;
+  padding-right: 1rem;
+  line-height: 1.3;
+}
+.ra-h-bar-chart .bar-track {
+  flex: 1;
+  height: 36px;
+  background: var(--color-gray-100);
+  position: relative;
+  overflow: hidden;
+}
+.ra-h-bar-chart .bar-fill {
+  height: 100%;
+  background: rgba(217, 119, 87, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-black);
+}
+.ra-h-bar-chart .chart-axis {
+  display: flex;
+  align-items: center;
+  margin-top: 0.35rem;
+  padding-left: 220px;
+}
+.ra-h-bar-chart .chart-axis .axis-line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--color-black);
+}
+.ra-h-bar-chart .chart-footer {
+  text-align: right;
+  font-size: 0.78rem;
+  color: var(--color-gray-500);
+  margin-top: 0.3rem;
+  padding-left: 220px;
+}
+
+/* ---- Source line ---- */
+.ra-source {
+  font-family: var(--font-stack);
+  font-size: 0.75rem;
+  color: var(--color-gray-300);
+  margin-top: -0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ---- Footnotes ---- */
+.ra-footnotes {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-gray-200);
+}
+.ra-footnotes-title {
+  font-family: var(--font-stack);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gray-500);
+  margin-bottom: 0.75rem;
+}
+.ra-footnotes ol {
+  padding-left: 1.25rem;
+  font-family: var(--font-stack);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--color-gray-500);
+}
+.ra-footnotes li {
+  margin-bottom: 0.35rem;
+}
+.ra-footnotes a {
+  color: var(--color-accent);
+}
+
+/* ---- Author card ---- */
+.ra-authors {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-gray-200);
+}
+.ra-authors-title {
+  font-family: var(--font-stack);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gray-500);
+  margin-bottom: 1rem;
+}
+.ra-author {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.ra-author img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.ra-author-info {
+  font-family: var(--font-stack);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--color-gray-500);
+}
+.ra-author-name {
+  font-weight: 600;
+  color: var(--color-black);
+  display: block;
+  margin-bottom: 0.1rem;
+}
+
+/* ---- End spacer ---- */
+.ra-end {
+  height: 4rem;
+}
+
+/* ---- Print ---- */
+@media print {
+  .site-topbar, .site-sidebar, .sidebar-overlay { display: none; }
+  body { font-size: 15px; }
+  .ra-text, .ra-media { max-width: 100%; }
+  .ra-skill-model, .ra-comparison { break-inside: avoid; }
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 700px) {
+  .ra-header { padding-top: 2.5rem; }
+  .ra-title { font-size: 2rem; }
+  .ra-subtitle { font-size: 1.08rem; }
+  .ra-body { font-size: 16px; }
+  .ra-findings ul { font-size: 16px; }
+  .ra-pull-quote p { font-size: 1.2rem; }
+  .ra-stat-number { font-size: 3rem; }
+  .ra-author { flex-direction: column; }
+  .ra-hero img { border-radius: 8px; }
+  .ra-comparison { grid-template-columns: 1fr; gap: 1.25rem; }
+  .ra-skill-model { grid-template-columns: 1fr; }
+  .ra-skill-col { border-right: none; border-bottom: 1px solid var(--color-gray-200); }
+  .ra-skill-col:last-child { border-bottom: none; }
+  .ra-image-pair { grid-template-columns: 1fr; }
+  .ra-h-bar-chart .bar-row {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+  .ra-h-bar-chart .bar-label {
+    width: auto;
+    text-align: left;
+    padding-right: 0;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+  }
+  .ra-h-bar-chart .bar-track {
+    width: 100%;
+    height: 32px;
+  }
+  .ra-h-bar-chart .chart-axis { padding-left: 0; }
+  .ra-h-bar-chart .chart-footer { padding-left: 0; }
+}
+
+/* ---- Remove container padding for article pages ---- */
+.site-main .article-container {
+  max-width: none;
+  padding: 0;
+}
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <div class="site-layout">
+    <div id="site-chrome"></div>
+
+    <main id="main" class="site-main">
+      <div class="article-container">
+
+        <!-- ==============================
+             HEADER (centered, wide)
+             ============================== -->
+        <header class="ra-header">
+          <div class="ra-category">Artificial Intelligence &amp; the World of Work</div>
+          <h1 class="ra-title">AI and the Future Job Market</h1>
+          <div class="ra-date">Mar 11, 2026</div>
+        </header>
+
+        <!-- ==============================
+             HERO IMAGE (media width, rounded)
+             ============================== -->
+        <div class="ra-hero">
+          <img src="images/hero_img.png" alt="Fully automated AI luxury — illustration of an AI-shaped future">
+        </div>
+
+        <!-- ==============================
+             KEY FINDINGS (plain, text-width)
+             ============================== -->
+        <div class="ra-text">
+          <div class="ra-findings">
+            <h2>Key Findings</h2>
+            <ul>
+              <li><strong>People have mixed feelings about AI.</strong> 31% view it positively, 27% negatively &mdash; but 64% expect major changes in the workplace.</li>
+              <li><strong>The skill mismatch is real.</strong> Employers demand specific interpersonal skills; applicants offer generic signals like "communication" and "leadership."</li>
+              <li><strong>Soft skills beat technical skills.</strong> Jobs requiring high social <em>and</em> high analytical ability have seen the largest wage growth since 1980.</li>
+              <li><strong>AI is automating the hiring process itself.</strong> AI agents can already send 100 tailored applications per day &mdash; and recruiters are responding with AI filters of their own.</li>
+            </ul>
+          </div>
+        </div>
+
+        <article class="ra-body">
+
+          <!-- ==============================
+               BODY SECTIONS
+               ============================== -->
+          <div class="ra-text">
+
+            <h2>What people think about AI</h2>
+
+            <p>In recent years, artificial intelligence has fundamentally transformed not just our technological landscape but increasingly our working lives as well. We haven't yet arrived at all-powerful superintelligence, but the effects on society, the labor market, and recruiting are already tangible. In a recently published study, the Gottlieb Duttweiler Institute examined this societal shift in detail.</p>
+
+            <p>Through a representative survey across the DACH region &mdash; 3,031 consumers and 287 managers with leadership responsibility &mdash; GDI asked: What do people think about AI, and what developments do they expect?</p>
+
+            <p>The answer is ambivalent. 31 percent of respondents view AI positively overall, while 27 percent lean negative. People feel uncertain when thinking about the future &mdash; their feelings are mixed.</p>
+
+          </div>
+
+          <!-- ==============================
+               BREAKOUT FIGURE (media width)
+               ============================== -->
+          <div class="ra-media">
+            <figure class="ra-figure">
+              <img src="images/mixed_feelings.png" alt="Mixed feelings: 27% negative, 31% positive attitudes toward AI">
+              <figcaption><strong>Figure 1.</strong> Attitudes toward AI in the DACH region: Nearly as many optimists as pessimists. Source: GDI Consumer Survey (2024), N&nbsp;=&nbsp;3,031</figcaption>
+            </figure>
+          </div>
+
+          <div class="ra-text">
+
+            <p>When it comes to specific expectations, a more nuanced picture emerges. The biggest changes are anticipated in the workplace: 64 percent expect major upheaval there. Expectations are similarly high for learning and professional development. Somewhat lower, but still significant, are the expected changes in daily life, shopping, and social communication.</p>
+
+          </div>
+
+          <div class="ra-media">
+            <figure class="ra-figure">
+              <img src="images/major_change.png" alt="Share of respondents expecting major change by life domain">
+              <figcaption><strong>Figure 2.</strong> Share of respondents expecting major change. Source: GDI Consumer Survey (2024), N&nbsp;=&nbsp;3,031</figcaption>
+            </figure>
+          </div>
+
+          <div class="ra-text">
+
+            <p>Looking more closely at which changes are expected to be positive and which negative, concerns outweigh hopes. Respondents do see some improvements &mdash; particularly in the efficiency of public administration. But the worries revolve mainly around money and jobs: 60 percent expect a decline in the number of shops in city centers, and 50 percent expect fewer available jobs.</p>
+
+          </div>
+
+          <div class="ra-media">
+            <figure class="ra-figure">
+              <img src="images/expected_improvements_and_deteriorations.png" alt="AI in business, society, politics: Expected improvements and deteriorations">
+              <figcaption><strong>Figure 2.</strong> Expected improvements (green) and deteriorations (pink) due to AI. Concern about the labor market dominates. Source: GDI (2024)</figcaption>
+            </figure>
+          </div>
+
+          <div class="ra-text">
+
+            <div class="ra-pull-quote">
+              <p>50% of respondents expect a decline in the number of available jobs &mdash; the classic argument that AI will replace human work.</p>
+              <cite>GDI Consumer Survey, 2024</cite>
+            </div>
+
+            <h2>The Swiss labor market feels the impact</h2>
+
+            <p>The concern is not unfounded. A recently published study by KOF at ETH Zurich reveals a clear correlation: since the launch of ChatGPT in November 2022, the number of job seekers in AI-affected occupations has risen significantly faster than in less affected occupations &mdash; across all age groups.</p>
+
+          </div>
+
+          <div class="ra-media">
+            <figure class="ra-figure">
+              <img src="images/KOF_English.png" alt="Job seekers by age group and AI exposure, ETH KOF 2025">
+              <figcaption><strong>Figure 3.</strong> Job seekers by age group: The black line (high AI exposure) has risen significantly faster since November 2022. Source: ETH KOF (2025)</figcaption>
+            </figure>
+          </div>
+
+          <div class="ra-text">
+
+            <p>Programmers and software developers are among the losers. Younger workers are more affected than older ones &mdash; though the gap is smaller than in the United States. The question presses: if AI primarily replaces programming and administrative work, which skills are still in demand?</p>
+
+            <div class="ra-divider">&bull; &bull; &bull;</div>
+
+            <h2>The skill mismatch</h2>
+
+            <p>A recent report from Wharton University provides answers. The researchers systematically analyzed which skills workers offer on their r&eacute;sum&eacute;s and which employers demand in job postings. The finding is revealing.</p>
+
+          </div>
+
+          <div class="ra-text">
+
+            <div class="ra-comparison">
+              <div>
+                <h4>More demanded than supplied</h4>
+                <ul>
+                  <li>Public Speaking</li>
+                  <li>Digital Marketing</li>
+                  <li>Public Relations</li>
+                </ul>
+              </div>
+              <div>
+                <h4>More supplied than demanded</h4>
+                <ul>
+                  <li>Problem Solving</li>
+                  <li>Communication</li>
+                  <li>Leadership &amp; Accountability</li>
+                </ul>
+              </div>
+            </div>
+
+            <p>The most in-demand skills are not technical &mdash; they revolve around interpersonal abilities. At the same time, many applicants advertise broad, generalist signals like &ldquo;communication&rdquo; or &ldquo;leadership&rdquo; &mdash; skills so widespread that they barely differentiate anymore.</p>
+
+            <p>With AI, this becomes even more relevant: routine and standardized work gets automated. What moves to the foreground is whatever is scarce, specific, and value-creating.</p>
+
+            <h3>What follows from this</h3>
+
+            <div class="ra-comparison">
+              <div>
+                <h4>For employers</h4>
+                <ul>
+                  <li>Measure skills systematically &mdash; make surpluses and shortages visible</li>
+                  <li>Decompose roles into concrete tasks &mdash; clearly separate human strengths from AI tasks</li>
+                  <li>Tie compensation to the actual value of skills, not to job titles</li>
+                </ul>
+              </div>
+              <div>
+                <h4>For workers</h4>
+                <ul>
+                  <li>Build a skill portfolio instead of just maintaining a r&eacute;sum&eacute;</li>
+                  <li>Specific, role-relevant skills increase market value</li>
+                  <li>Use AI deliberately to build execution competence faster</li>
+                </ul>
+              </div>
+            </div>
+            <p class="ra-source">Source: Wharton University &amp; Accenture</p>
+
+            <h2>Soft skills beat technical abilities</h2>
+
+            <p>The growing importance of social competencies can also be demonstrated empirically. A study published in the Financial Times shows: social skills are now more strongly linked to employment and wages than purely technical abilities. Occupations that demand both high social <em>and</em> high mathematical skills have seen the largest wage increases since 1980.</p>
+
+          </div>
+
+          <div class="ra-media">
+            <figure class="ra-figure">
+              <img src="images/FT_figure.png" alt="Financial Times chart: Social skills and employment since 1980">
+              <figcaption><strong>Figure 5.</strong> Employment and wages by skill profile: Occupations with high social demands consistently perform better. Source: Financial Times (2025), based on Deming (2017)</figcaption>
+            </figure>
+          </div>
+
+          <div class="ra-text">
+
+            <p>AI is increasingly automating standardized, quantitative work. The value of human labor is shifting toward collaboration, communication, judgment, and team coordination.</p>
+
+            <div class="ra-divider">&bull; &bull; &bull;</div>
+
+            <h2>Knowing, Wanting, Acting</h2>
+
+            <p>In its Future Skills study, GDI developed a model that explains which human capabilities will endure in an AI-shaped future. It rests on three pillars:</p>
+
+            <div class="ra-skill-model">
+              <div class="ra-skill-col">
+                <h4>Knowing</h4>
+                <ul>
+                  <li>Digital literacy</li>
+                  <li>Understanding statistics</li>
+                  <li>AI literacy</li>
+                  <li>Lifelong learning ability</li>
+                  <li>Scientific thinking</li>
+                </ul>
+              </div>
+              <div class="ra-skill-col featured">
+                <h4>Wanting</h4>
+                <ul>
+                  <li>Formulating long-term goals</li>
+                  <li>Entrepreneurial thinking</li>
+                  <li>Creativity &amp; imagination</li>
+                  <li>Curiosity &amp; drive to explore</li>
+                  <li>Self-determination</li>
+                </ul>
+              </div>
+              <div class="ra-skill-col">
+                <h4>Acting</h4>
+                <ul>
+                  <li>Teamwork</li>
+                  <li>Self-efficacy</li>
+                  <li>Group decision-making</li>
+                  <li>Adaptability</li>
+                  <li>Courage to make mistakes</li>
+                </ul>
+              </div>
+            </div>
+
+            <p>Machines are getting better and better at <em>knowing</em> &mdash; systems like ChatGPT have essentially read the world's knowledge. And they're also making progress in <em>acting</em>: from agriculture to construction to the latest developments in robotics.</p>
+
+            <div class="ra-pull-quote">
+              <p>But machines don't want anything. They have no ambitions, no dreams, no goals. That remains reserved for humans. Defining goals is becoming the future skill.</p>
+              <cite>GDI Future Skills Study, 2020</cite>
+            </div>
+
+            <p>Even though the focus lies on human capabilities, AI competence remains indispensable: a technological understanding, the ability to interpret statistics, and an awareness of how AI impacts one's own work.</p>
+
+          </div>
+
+          <div class="ra-text">
+
+            <div class="ra-divider">&bull; &bull; &bull;</div>
+
+            <h2>AI in HR: The agentic hiring process</h2>
+
+            <p>A concrete example from Switzerland shows how AI is already affecting daily work in human resources.</p>
+
+            <div class="ra-stat">
+              <div class="ra-stat-number">200,000</div>
+              <div class="ra-stat-label">job applications were received in 2024 by Swiss running shoe company On</div>
+            </div>
+
+            <p>AI is making it ever easier to create application dossiers. This lowers the effort barrier to sending out a job application &mdash; dramatically. Using ChatGPT to polish a cover letter is just the beginning.</p>
+
+            <h3>Vibe Application</h3>
+
+            <p>Derived from the currently popular term &ldquo;vibe coding&rdquo; &mdash; no longer writing the code yourself, but telling an agent what you want. The same principle already works for the hiring process: tell an AI agent which job you're looking for, and let it do all the work.</p>
+
+            <p>Using Claude Code, Anthropic's AI agent, an entire application pipeline can be automated: scanning job profiles automatically, tailoring CVs to each position, leveraging skill matching, sending out mass applications.</p>
+
+            <div class="ra-pull-quote">
+              <p>100 applications per day per person is not science fiction. It's happening today.</p>
+            </div>
+
+          </div>
+
+          <div class="ra-text">
+
+            <h2>What does this mean for HR?</h2>
+
+            <p>70 percent of companies experimenting with AI are doing so in HR. The most common use cases: writing job postings, automating administrative tasks, and matching candidates by competency.</p>
+
+            <div class="ra-comparison">
+              <div>
+                <h4>Opportunities</h4>
+                <ul>
+                  <li>Invest quickly in AI-powered screening processes</li>
+                  <li>Personal connections move to the foreground</li>
+                  <li>Efficiency: thousands of matches in seconds</li>
+                  <li>Broader talent pools, faster time-to-hire</li>
+                </ul>
+              </div>
+              <div>
+                <h4>Risks</h4>
+                <ul>
+                  <li>Danger of bad hires with full automation</li>
+                  <li>Soft skills and cultural fit become invisible</li>
+                  <li>Worse candidate experiences</li>
+                  <li>Loss of authenticity: real people only meet on the first day of work</li>
+                </ul>
+              </div>
+            </div>
+
+            <h3>Agentic Hiring: Agent vs. Agent</h3>
+
+          </div>
+
+          <div class="ra-text">
+
+            <p>The future of recruiting could look like this: AI agents apply autonomously to AI recruiting systems. Agent talks to agent. The efficiency gains are enormous &mdash; but the question remains whether a process in which humans only truly meet on the first day of work still leads to the right hires.</p>
+
+            <p>The recommendation: prioritize candidate orientation, maintain human interaction, monitor regulatory developments &mdash; and invest in upskilling your own recruiters.</p>
+
+          </div>
+
+          <div class="ra-end"></div>
+
+        </article>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/logo-anim.js"></script>
+</body>
+</html>

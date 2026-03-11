@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How Fast Is AI Making Switzerland? — Gian-Luca Savino</title>
+  <meta name="description" content="Swiss cantonal analysis of AI efficiency gains using the Anthropic Economic Index, showing a 10.5x mean speedup across 5,097 Claude conversations.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+/* ---- Width containers ---- */
+.ra-text {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+.ra-media {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ---- Header ---- */
+.ra-header {
+  text-align: center;
+  padding: 4rem 1.25rem 2.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.ra-category {
+  font-family: var(--font-stack);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-black);
+  margin-bottom: 1.5rem;
+}
+.ra-title {
+  font-family: var(--font-stack);
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--color-black);
+  margin-bottom: 1.25rem;
+  text-wrap: balance;
+}
+.ra-date {
+  font-family: var(--font-stack);
+  font-size: 0.92rem;
+  color: var(--color-gray-500);
+}
+
+/* ---- Key findings ---- */
+.ra-findings {
+  margin-bottom: 2.5rem;
+}
+.ra-findings h2 {
+  font-family: var(--font-stack);
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+.ra-findings ul {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--color-black);
+  padding-left: 1.35rem;
+  margin: 0;
+}
+.ra-findings li {
+  margin-bottom: 0.75rem;
+}
+.ra-findings li:last-child {
+  margin-bottom: 0;
+}
+
+/* ---- Body ---- */
+.ra-body {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--color-black);
+}
+.ra-body p { margin-bottom: 1rem; }
+.ra-body p:last-child { margin-bottom: 0; }
+.ra-body h2 {
+  font-family: var(--font-stack);
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 3rem 0 1rem;
+}
+.ra-body h3 {
+  font-family: var(--font-stack);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 2.5rem 0 0.75rem;
+}
+.ra-body ul, .ra-body ol {
+  padding-left: 1.35rem;
+  margin-bottom: 1rem;
+}
+.ra-body li {
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+}
+.ra-body strong { font-weight: 700; }
+.ra-body em { font-style: italic; }
+.ra-body a {
+  color: var(--color-black);
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 0.2em;
+  transition: color 0.15s;
+}
+.ra-body a:hover { color: var(--color-accent); }
+
+/* ---- Divider ---- */
+.ra-divider {
+  text-align: center;
+  margin: 3rem 0;
+  color: var(--color-gray-300);
+  font-size: 1.2rem;
+  letter-spacing: 0.5em;
+}
+
+/* ---- Figures ---- */
+.ra-figure {
+  margin: 2.5rem 0;
+}
+.ra-figure figcaption {
+  font-family: var(--font-stack);
+  font-size: 14px;
+  color: var(--color-gray-500);
+  line-height: 1.4;
+  margin-top: 0.6rem;
+  letter-spacing: 0.01em;
+}
+.ra-figure figcaption strong {
+  color: var(--color-gray-700);
+}
+
+/* ---- Callout ---- */
+.ra-callout {
+  margin: 2.5rem 0;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+}
+.ra-callout p {
+  font-family: var(--font-stack);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--color-gray-700);
+  margin-bottom: 0.5rem;
+}
+.ra-callout p:last-child { margin-bottom: 0; }
+
+/* ---- Stat ---- */
+.ra-stat {
+  text-align: center;
+  margin: 2.5rem 0;
+  padding: 2rem 0;
+}
+.ra-stat-number {
+  font-family: var(--font-heading);
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-accent);
+}
+.ra-stat-label {
+  font-family: var(--font-stack);
+  font-size: 0.88rem;
+  color: var(--color-gray-500);
+  margin-top: 0.4rem;
+}
+
+/* ---- Metric cards ---- */
+.chart-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin: 2rem 0;
+  background: var(--color-gray-200);
+  border: 1px solid var(--color-gray-200);
+  font-family: var(--font-stack);
+}
+.chart-metric {
+  background: var(--color-white);
+  padding: 1.5rem;
+  text-align: center;
+}
+.chart-metric__number {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-accent);
+}
+.chart-metric__label {
+  font-size: 0.8rem;
+  color: var(--color-gray-500);
+  margin-top: 0.4rem;
+  line-height: 1.3;
+}
+.chart-metric__delta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
+  color: var(--color-gray-700);
+}
+
+/* ---- Horizontal bar chart ---- */
+.chart-hbar {
+  margin: 2rem 0;
+  font-family: var(--font-stack);
+}
+.chart-hbar__row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+.chart-hbar__label {
+  width: 130px;
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-black);
+  text-align: right;
+  padding-right: 1rem;
+  line-height: 1.3;
+}
+.chart-hbar__track {
+  flex: 1;
+  height: 28px;
+  background: var(--color-gray-100);
+  position: relative;
+}
+.chart-hbar__fill {
+  height: 100%;
+  background: rgba(217, 119, 87, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-black);
+}
+.chart-hbar__fill--above {
+  background: rgba(217, 119, 87, 0.45);
+}
+.chart-hbar__fill--below {
+  background: var(--color-gray-200);
+}
+.chart-hbar__label--dim {
+  color: var(--color-gray-500);
+}
+.chart-hbar__n {
+  font-size: 0.68rem;
+  color: var(--color-gray-500);
+  margin-left: 0.5rem;
+  white-space: nowrap;
+}
+.chart-hbar__ref {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 1.5px;
+  background: var(--color-black);
+  z-index: 1;
+}
+.chart-hbar__axis {
+  display: flex;
+  margin-top: 0.25rem;
+  padding-left: 130px;
+}
+.chart-hbar__axis-line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--color-black);
+}
+.chart-hbar__footer {
+  text-align: right;
+  font-size: 0.78rem;
+  color: var(--color-gray-500);
+  margin-top: 0.25rem;
+}
+.chart-hbar__ref-label {
+  font-size: 0.68rem;
+  color: var(--color-gray-500);
+  margin-top: 0.35rem;
+  padding-left: 130px;
+}
+.chart-hbar__ref-label span {
+  display: inline-block;
+  width: 10px;
+  height: 1.5px;
+  background: var(--color-black);
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* ---- Map ---- */
+.map-wrap {
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  position: relative;
+}
+.map-wrap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.canton {
+  stroke: var(--color-white);
+  stroke-width: 0.8;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.canton:hover {
+  opacity: 0.7;
+  stroke: var(--color-black);
+  stroke-width: 1.5;
+}
+.canton.no-data {
+  fill: var(--color-gray-100);
+  cursor: default;
+}
+.canton.no-data:hover {
+  opacity: 1;
+  stroke: var(--color-gray-200);
+}
+.canton.low-sample {
+  stroke-dasharray: 3,2;
+}
+.map-legend {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(250,249,246,0.94);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: var(--font-stack);
+  font-size: 0.68rem;
+}
+.map-legend-title {
+  color: var(--color-gray-500);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.map-legend-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 2px;
+  overflow: hidden;
+  width: 140px;
+}
+.map-legend-bar div { flex: 1; }
+.map-legend-labels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-gray-500);
+  margin-top: 2px;
+}
+.map-legend .no-data-row {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-gray-500);
+}
+.map-legend .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.map-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: var(--font-stack);
+  font-size: 0.82rem;
+  box-shadow: 0 4px 12px rgba(19,19,20,0.08);
+  opacity: 0;
+  transition: opacity 0.12s;
+  z-index: 10;
+  max-width: 220px;
+}
+.map-tooltip.show { opacity: 1; }
+.map-tooltip .tt-name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+.map-tooltip .tt-val {
+  color: var(--color-accent);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.map-tooltip .tt-sub {
+  color: var(--color-gray-500);
+  font-size: 0.72rem;
+  margin-top: 2px;
+}
+
+/* ---- Footnotes ---- */
+.ra-footnotes {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-gray-200);
+}
+.ra-footnotes-title {
+  font-family: var(--font-stack);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gray-500);
+  margin-bottom: 0.75rem;
+}
+.ra-footnotes ol {
+  padding-left: 1.25rem;
+  font-family: var(--font-stack);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--color-gray-500);
+}
+.ra-footnotes li { margin-bottom: 0.35rem; }
+.ra-footnotes a { color: var(--color-accent); }
+.ra-body sup a {
+  font-family: var(--font-stack);
+  font-size: 0.65rem;
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+.ra-body sup a:hover { text-decoration: underline; }
+
+/* ---- Authors ---- */
+.ra-authors {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-gray-200);
+}
+.ra-authors-title {
+  font-family: var(--font-stack);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gray-500);
+  margin-bottom: 1rem;
+}
+.ra-author {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.ra-author img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.ra-author-info {
+  font-family: var(--font-stack);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--color-gray-500);
+}
+.ra-author-name {
+  font-weight: 600;
+  color: var(--color-black);
+  display: block;
+  margin-bottom: 0.1rem;
+}
+
+.ra-end { height: 4rem; }
+
+.site-main .article-container {
+  max-width: none;
+  padding: 0;
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 700px) {
+  .ra-header { padding-top: 2.5rem; }
+  .ra-title { font-size: 2rem; }
+  .ra-body { font-size: 16px; }
+  .ra-findings ul { font-size: 16px; }
+  .ra-stat-number { font-size: 3rem; }
+  .chart-metrics { grid-template-columns: 1fr; }
+  .chart-hbar__label {
+    width: auto;
+    text-align: left;
+    padding-right: 0;
+    margin-bottom: 0.25rem;
+    font-size: 0.82rem;
+  }
+  .chart-hbar__row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .chart-hbar__track { width: 100%; }
+  .chart-hbar__axis, .chart-hbar__ref-label { padding-left: 0; }
+}
+
+@media print {
+  .site-topbar, .site-sidebar, .sidebar-overlay { display: none; }
+  body { font-size: 15px; }
+  .ra-text, .ra-media { max-width: 100%; }
+}
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <div class="site-layout">
+    <div id="site-chrome"></div>
+
+    <main id="main" class="site-main">
+      <div class="article-container">
+
+        <header class="ra-header">
+          <div class="ra-category">Research</div>
+          <h1 class="ra-title">How Fast Is AI Making Switzerland?</h1>
+          <div class="ra-date">Mar 10, 2026</div>
+        </header>
+
+        <div class="ra-text">
+          <div class="ra-findings">
+            <h2>Key findings</h2>
+            <ul>
+              <li><strong>Tasks that would take 2.5 hours become 14-minute conversations.</strong> Across 5,097 Swiss Claude sessions, the mean estimated speedup is 10.5x.</li>
+              <li><strong>Efficiency gains are consistent across cantons</strong> &mdash; from Z&uuml;rich (10.3x, n=2,229) to Bern (8.9x, n=353), every canton above the sample threshold shows at least an 8.9x speedup.</li>
+              <li><strong>The median tells a different story.</strong> At the median, tasks drop from 75 minutes to 10 &mdash; a 7.5x gain. The gap between mean and median suggests a long tail of complex tasks where AI saves the most time.</li>
+            </ul>
+          </div>
+        </div>
+
+        <article class="ra-body">
+
+          <div class="ra-text">
+
+            <h2>The data</h2>
+
+            <p>In January 2026, Anthropic released the fourth version of its <a href="https://www.anthropic.com/research/the-anthropic-economic-index">Economic Index</a> &mdash; a dataset of roughly one million Claude.ai conversations from November 13&ndash;20, 2025. Each conversation was classified by Claude itself using privacy-preserving methods, estimating variables like how long a task would take a human alone, how long it took with AI assistance, and the degree of autonomy delegated to the model.<sup><a href="#fn1" id="ref1">1</a></sup></p>
+
+            <p>The dataset includes geographic breakdowns. Switzerland contributes 5,097 conversations, split across 19 cantons. Two of the economic primitives &mdash; <em>human_only_time</em> (estimated in hours) and <em>human_with_ai_time</em> (estimated in minutes) &mdash; let us measure the perceived efficiency gain directly.</p>
+
+          </div>
+
+          <div class="ra-media">
+            <figure class="ra-figure">
+              <div class="chart-metrics">
+                <div class="chart-metric">
+                  <div class="chart-metric__number">10.5x</div>
+                  <div class="chart-metric__label">Mean speedup</div>
+                  <div class="chart-metric__delta">150 min &rarr; 14.3 min</div>
+                </div>
+                <div class="chart-metric">
+                  <div class="chart-metric__number">7.5x</div>
+                  <div class="chart-metric__label">Median speedup</div>
+                  <div class="chart-metric__delta">75 min &rarr; 10 min</div>
+                </div>
+                <div class="chart-metric">
+                  <div class="chart-metric__number">136</div>
+                  <div class="chart-metric__label">Minutes saved (mean)</div>
+                  <div class="chart-metric__delta">Per conversation</div>
+                </div>
+              </div>
+              <figcaption><strong>Figure 1.</strong> Swiss national efficiency metrics. Human-only time is converted from hours to minutes for comparability. N = 5,097 conversations, Nov 13&ndash;20, 2025.</figcaption>
+            </figure>
+          </div>
+
+          <div class="ra-text">
+
+            <p>The mean speedup of 10.5x means that, on average, what Claude estimates would take a competent professional 2 hours and 30 minutes took roughly 14 minutes with AI assistance. The median is lower at 7.5x &mdash; a typical task drops from 1 hour 15 minutes to 10 minutes. The gap between mean and median reflects a right-skewed distribution: some tasks involve substantial human-only time estimates (research, complex coding, multi-step analysis), and these are precisely where AI collaboration saves the most time.</p>
+
+            <h2>Where AI is actually being used</h2>
+
+            <p>The efficiency gains are consistent across cantons. But the distribution of <em>who is using AI</em> is not. Of the 5,097 Swiss conversations in the dataset, nearly half come from a single canton.</p>
+
+          </div>
+
+          <div class="ra-media">
+            <div class="ra-stat">
+              <div class="ra-stat-number">43.7%</div>
+              <div class="ra-stat-label">of all Swiss Claude conversations come from Z&uuml;rich alone</div>
+            </div>
+          </div>
+
+          <div class="ra-text">
+
+            <p>Z&uuml;rich&rsquo;s dominance is partly explained by economics: the canton is home to Switzerland&rsquo;s largest concentration of tech companies, financial institutions, and ETH Z&uuml;rich. But its 44% share of AI usage far exceeds its roughly 18% share of the Swiss population. The top five cantons &mdash; Z&uuml;rich, Geneva, Vaud, Bern, and Basel-Stadt &mdash; account for 76.7% of all conversations.</p>
+
+          </div>
+
+          <!-- ==============================
+               CANTONAL MAP
+               ============================== -->
+          <div class="ra-media">
+            <figure class="ra-figure">
+              <div class="map-wrap" id="map-container">
+                <div class="map-tooltip" id="map-tooltip"></div>
+              </div>
+              <figcaption><strong>Figure 2.</strong> Share of Swiss Claude AI conversations by canton. Darker shading = higher share of national usage. Grey = no data in dataset. Seven small, rural cantons have no recorded conversations.</figcaption>
+            </figure>
+          </div>
+
+          <div class="ra-text">
+
+            <p>Seven cantons &mdash; Appenzell Innerrhoden, Appenzell Ausserrhoden, Glarus, Jura, Nidwalden, Obwalden, and Uri &mdash; have no recorded conversations at all. These are small, rural cantons, but their absence from the dataset is still striking. If AI literacy is built through exposure, and exposure is concentrated in a handful of urban centres, the risk is clear: Z&uuml;rich and the other major hubs are building AI fluency at a pace that the rest of the country cannot match.</p>
+
+            <p>This matters because the efficiency gains are real everywhere they are measured. The speedup is not a Z&uuml;rich phenomenon &mdash; Bern, the lowest among high-sample cantons, still shows an 8.9x gain. The bottleneck is not whether AI helps, but who gets to use it. A canton where almost no one interacts with AI tools is a canton that will struggle to adapt when AI reshapes the skills its workforce needs.</p>
+
+            <div class="ra-callout">
+              <p><strong>A note on methodology.</strong> These are Claude&rsquo;s own estimates of how long tasks would take with and without AI. They reflect the model&rsquo;s assessment, not ground truth. Anthropic notes that human_only_time is estimated in hours by design, while human_with_ai_time is in minutes &mdash; the unit gap itself encodes an assumption about the scale of the difference.<sup><a href="#fn2" id="ref2">2</a></sup> The data comes from a single week in November 2025 and reflects Claude.ai usage only, not all AI tool usage in Switzerland.</p>
+            </div>
+
+            <h2>What this doesn&rsquo;t tell us</h2>
+
+            <p>Efficiency is not productivity. A 10x speedup on the wrong task is still wasted time. And a single platform&rsquo;s data cannot stand in for the full picture of AI adoption. Swiss professionals also use ChatGPT, Copilot, Gemini, and a growing list of domain-specific tools that are invisible here.</p>
+
+            <p>But the concentration pattern is likely to generalise. If nearly half of one platform&rsquo;s Swiss usage comes from Z&uuml;rich, it would be surprising if the other platforms told a fundamentally different story. The question is not whether AI is useful &mdash; the 10.5x speedup answers that. The question is whether Switzerland&rsquo;s AI dividend will be shared across cantons, or whether it will widen the gap between those who are already ahead and those who are not yet in the game.</p>
+
+            <div class="ra-divider">&bull; &bull; &bull;</div>
+
+            <div class="ra-footnotes">
+              <div class="ra-footnotes-title">Notes</div>
+              <ol>
+                <li id="fn1">Anthropic, <em>The Anthropic Economic Index: Insights from Claude.ai</em>, v4, January 2026. The dataset uses privacy-preserving classification where Claude assesses each conversation against the economic primitive definitions from Table 2.1 of the report. <a href="#ref1">&uarr;</a></li>
+                <li id="fn2">The classifier prompt asks for human_only_time in hours and human_with_ai_time in minutes. See data_documentation_v4.md and the economic primitives report, Table 2.1, for the full classifier definitions. <a href="#ref2">&uarr;</a></li>
+              </ol>
+            </div>
+
+          </div>
+
+          <div class="ra-end"></div>
+
+        </article>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+  <script>
+// ===== CANTON DATA (precomputed from AEI v4) =====
+const CANTON_DATA = [
+  { iso: 'CH-ZH', name: 'Zürich',       n: 2229, pct: 43.73, meanSpeedup: 10.3 },
+  { iso: 'CH-GE', name: 'Geneva',        n: 623,  pct: 12.22, meanSpeedup: 11.0 },
+  { iso: 'CH-VD', name: 'Vaud',          n: 418,  pct: 8.20,  meanSpeedup: 10.2 },
+  { iso: 'CH-BE', name: 'Bern',          n: 353,  pct: 6.93,  meanSpeedup: 8.9 },
+  { iso: 'CH-BS', name: 'Basel-Stadt',   n: 286,  pct: 5.61,  meanSpeedup: 10.9 },
+  { iso: 'CH-LU', name: 'Lucerne',       n: 194,  pct: 3.81,  meanSpeedup: 9.7 },
+  { iso: 'CH-TI', name: 'Ticino',        n: 136,  pct: 2.67,  meanSpeedup: 9.9 },
+  { iso: 'CH-SG', name: 'St. Gallen',    n: 135,  pct: 2.65,  meanSpeedup: 11.0 },
+  { iso: 'CH-AG', name: 'Aargau',        n: 130,  pct: 2.55,  meanSpeedup: 10.3 },
+  { iso: 'CH-SO', name: 'Solothurn',     n: 126,  pct: 2.47,  meanSpeedup: 10.4 },
+  { iso: 'CH-FR', name: 'Fribourg',      n: 74,   pct: 1.45,  meanSpeedup: 9.8 },
+  { iso: 'CH-VS', name: 'Valais',        n: 65,   pct: 1.28,  meanSpeedup: 9.8 },
+  { iso: 'CH-BL', name: 'Basel-Land',    n: 63,   pct: 1.24,  meanSpeedup: 13.8 },
+  { iso: 'CH-ZG', name: 'Zug',           n: 46,   pct: 0.90,  meanSpeedup: 9.3 },
+  { iso: 'CH-NE', name: 'Neuchâtel',     n: 45,   pct: 0.88,  meanSpeedup: 10.8 },
+  { iso: 'CH-SZ', name: 'Schwyz',        n: 41,   pct: 0.80,  meanSpeedup: 10.9 },
+  { iso: 'CH-TG', name: 'Thurgau',       n: 39,   pct: 0.77,  meanSpeedup: 12.4 },
+  { iso: 'CH-GR', name: 'Graubünden',    n: 37,   pct: 0.73,  meanSpeedup: 11.3 },
+  { iso: 'CH-SH', name: 'Schaffhausen',  n: 16,   pct: 0.31,  meanSpeedup: 12.8 }
+];
+
+const CH_MEAN = 10.5;
+const MIN_N = 100;
+
+// TopoJSON canton name → ISO code
+const CANTON_MAP = {
+  'Aargau':'CH-AG','Appenzell Ausserrhoden':'CH-AR','Appenzell Innerrhoden':'CH-AI',
+  'Basel-Landschaft':'CH-BL','Basel-Stadt':'CH-BS','Bern':'CH-BE',
+  'Fribourg':'CH-FR','Genève':'CH-GE','Glarus':'CH-GL',
+  'Graubünden':'CH-GR','Jura':'CH-JU','Lucerne':'CH-LU',
+  'Neuchâtel':'CH-NE','Nidwalden':'CH-NW','Obwalden':'CH-OW',
+  'Sankt Gallen':'CH-SG','Schaffhausen':'CH-SH','Schwyz':'CH-SZ',
+  'Solothurn':'CH-SO','Thurgau':'CH-TG','Ticino':'CH-TI',
+  'Uri':'CH-UR','Valais':'CH-VS','Vaud':'CH-VD',
+  'Zug':'CH-ZG','Zürich':'CH-ZH'
+};
+
+const dataByIso = {};
+CANTON_DATA.forEach(d => dataByIso[d.iso] = d);
+
+const MAP_COLORS = ['#f5ebe6','#f0d5c6','#e8bda6','#dfa486','#d97757','#b8613f','#8f4a2f'];
+
+function getColor(pct) {
+  if (!pct && pct !== 0) return '#f0eee9';
+  // Log scale to handle Zürich's 44% vs others' <1%
+  const logVal = Math.log10(pct + 0.1);
+  const logMin = Math.log10(0.4);   // ~0.3%
+  const logMax = Math.log10(44);    // ~44%
+  const t = Math.max(0, Math.min(1, (logVal - logMin) / (logMax - logMin)));
+  const i = Math.min(MAP_COLORS.length - 1, Math.floor(t * MAP_COLORS.length));
+  return MAP_COLORS[i];
+}
+
+// ===== BUILD MAP =====
+async function buildMap() {
+  const container = document.getElementById('map-container');
+  const tooltip = document.getElementById('map-tooltip');
+
+  const resp = await fetch('ch-cantons.json');
+  const topo = await resp.json();
+  const features = topojson.feature(topo, topo.objects.che).features;
+
+  const width = 880;
+  const height = 580;
+  const projection = d3.geoMercator().fitSize([width, height], { type: 'FeatureCollection', features });
+  const path = d3.geoPath(projection);
+
+  const svg = d3.select(container).insert('svg', ':first-child')
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  svg.selectAll('path')
+    .data(features)
+    .join('path')
+    .attr('d', path)
+    .attr('class', d => {
+      const iso = CANTON_MAP[d.properties.name];
+      const cd = iso ? dataByIso[iso] : null;
+      let cls = 'canton';
+      if (!cd) cls += ' no-data';
+      return cls;
+    })
+    .attr('fill', d => {
+      const iso = CANTON_MAP[d.properties.name];
+      const cd = iso ? dataByIso[iso] : null;
+      return cd ? getColor(cd.pct) : '#f0eee9';
+    })
+    .on('mouseenter', function(event, d) {
+      const iso = CANTON_MAP[d.properties.name];
+      const cd = iso ? dataByIso[iso] : null;
+      if (!cd) return;
+      const rect = container.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      tooltip.innerHTML = `<div class="tt-name">${cd.name}</div>` +
+        `<div class="tt-val">${cd.pct}% of Swiss usage</div>` +
+        `<div class="tt-sub">${cd.n.toLocaleString()} conversations</div>` +
+        `<div class="tt-sub">${cd.meanSpeedup}x mean speedup</div>`;
+      tooltip.style.left = (x + 12) + 'px';
+      tooltip.style.top = (y - 8) + 'px';
+      tooltip.classList.add('show');
+    })
+    .on('mousemove', function(event) {
+      const rect = container.getBoundingClientRect();
+      tooltip.style.left = (event.clientX - rect.left + 12) + 'px';
+      tooltip.style.top = (event.clientY - rect.top - 8) + 'px';
+    })
+    .on('mouseleave', () => tooltip.classList.remove('show'));
+
+  // Legend
+  const legend = document.createElement('div');
+  legend.className = 'map-legend';
+  legend.innerHTML = `
+    <div class="map-legend-title">Share of usage</div>
+    <div class="map-legend-bar">${MAP_COLORS.map(c => `<div style="background:${c}"></div>`).join('')}</div>
+    <div class="map-legend-labels"><span>&lt; 1%</span><span>44%</span></div>
+    <div class="no-data-row"><div class="swatch" style="background:#f0eee9;border:1px solid #e2dfd8"></div> No data</div>
+  `;
+  container.appendChild(legend);
+}
+
+// ===== INIT =====
+buildMap();
+  </script>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/logo-anim.js"></script>
+</body>
+</html>
