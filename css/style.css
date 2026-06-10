@@ -16,12 +16,11 @@
 
   /* Typography
      --font-stack : native system sans — drives the home and all UI/body text.
-     --font-heading: SERIF (Libre Baskerville) — kept intentionally so the
-                     existing article pages render their headings, subtitles,
-                     pull-quotes and body prose exactly as authored.
+     --font-heading: also the native system sans (the site is all-sans;
+                     headings are set apart by size and weight, not a serif).
      --font-mono  : native monospace — used for small metadata (dates). */
   --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-heading: "Libre Baskerville", Georgia, "Times New Roman", serif;
+  --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   /* Font sizes */
@@ -309,6 +308,7 @@ a:hover {
 /* Dot separators between the profile/contact links */
 .home__links a:not(:last-child)::after {
   content: "·";
+  display: inline-block;
   margin: 0 var(--space-2);
   color: var(--color-gray-300);
 }

@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>How Fast Is AI Making Switzerland? — Gian-Luca Savino</title>
   <meta name="description" content="Swiss cantonal analysis of AI efficiency gains using the Anthropic Economic Index, showing a 10.5x mean speedup across 5,097 Claude conversations.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../css/style.css">
   <style>
 /* ---- Width containers ---- */
@@ -347,7 +344,7 @@
   position: absolute;
   bottom: 12px;
   left: 12px;
-  background: rgba(250,249,246,0.94);
+  background: rgba(251,251,252,0.94);
   border: 1px solid var(--color-gray-200);
   border-radius: 4px;
   padding: 8px 12px;
@@ -708,10 +705,10 @@ const CANTON_MAP = {
 const dataByIso = {};
 CANTON_DATA.forEach(d => dataByIso[d.iso] = d);
 
-const MAP_COLORS = ['#f5ebe6','#f0d5c6','#e8bda6','#dfa486','#d97757','#b8613f','#8f4a2f'];
+const MAP_COLORS = ['#eff3ff','#c6dbef','#9ecae1','#6baed6','#4292c6','#2171b5','#084594'];
 
 function getColor(pct) {
-  if (!pct && pct !== 0) return '#f0eee9';
+  if (!pct && pct !== 0) return '#e4e5e8';
   // Log scale to handle Zürich's 44% vs others' <1%
   const logVal = Math.log10(pct + 0.1);
   const logMin = Math.log10(0.4);   // ~0.3%
@@ -753,7 +750,7 @@ async function buildMap() {
     .attr('fill', d => {
       const iso = CANTON_MAP[d.properties.name];
       const cd = iso ? dataByIso[iso] : null;
-      return cd ? getColor(cd.pct) : '#f0eee9';
+      return cd ? getColor(cd.pct) : '#e4e5e8';
     })
     .on('mouseenter', function(event, d) {
       const iso = CANTON_MAP[d.properties.name];
@@ -784,7 +781,7 @@ async function buildMap() {
     <div class="map-legend-title">Share of usage</div>
     <div class="map-legend-bar">${MAP_COLORS.map(c => `<div style="background:${c}"></div>`).join('')}</div>
     <div class="map-legend-labels"><span>&lt; 1%</span><span>44%</span></div>
-    <div class="no-data-row"><div class="swatch" style="background:#f0eee9;border:1px solid #e2dfd8"></div> No data</div>
+    <div class="no-data-row"><div class="swatch" style="background:#e4e5e8;border:1px solid #c2c4c8"></div> No data</div>
   `;
   container.appendChild(legend);
 }
