@@ -37,5 +37,7 @@ No build, lint, or test commands exist—this is intentional.
 
 - ES5 JavaScript (uses `var`, not `let`/`const`; no arrow functions)
 - BEM-style CSS class naming (e.g., `writing__title`)
-- System sans body text; Libre Baskerville serif headings (used by the article/resume pages via `--font-heading`); near-black (`#131314`) on warm off-white (`#faf9f6`), with a single terracotta accent (`--color-accent`) used only for link-hover and selection
+- All system sans — no web fonts; headings are set apart by size and weight (both `--font-stack` and `--font-heading` resolve to the system sans stack)
+- Palette: near-black (`#17171a`) on cool off-white (`#fbfbfc`), with a single blue accent (`--color-accent`, `#0b5cff`) used only for link-hover and selection
+- Layout: the home, `resume.html`, and `404.html` are left-aligned; the long-form article pages use a centered reading column
 - The interactive article pages add their own `<style>` blocks that reference the global `:root` custom properties — keep those variable names stable when editing `css/style.css`
