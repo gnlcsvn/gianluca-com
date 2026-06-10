@@ -3,16 +3,16 @@
    ============================== */
 
 :root {
-  /* Colors — warm off-white page, near-black ink, single terracotta accent */
-  --color-black: #131314;
-  --color-white: #faf9f6;
-  --color-accent: #d97757;
-  --color-gray-700: #55514a;
-  --color-gray-500: #6a655c;
-  --color-gray-300: #bfbab1;
-  --color-gray-200: #e3e0d9;
-  --color-gray-100: #efece6;
-  --color-gray-50: #f4f2ed;
+  /* Colors — cool off-white page, near-black ink, single blue accent */
+  --color-black: #17171a;
+  --color-white: #fbfbfc;
+  --color-accent: #0b5cff;
+  --color-gray-700: #44464b;
+  --color-gray-500: #686b71;
+  --color-gray-300: #c2c4c8;
+  --color-gray-200: #e4e5e8;
+  --color-gray-100: #eeeff1;
+  --color-gray-50: #f3f4f5;
 
   /* Typography
      --font-stack : native system sans — drives the home and all UI/body text.
@@ -115,7 +115,7 @@ a:hover {
 }
 
 ::selection {
-  background: rgba(217, 119, 87, 0.22);
+  background: rgba(11, 92, 255, 0.16);
 }
 
 /* ==============================
@@ -156,8 +156,8 @@ a:hover {
 
 .site-header {
   max-width: var(--content-max-width);
-  margin: 0 auto;
-  padding: var(--space-5) var(--space-4) 0;
+  margin: 0;
+  padding: var(--space-5) var(--space-5) 0;
 }
 
 .site-header__home {
@@ -182,8 +182,8 @@ a:hover {
 
 .site-main .container {
   max-width: var(--content-max-width);
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-4);
+  margin: 0;
+  padding: var(--space-6) var(--space-5);
 }
 
 /* ==============================
@@ -193,8 +193,8 @@ a:hover {
 
 .home {
   max-width: var(--content-max-width);
-  margin: 0 auto;
-  padding: var(--space-12) var(--space-4) var(--space-10);
+  margin: 0;
+  padding: var(--space-12) var(--space-5) var(--space-10);
 }
 
 .home__name {
@@ -218,7 +218,13 @@ a:hover {
 }
 
 .home__intro--last {
-  margin-bottom: var(--space-10);
+  margin-bottom: var(--space-4);
+}
+
+/* Writing section — separated from the intro/links block by a hairline */
+.home__writing {
+  border-top: 1px solid var(--color-gray-200);
+  padding-top: var(--space-6);
 }
 
 /* Section label */
@@ -236,7 +242,7 @@ a:hover {
    muted one-line description beneath. */
 .writing {
   list-style: none;
-  margin: 0 0 var(--space-10);
+  margin: 0;
   padding: 0;
 }
 
@@ -283,17 +289,28 @@ a:hover {
 .home__links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
   font-size: var(--text-sm);
+  margin-bottom: var(--space-5);
 }
 
 .home__links a {
   color: var(--color-gray-700);
+  text-decoration: none;
 }
 
 .home__links a:hover {
   color: var(--color-accent);
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 0.06em;
+}
+
+/* Dot separators between the profile/contact links */
+.home__links a:not(:last-child)::after {
+  content: "·";
+  margin: 0 var(--space-2);
+  color: var(--color-gray-300);
 }
 
 @media (max-width: 32rem) {
