@@ -11,7 +11,7 @@ Personal website of Gian-Luca Savino.
 ## Structure
 
 ```
-├── index.html          # Home page (About + Writing)
+├── index.html          # Home page (intro + Writing list; static, no JS)
 ├── resume.html         # Resume page (renders resume.md)
 ├── resume.md           # Resume content (Markdown)
 ├── 404.html
@@ -21,9 +21,8 @@ Personal website of Gian-Luca Savino.
 ├── css/
 │   └── style.css
 ├── js/
-│   ├── main.js         # Shared top navigation
-│   ├── resume.js       # Renders resume.md with marked.js
-│   └── logo-anim.js    # Canvas logo animation
+│   ├── main.js         # Injects the minimal back-home header on sub-pages
+│   └── resume.js       # Renders resume.md with marked.js
 └── lib/
     └── marked.min.js   # Markdown renderer
 ```
