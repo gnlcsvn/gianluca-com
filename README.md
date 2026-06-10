@@ -6,28 +6,26 @@ Personal website of Gian-Luca Savino.
 
 - Vanilla HTML, CSS, JavaScript
 - No frameworks, no build step
-- Markdown articles rendered client-side with [marked](https://github.com/markedjs/marked)
+- Resume rendered client-side from Markdown with [marked](https://github.com/markedjs/marked)
 
 ## Structure
 
 ```
-├── index.html          # Home page
-├── writing.html        # Article listing
-├── article.html        # Article viewer
-├── projects.html       # Projects grid
-├── projects.json       # Project data
+├── index.html          # Home page (About + Writing)
+├── resume.html         # Resume page (renders resume.md)
+├── resume.md           # Resume content (Markdown)
+├── 404.html
 ├── articles/
-│   ├── manifest.json   # Article metadata
-│   └── *.md            # Article content
+│   └── <slug>/         # Each article is a self-contained HTML page
+│       └── index.html
 ├── css/
 │   └── style.css
 ├── js/
-│   ├── main.js         # Navigation
-│   ├── articles.js     # Article listing
-│   ├── article.js      # Article rendering
-│   └── projects.js     # Project cards
-└── images/
-    └── projects/       # Project screenshots
+│   ├── main.js         # Shared top navigation
+│   ├── resume.js       # Renders resume.md with marked.js
+│   └── logo-anim.js    # Canvas logo animation
+└── lib/
+    └── marked.min.js   # Markdown renderer
 ```
 
 ## Development
