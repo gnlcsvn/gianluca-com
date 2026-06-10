@@ -1,70 +1,37 @@
 (function () {
   var chrome = document.getElementById('site-chrome');
-  if (!chrome) return;
+  if (!chrome) { return; }
 
   var path = window.location.pathname.replace(/\/$/, '') || '/';
 
-  // Resolve base path for links (handles subpages in subdirectories)
+  // Resolve base path for links (handles sub-pages in subdirectories).
+  // Computes how many '../' are needed to climb back to the site root
+  // from within /articles/<slug>/ pages so the back-home link resolves.
   var depth = 0;
   var cleanPath = path.replace(/\/index\.html$/, '');
   var segments = cleanPath.split('/').filter(Boolean);
   for (var s = 0; s < segments.length; s++) {
     if (segments[s] === 'articles') { depth = segments.length - s; break; }
   }
-  var base = depth > 0 ? '../'.repeat(depth) : '';
+  var base = depth > 0 ? new Array(depth + 1).join('../') : '';
 
-  // Build nav links HTML
-  var navHTML =
-    '<nav class="site-topbar__nav" id="topbar-nav">' +
-      '<a href="' + base + 'resume.html" class="site-topbar__link">Resume</a>' +
-      '<a href="https://scholar.google.com/citations?user=R2AuVGkAAAAJ&hl=de&oi=ao" class="site-topbar__link" target="_blank" rel="noopener">Research</a>' +
-      '<a href="https://github.com/gnlcsvn" class="site-topbar__link" target="_blank" rel="noopener">GitHub</a>' +
-      '<a href="https://www.linkedin.com/in/gianlucasavino/" class="site-topbar__link" target="_blank" rel="noopener">LinkedIn</a>' +
-      '<a href="https://x.com/gnlcsvn" class="site-topbar__link" target="_blank" rel="noopener">X</a>' +
-    '</nav>';
+  // Inject a minimal, quiet back-home header in normal flow (not fixed):
+  // a single small link showing the site name. No nav bar, no hamburger,
+  // no logo canvas.
+  chrome.innerHTML =
+    '<header class="site-header">' +
+      '<a href="' + base + 'index.html" class="site-header__home">Gian-Luca Savino</a>' +
+    '</header>';
 
-  // Build topbar HTML
-  var topbarHTML =
-    '<div class="site-topbar">' +
-      '<div class="site-topbar__left">' +
-        '<button class="site-topbar__menu-btn" id="menu-toggle" aria-label="Toggle navigation">' +
-          '<span></span><span></span><span></span>' +
-        '</button>' +
-        '<div class="site-topbar__logo" id="logo-wrap" data-home="' + base + 'index.html">' +
-          '<canvas id="logo-canvas"></canvas>' +
-        '</div>' +
-      '</div>' +
-      navHTML +
-    '</div>';
-
-  chrome.innerHTML = topbarHTML;
-
-  // Mobile hamburger toggle
-  var menuBtn = document.getElementById('menu-toggle');
-  var nav = document.getElementById('topbar-nav');
-
-  if (menuBtn && nav) {
-    menuBtn.addEventListener('click', function () {
-      var isOpen = nav.classList.contains('site-topbar__nav--open');
-      if (isOpen) {
-        nav.classList.remove('site-topbar__nav--open');
-      } else {
-        nav.classList.add('site-topbar__nav--open');
-      }
-    });
-  }
-
-  // Close nav on Escape
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && nav) {
-      nav.classList.remove('site-topbar__nav--open');
-    }
-  });
-
-  // Open all external links in new tabs
+  // Open all external http(s) links in a new tab.
   document.addEventListener('click', function (e) {
-    var link = e.target.closest('a');
-    if (!link) return;
+    var node = e.target;
+    var link = null;
+    while (node && node.nodeType === 1) {
+      if (node.tagName === 'A') { link = node; break; }
+      node = node.parentNode;
+    }
+    if (!link) { return; }
     var href = link.getAttribute('href') || '';
     if (href.indexOf('http') === 0 && !link.hasAttribute('target')) {
       link.setAttribute('target', '_blank');

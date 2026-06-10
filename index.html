@@ -4,51 +4,57 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gian-Luca Savino</title>
-  <meta name="description" content="Personal website of Gian-Luca Savino. Researcher, software builder, PhD in Computer Science.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <meta name="description" content="Gian-Luca Savino — researcher and builder studying how AI reshapes society, business, and the future of work. Writing and interactive pieces.">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to content</a>
 
-  <div class="site-layout">
-    <div id="site-chrome"></div>
+  <main id="main" class="home">
+    <header>
+      <h1 class="home__name">Gian-Luca Savino</h1>
+      <p class="home__tagline">Researcher and builder</p>
+    </header>
 
-    <main id="main" class="site-main">
-      <div class="container">
-        <section id="about" class="docs-section">
-          <h1 class="docs-section__title">About</h1>
-          <div class="docs-section__content">
-            <p>
-              Gian-Luca Savino is a researcher, speaker, and consultant at the <a href="https://gdi.ch/en/about-us/team/gian-luca-savino" target="_blank" rel="noopener">Gottlieb Duttweiler Institute</a> in Zurich, where he works on how AI reshapes society, business, and the future of work. On the side, he builds software tools to explore what's possible with AI agents.
-            </p>
-            <p>
-              Previously, he was a Senior Researcher at the Human-Computer Interaction Lab at the University of St. Gallen, where he led a research project on sustainable navigation technologies and taught courses in HCI and Algorithms &amp; Data Structures.
-            </p>
-            <p>
-              Gian-Luca holds a Ph.D. in Computer Science from the University of St. Gallen, awarded <em>summa cum laude</em>, and a Master's in Computer Science from the University of Bremen.
-            </p>
+    <p class="home__intro">
+      I study how AI reshapes society, business, and the future of work at the
+      <a href="https://gdi.ch/en/about-us/team/gian-luca-savino" target="_blank" rel="noopener">Gottlieb Duttweiler Institute</a>
+      in Zurich. On the side I build software tools to explore what is possible with AI agents.
+    </p>
+    <p class="home__intro home__intro--last">
+      This is where I keep my writing and interactive pieces.
+    </p>
+
+    <section aria-labelledby="writing-heading">
+      <h2 id="writing-heading" class="home__heading">Writing</h2>
+      <ul class="writing">
+        <li class="writing__item">
+          <div class="writing__row">
+            <time class="writing__date" datetime="2026-03-11">Mar 11, 2026</time>
+            <a class="writing__title" href="articles/ai%20and%20the%20future%20job%20market/">AI and the Future Job Market</a>
           </div>
-        </section>
-
-        <section id="writing" class="docs-section">
-          <h2 class="docs-section__title">Writing</h2>
-          <div class="docs-section__content">
-            <p>
-              <a href="articles/swiss-ai-efficiency/"><strong>How Fast Is AI Making Switzerland?</strong></a> — Swiss cantonal analysis of AI efficiency gains and usage concentration using the Anthropic Economic Index.
-            </p>
-            <p>
-              <a href="articles/ai%20and%20the%20future%20job%20market/"><strong>AI and the Future Job Market</strong></a> — How AI is redefining the world of work &mdash; from public sentiment and the skill mismatch to fully automated hiring processes.
-            </p>
+          <p class="writing__desc">How AI is redefining the world of work — from public sentiment and the skill mismatch to fully automated hiring.</p>
+        </li>
+        <li class="writing__item">
+          <div class="writing__row">
+            <time class="writing__date" datetime="2026-03-10">Mar 10, 2026</time>
+            <a class="writing__title" href="articles/swiss-ai-efficiency/">How Fast Is AI Making Switzerland?</a>
           </div>
-        </section>
-      </div>
-    </main>
-  </div>
+          <p class="writing__desc">A Swiss cantonal analysis of AI efficiency gains and usage concentration using the Anthropic Economic Index.</p>
+        </li>
+      </ul>
+    </section>
 
-  <script src="js/main.js"></script>
-  <script src="js/logo-anim.js"></script>
+    <footer>
+      <nav class="home__links" aria-label="Profiles and contact">
+        <a href="mailto:contact@gianlucasavino.com">Email</a>
+        <a href="https://github.com/gnlcsvn" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/gianlucasavino/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://scholar.google.com/citations?user=R2AuVGkAAAAJ&hl=de&oi=ao" target="_blank" rel="noopener">Google Scholar</a>
+        <a href="https://x.com/gnlcsvn" target="_blank" rel="noopener">X</a>
+        <a href="resume.html">Resume</a>
+      </nav>
+    </footer>
+  </main>
 </body>
 </html>
