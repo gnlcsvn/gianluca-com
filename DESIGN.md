@@ -6,39 +6,41 @@ This file defines the visual language for gianlucasavino.com. Follow these guide
 
 | Token | Hex | Usage |
 |---|---|---|
-| `--color-black` | `#131314` | Primary text, borders, strong elements |
-| `--color-white` | `#faf9f6` | Background (warm off-white) |
-| `--color-accent` | `#d97757` | Links on hover, key stats, accent borders |
-| `--color-gray-700` | `#5c5850` | Secondary text, subheadings |
-| `--color-gray-500` | `#8a857d` | Tertiary text, dates, captions, metadata |
-| `--color-gray-300` | `#c4c0b8` | Dividers (light), decorative elements |
-| `--color-gray-200` | `#e2dfd8` | Borders, table rules, section dividers |
-| `--color-gray-100` | `#f0eee9` | Subtle backgrounds (code blocks, callouts) |
-| `--color-gray-50` | `#f5f4f0` | Barely-visible backgrounds |
+| `--color-black` | `#17171a` | Primary text, borders, strong elements |
+| `--color-white` | `#fbfbfc` | Background (cool off-white) |
+| `--color-accent` | `#0b5cff` | Links on hover, selection, key stats, accent borders |
+| `--color-gray-700` | `#44464b` | Secondary text, subheadings |
+| `--color-gray-500` | `#686b71` | Tertiary text, dates, captions, metadata |
+| `--color-gray-300` | `#c2c4c8` | Dividers (light), decorative elements |
+| `--color-gray-200` | `#e4e5e8` | Borders, table rules, section dividers |
+| `--color-gray-100` | `#eeeff1` | Subtle backgrounds (code blocks, callouts) |
+| `--color-gray-50` | `#f3f4f5` | Barely-visible backgrounds |
 
 **Rules:**
 - Never use pure black (`#000`) or pure white (`#fff`)
-- The accent color is used sparingly — for interactive states, key statistics, and footnote links. It is not a brand color to splash everywhere
-- For chart fills, use `rgba(217, 119, 87, 0.3)` (accent at 30% opacity) or grayscale values from the palette
+- The accent is a single blue, used sparingly — primarily link-hover and selection, plus key statistics and footnote links. It is not a brand color to splash everywhere
+- For chart fills, use `rgba(11, 92, 255, 0.3)` (accent at 30% opacity) or grayscale values from the palette
 
 ## Typography
 
-### Site-wide (UI pages: homepage, resume, nav)
-- **Body:** Helvetica Neue (sans-serif) — `var(--font-stack)`
-- **Headings:** Libre Baskerville (serif) — `var(--font-heading)`
+The site is **all system sans** — no web fonts. Both `--font-stack` and `--font-heading` resolve to the native system sans stack (`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`). Headings are set apart by **size and weight**, not by a serif. Monospace (`--font-mono`) is reserved for small metadata such as feed dates and inline code.
+
+### Site-wide (UI pages: homepage, notes, resume, nav)
+- **Body:** system sans — `var(--font-stack)`, 1rem
+- **Headings:** system sans, heavier weight (600–700) and larger size
 
 ### Research articles (long-form reading)
-- **Body:** Libre Baskerville (serif) — `var(--font-heading)`, 17px, line-height 1.4
-- **Headings (h2, h3):** Helvetica Neue (sans-serif) — `var(--font-stack)`, weight 600
-- **Title (h1):** Helvetica Neue, weight 700, centered, large (`clamp(2.2rem, 6vw, 3.8rem)`)
+- **Body:** system sans — 17px, comfortable line-height
+- **Headings (h2, h3):** system sans, weight 600
+- **Title (h1):** system sans, weight 700, centered, large (`clamp(2.2rem, 6vw, 3.8rem)`)
 
-This inversion is intentional. UI pages are short and scannable — sans-serif body keeps them clean. Articles are for sustained reading — serif body is more comfortable for long text.
+Articles are distinguished from UI pages by a **centered reading column** (not a different typeface).
 
 ### Supporting type
-- **Captions / figcaptions:** Helvetica Neue, 14px, `--color-gray-500`
-- **Metadata (dates, reading time):** Helvetica Neue, ~0.9rem, `--color-gray-500`
-- **Labels (uppercase):** Helvetica Neue, 0.72rem, weight 700, letter-spacing 0.06–0.08em, uppercase, `--color-gray-500`
-- **Monospace (code):** SFMono-Regular / Consolas — `var(--font-mono)`
+- **Captions / figcaptions:** system sans, 14px, `--color-gray-500`
+- **Metadata (dates, reading time):** system sans or mono, ~0.9rem, `--color-gray-500`
+- **Labels (uppercase):** system sans, 0.72rem, weight 700, letter-spacing 0.06–0.08em, uppercase, `--color-gray-500`
+- **Monospace (code, feed/note dates):** `var(--font-mono)` (system mono)
 
 ## Layout Widths
 
@@ -74,7 +76,7 @@ Use the CSS custom property scale: `--space-1` (6px) through `--space-12` (80px)
 - Let whitespace do the work — don't crowd elements
 
 ### Colors in charts
-- **Primary fill:** `rgba(217, 119, 87, 0.3)` (accent at 30%)
+- **Primary fill:** `rgba(11, 92, 255, 0.3)` (accent at 30%)
 - **Secondary fill:** `var(--color-gray-100)`
 - **Axis lines / rules:** `var(--color-black)` at 1.5px
 - **Grid lines:** avoid them. If absolutely needed, `var(--color-gray-200)` at 1px
@@ -82,10 +84,10 @@ Use the CSS custom property scale: `--space-1` (6px) through `--space-12` (80px)
 - For multiple data series, use opacity steps of the accent (15%, 30%, 50%, 70%) or the grayscale palette. Do not introduce new hues
 
 ### Typography in charts
-- **Axis labels / bar labels:** Helvetica Neue, 0.85–0.92rem, weight 500
-- **Data values:** Helvetica Neue, 0.85rem, weight 700
+- **Axis labels / bar labels:** system sans, 0.85–0.92rem, weight 500
+- **Data values:** system sans, 0.85rem, weight 700
 - **Chart titles:** not needed if the figcaption handles it
-- **Source / footer:** Helvetica Neue, 0.78rem, `--color-gray-500`, right-aligned
+- **Source / footer:** system sans, 0.78rem, `--color-gray-500`, right-aligned
 
 ### Figure treatment
 - Images get `border-radius: 8px` (hero: 12px)

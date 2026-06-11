@@ -220,8 +220,8 @@ a:hover {
   margin-bottom: var(--space-4);
 }
 
-/* Writing section — separated from the intro/links block by a hairline */
-.home__writing {
+/* Feed section — separated from the intro/links block by a hairline */
+.home__feed {
   border-top: 1px solid var(--color-gray-200);
   padding-top: var(--space-6);
 }
@@ -237,51 +237,123 @@ a:hover {
   margin-bottom: var(--space-4);
 }
 
-/* Writing list — monospace fixed-width date + linked title on a row,
-   muted one-line description beneath. */
-.writing {
+/* Feed — a reverse-chronological stream that interleaves short notes and
+   long articles. Each item is a clickable card (stretched-link pattern):
+   the whole row navigates to its destination (a note permalink or an
+   article page), while inline links inside the preview text stay clickable.
+   Items are separated by hairlines, never boxed. */
+.feed {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.writing__item {
-  margin-bottom: var(--space-4);
+.feed__item {
+  position: relative;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-gray-200);
 }
 
-.writing__item:last-child {
-  margin-bottom: 0;
+.feed__item:first-child {
+  padding-top: 0;
 }
 
-.writing__row {
+.feed__item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+/* Meta row: mono date + a small uppercase type tag (Note / Article) */
+.feed__meta {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
-.writing__date {
-  flex: 0 0 6.5rem;
+.feed__date {
   font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   color: var(--color-gray-500);
-  white-space: nowrap;
 }
 
-.writing__title {
-  font-size: var(--text-base);
-  font-weight: 500;
+.feed__tag {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-gray-500);
 }
 
-.writing__title:hover {
-  color: var(--color-accent);
+/* The tag is a link on notes (it carries the permalink); plain text on
+   articles (the title carries the link). Keep both visually identical. */
+a.feed__tag {
   text-decoration: none;
 }
 
-.writing__desc {
-  margin: var(--space-1) 0 0 calc(6.5rem + var(--space-3));
-  font-size: var(--text-sm);
-  color: var(--color-gray-500);
-  line-height: var(--leading-base);
+.feed__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-1);
+}
+
+.feed__title a {
+  color: var(--color-black);
+  text-decoration: none;
+}
+
+.feed__text {
+  color: var(--color-gray-700);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+}
+
+/* Truncated preview: clamp to a few lines with an ellipsis. The full text
+   lives on the note permalink / article page. */
+.feed__text--clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* One media slot per item — image, GIF, or video. Cover-cropped in the
+   preview; shown in full on the permalink page. */
+.feed__media {
+  margin-top: var(--space-3);
+}
+
+.feed__media img,
+.feed__media video {
+  width: 100%;
+  max-height: 22rem;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  background: var(--color-gray-100);
+}
+
+/* Stretched link makes the entire item clickable without nesting blocks
+   inside an <a>. Inline links / the title sit above it via z-index. */
+.feed__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.feed__text a {
+  position: relative;
+  z-index: 2;
+}
+
+/* Hover feedback: the primary link shifts to the accent across the card. */
+.feed__item:hover .feed__title a,
+.feed__item:hover a.feed__tag {
+  color: var(--color-accent);
 }
 
 /* Links row */
@@ -317,17 +389,70 @@ a:hover {
   .home {
     padding-top: var(--space-10);
   }
-  .writing__row {
-    flex-direction: column;
-    gap: 0;
+  .feed__media img,
+  .feed__media video {
+    max-height: 16rem;
   }
-  .writing__date {
-    flex: none;
-    margin-bottom: 0.15rem;
-  }
-  .writing__desc {
-    margin-left: 0;
-  }
+}
+
+/* ==============================
+   Note permalink page (/n/<slug>/)
+   A note is a very short article: left-aligned to match the home column
+   and the injected back-home header, with a slightly larger body for the
+   social-post feel. Shared by every note page — author just writes content.
+   ============================== */
+
+.note {
+  max-width: var(--content-max-width);
+  margin: 0;
+  padding: var(--space-6) var(--space-5) var(--space-10);
+}
+
+.note__date {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+}
+
+.note__body {
+  margin-top: var(--space-4);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--color-black);
+}
+
+.note__body p {
+  margin-bottom: var(--space-4);
+}
+
+.note__body p:last-child {
+  margin-bottom: 0;
+}
+
+.note__body code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--color-gray-100);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+.note__media {
+  margin-top: var(--space-5);
+}
+
+.note__media img,
+.note__media video {
+  width: 100%;
+  border-radius: 12px;
+  display: block;
+}
+
+.note__media figcaption {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  line-height: var(--leading-base);
 }
 
 /* ==============================

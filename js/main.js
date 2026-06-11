@@ -5,13 +5,16 @@
   var path = window.location.pathname.replace(/\/$/, '') || '/';
 
   // Resolve base path for links (handles sub-pages in subdirectories).
-  // Computes how many '../' are needed to climb back to the site root
-  // from within /articles/<slug>/ pages so the back-home link resolves.
-  var depth = 0;
+  // Counts how many directory levels deep the page sits so the back-home
+  // link climbs back to the site root — works for any nested content dir
+  // such as /articles/<slug>/ or /n/<slug>/.
   var cleanPath = path.replace(/\/index\.html$/, '');
   var segments = cleanPath.split('/').filter(Boolean);
-  for (var s = 0; s < segments.length; s++) {
-    if (segments[s] === 'articles') { depth = segments.length - s; break; }
+  var depth = segments.length;
+  // A trailing file segment (e.g. /resume.html) sits at its parent's level,
+  // so it adds no directory depth.
+  if (segments.length && segments[segments.length - 1].indexOf('.') !== -1) {
+    depth = segments.length - 1;
   }
   var base = depth > 0 ? new Array(depth + 1).join('../') : '';
 

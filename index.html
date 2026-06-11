@@ -34,23 +34,47 @@
       <a href="resume.html">Resume</a>
     </nav>
 
-    <section class="home__writing" aria-labelledby="writing-heading">
-      <h2 id="writing-heading" class="home__heading">Writing</h2>
-      <ul class="writing">
-        <li class="writing__item">
-          <div class="writing__row">
-            <time class="writing__date" datetime="2026-03-11">Mar 11, 2026</time>
-            <a class="writing__title" href="articles/ai%20and%20the%20future%20job%20market/">AI and the Future Job Market</a>
+    <section class="home__feed" aria-labelledby="feed-heading">
+      <h2 id="feed-heading" class="home__heading">Writing</h2>
+      <ul class="feed">
+
+        <li class="feed__item feed__item--note">
+          <div class="feed__meta">
+            <time class="feed__date" datetime="2026-06-11">Jun 11, 2026</time>
+            <a class="feed__tag feed__link" href="n/introducing-the-feed/" aria-label="Open note: This site now has a feed">Note</a>
           </div>
-          <p class="writing__desc">How AI is redefining the world of work — from public sentiment and the skill mismatch to fully automated hiring.</p>
+          <p class="feed__text feed__text--clamp">This site now has a <strong>feed</strong>. Until today it only held long research pieces — and those take weeks. So I'm adding short notes: quick observations on AI, work, and whatever I'm building, posted here instead of on X. Same thoughts, my own roof.</p>
+          <figure class="feed__media">
+            <img src="n/introducing-the-feed/media.svg" alt="Abstract stack of post cards with a single blue accent line" width="1200" height="630" loading="lazy">
+          </figure>
         </li>
-        <li class="writing__item">
-          <div class="writing__row">
-            <time class="writing__date" datetime="2026-03-10">Mar 10, 2026</time>
-            <a class="writing__title" href="articles/swiss-ai-efficiency/">How Fast Is AI Making Switzerland?</a>
+
+        <li class="feed__item feed__item--note">
+          <div class="feed__meta">
+            <time class="feed__date" datetime="2026-06-10">Jun 10, 2026</time>
+            <a class="feed__tag feed__link" href="n/the-schedule-is-a-prompt/" aria-label="Open note: The schedule is a prompt now">Note</a>
           </div>
-          <p class="writing__desc">A Swiss cantonal analysis of AI efficiency gains and usage concentration using the Anthropic Economic Index.</p>
+          <p class="feed__text feed__text--clamp">Spent the morning replacing a pile of cron jobs with one agent that decides when to run. The interesting part isn't the automation — it's that the schedule is now a prompt, not a crontab. We'll look back at fixed intervals the way we look at punch cards.</p>
         </li>
+
+        <li class="feed__item feed__item--article">
+          <div class="feed__meta">
+            <time class="feed__date" datetime="2026-03-11">Mar 11, 2026</time>
+            <span class="feed__tag">Article</span>
+          </div>
+          <h3 class="feed__title"><a class="feed__link" href="articles/ai%20and%20the%20future%20job%20market/">AI and the Future Job Market</a></h3>
+          <p class="feed__text feed__text--clamp">How AI is redefining the world of work — from public sentiment and the skill mismatch to fully automated hiring.</p>
+        </li>
+
+        <li class="feed__item feed__item--article">
+          <div class="feed__meta">
+            <time class="feed__date" datetime="2026-03-10">Mar 10, 2026</time>
+            <span class="feed__tag">Article</span>
+          </div>
+          <h3 class="feed__title"><a class="feed__link" href="articles/swiss-ai-efficiency/">How Fast Is AI Making Switzerland?</a></h3>
+          <p class="feed__text feed__text--clamp">A Swiss cantonal analysis of AI efficiency gains and usage concentration using the Anthropic Economic Index.</p>
+        </li>
+
       </ul>
     </section>
   </main>
