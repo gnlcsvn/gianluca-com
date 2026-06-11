@@ -47,5 +47,5 @@ Both notes and articles appear in the same homepage feed, newest first. When add
 - BEM-style CSS class naming (e.g., `feed__title`)
 - All system sans — no web fonts; headings are set apart by size and weight (both `--font-stack` and `--font-heading` resolve to the system sans stack)
 - Palette: near-black (`#17171a`) on cool off-white (`#fbfbfc`), with a single blue accent (`--color-accent`, `#0b5cff`) used only for link-hover and selection
-- Layout: the home, note pages (`/n/<slug>/`), `resume.html`, and `404.html` are left-aligned; the long-form article pages use a centered reading column
+- Layout: the home, `resume.html`, and `404.html` are left-aligned; the long-form article pages and note pages (`/n/<slug>/`) use a centered reading column
 - The interactive article pages add their own `<style>` blocks that reference the global `:root` custom properties — keep those variable names stable when editing `css/style.css`

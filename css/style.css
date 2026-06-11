@@ -397,15 +397,16 @@ a.feed__tag {
 
 /* ==============================
    Note permalink page (/n/<slug>/)
-   A note is a very short article: left-aligned to match the home column
-   and the injected back-home header, with a slightly larger body for the
-   social-post feel. Shared by every note page — author just writes content.
+   A note is a very short article: like the long-form articles it gets a
+   centered reading column in its fullscreen view, with a slightly larger
+   body for the social-post feel. Shared by every note page — author just
+   writes content.
    ============================== */
 
 .note {
   max-width: var(--content-max-width);
-  margin: 0;
-  padding: var(--space-6) var(--space-5) var(--space-10);
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-5);
 }
 
 .note__date {
