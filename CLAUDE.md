@@ -33,7 +33,10 @@ No build, lint, or test commands exist—this is intentional.
 Both notes and articles appear in the same homepage feed, newest first. When adding either, insert its preview card into `<ul class="feed">` in `index.html` at the correct chronological position.
 
 **Adding a note (short post):**
-1. Create `/n/<slug>/index.html` (model it on `n/the-schedule-is-a-prompt/`, or `n/introducing-the-feed/` if it has media). Set the title, description, and Open Graph tags; the body uses the shared `.note` styles
+1. Create `/n/<slug>/index.html`. It's a minimal static page (no per-page `<style>` — it uses the shared `.note` styles in `css/style.css`):
+   - `<head>`: `<title>`, `<meta name="description">`, Open Graph tags (`og:type=article`, `og:title`, `og:description`, `og:url`, and `og:image` if it has media), `twitter:card`, a `<link rel="canonical">`, and `<link rel="stylesheet" href="../../css/style.css">`
+   - `<body>`: the skip link, `<div class="site-layout">` wrapping `<div id="site-chrome"></div>` and `<main id="main" class="site-main">`, inside which sits `<article class="note">` with a `.note__date` (`<time>`), a `.note__body` (one or more `<p>`), and an optional `.note__media` `<figure>`
+   - End with `<script src="../../js/main.js"></script>` (injects the back-home header)
 2. Optional media (one image / GIF / video) goes in the note's own folder and is shown via `.note__media`. The same asset can double as the `og:image`
 3. Add a `feed__item--note` card to the feed in `index.html`: a `feed__date`, a `feed__tag feed__link` anchor pointing at the note (with an `aria-label`), a clamped `feed__text` preview, and an optional `feed__media` thumbnail
 
