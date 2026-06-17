@@ -1,0 +1,25 @@
+{
+  "slug": "swiss-sme-ai-adoption",
+  "title": "Swiss SME AI adoption (2024-2025)",
+  "unit": "% of SMEs deliberately integrating AI into work processes",
+  "license": "CC-BY",
+  "retrieved": "2026-06-17",
+  "verified": true,
+  "primary_source": {
+    "study": "AXA KMU-Arbeitsmarktstudie 2025 (4th edition)",
+    "conducted_by": "Sotomo, for AXA Switzerland",
+    "fieldwork": "2025-03-03 to 2025-03-10",
+    "sample": "300 SMEs, German- and French-speaking Switzerland",
+    "published": "2025-10-08"
+  },
+  "series": [
+    { "year": "2024", "share": 22 },
+    { "year": "2025", "share": 34 }
+  ],
+  "context": {
+    "never_used_2024": 45,
+    "never_used_2025": 29,
+    "testing_2024": 33,
+    "testing_2025": 37
+  }
+}

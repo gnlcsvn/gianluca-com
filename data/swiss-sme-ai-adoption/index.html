@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Swiss SME AI adoption jumped from 22% to 34% in a year — Gian-Luca Savino</title>
+  <meta name="description" content="The share of Swiss SMEs deliberately integrating AI into their work processes rose from 22% in 2024 to 34% in 2025, according to AXA's annual SME labour-market study.">
+  <link rel="canonical" href="https://gianlucasavino.com/data/swiss-sme-ai-adoption/">
+
+  <!-- Open Graph / Twitter for shareable previews -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Swiss SME AI adoption jumped from 22% to 34% in a year">
+  <meta property="og:description" content="A 12-point jump in a single year, per AXA's SME labour-market study (Sotomo, n=300).">
+  <meta property="og:url" content="https://gianlucasavino.com/data/swiss-sme-ai-adoption/">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+/* ---- Data Insight layout (self-contained; uses global :root tokens) ---- */
+.di-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+.di-header {
+  padding: var(--space-10) 0 var(--space-5);
+}
+.di-category {
+  font-family: var(--font-stack);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gray-500);
+  margin-bottom: var(--space-3);
+}
+.di-title {
+  font-family: var(--font-stack);
+  font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--color-black);
+  margin: 0 0 var(--space-3);
+  text-wrap: balance;
+}
+.di-meta {
+  font-family: var(--font-stack);
+  font-size: 0.9rem;
+  color: var(--color-gray-500);
+}
+.di-lede {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  line-height: 1.45;
+  color: var(--color-black);
+  margin: 0 0 var(--space-5);
+}
+.di-body {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--color-black);
+}
+.di-body p { margin: 0 0 var(--space-4); }
+.di-body strong { font-weight: 700; }
+
+/* ---- Exportable figure ---- */
+/* Wrapper carries the layout margins (NOT captured), so the figure itself has
+   no margin; html-to-image renders margins as empty space or clipping. */
+.di-figure-wrap {
+  margin: var(--space-5) calc(-1 * var(--space-4)) var(--space-2);
+}
+.di-figure {
+  box-sizing: border-box;
+  background: var(--color-white);
+  /* Padding is part of the measured box, so it gives the exported PNG even
+     breathing room on all sides; the wrapper's negative side margins keep the
+     chart content aligned with the text column. */
+  padding: var(--space-4);
+  margin: 0;
+}
+.di-figure__title {
+  font-family: var(--font-stack);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-black);
+  margin: 0 0 var(--space-4);
+}
+.di-chart { font-family: var(--font-stack); }
+.di-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+.di-row__label {
+  width: 56px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-black);
+  text-align: right;
+  padding-right: var(--space-2);
+}
+.di-row__track {
+  flex: 1;
+  height: 30px;
+  background: var(--color-gray-100);
+}
+.di-row__fill {
+  height: 100%;
+  background: rgba(11, 92, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: var(--space-2);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-black);
+}
+.di-axis {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 56px;
+  margin-top: var(--space-1);
+  font-size: 0.7rem;
+  color: var(--color-gray-500);
+}
+.di-figure__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-gray-200);
+  font-size: 0.78rem;
+  color: var(--color-gray-500);
+}
+.di-figure__brand { font-weight: 700; color: var(--color-gray-700); }
+
+.di-export {
+  font-family: var(--font-stack);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 6px;
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  margin-bottom: var(--space-5);
+}
+.di-export:hover { background: var(--color-gray-100); border-color: var(--color-gray-300); }
+.di-export:disabled { opacity: 0.6; cursor: default; }
+
+/* ---- Method + sources ---- */
+.di-method {
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-gray-200);
+}
+.di-method summary {
+  font-family: var(--font-stack);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-black);
+  cursor: pointer;
+}
+.di-method__inner {
+  font-family: var(--font-stack);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-gray-700);
+  margin-top: var(--space-3);
+}
+.di-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85rem;
+  margin: var(--space-3) 0;
+}
+.di-table th, .di-table td {
+  border: 1px solid var(--color-gray-200);
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+  color: var(--color-black);
+}
+.di-table th { font-weight: 600; color: var(--color-gray-700); }
+.di-sources {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-gray-200);
+}
+.di-sources-title {
+  font-family: var(--font-stack);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gray-500);
+  margin-bottom: var(--space-3);
+}
+.di-sources ol {
+  padding-left: 1.25rem;
+  font-family: var(--font-stack);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--color-gray-500);
+  margin: 0;
+}
+.di-sources li { margin-bottom: var(--space-1); }
+.di-sources a { color: var(--color-accent); }
+.di-end { height: var(--space-10); }
+
+@media (max-width: 700px) {
+  .di-header { padding-top: var(--space-6); }
+  .di-figure__footer { font-size: 0.72rem; }
+}
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <div class="site-layout">
+    <div id="site-chrome"></div>
+
+    <main id="main" class="site-main">
+      <div class="di-wrap">
+
+        <header class="di-header">
+          <div class="di-category">Data Insight</div>
+          <h1 class="di-title">Swiss SME AI adoption jumped from 22% to 34% in a year</h1>
+          <div class="di-meta">By Gian-Luca Savino &middot; Jun 17, 2026</div>
+        </header>
+
+        <p class="di-lede">
+          The share of Swiss small and medium-sized enterprises that <strong>deliberately integrate AI
+          into their work processes rose from 22% in 2024 to 34% in 2025</strong>, a 12-point
+          jump in a single year. Over the same period, the share that had <strong>never used AI fell
+          from 45% to 29%</strong>.
+        </p>
+
+        <!-- ===== Exportable figure ===== -->
+        <div class="di-figure-wrap">
+        <figure class="di-figure" id="di-fig-sme-adoption">
+          <figcaption class="di-figure__title">Swiss SME AI adoption, 2024&ndash;2025</figcaption>
+          <div class="di-chart" role="img" aria-label="Share of Swiss SMEs using AI rose from 22% in 2024 to 34% in 2025.">
+            <div class="di-row">
+              <div class="di-row__label">2024</div>
+              <div class="di-row__track"><div class="di-row__fill" style="width:44%">22%</div></div>
+            </div>
+            <div class="di-row">
+              <div class="di-row__label">2025</div>
+              <div class="di-row__track"><div class="di-row__fill" style="width:68%">34%</div></div>
+            </div>
+            <div class="di-axis"><span>0%</span><span>50%</span></div>
+          </div>
+          <div class="di-figure__footer">
+            <span>Source: AXA KMU-Arbeitsmarktstudie 2025 (Sotomo, n=300).</span>
+            <span class="di-figure__brand">gianlucasavino.com &middot; CC-BY</span>
+          </div>
+        </figure>
+        </div>
+
+        <button class="di-export" type="button"
+                data-export-target="#di-fig-sme-adoption"
+                data-export-name="swiss-sme-ai-adoption">&darr; Download PNG</button>
+
+        <div class="di-body">
+          <p>
+            For SMEs, the pace matters more than the level: a 12-point jump in a single year suggests
+            AI moved from early adopters toward mainstream tooling across much of the Swiss SME
+            landscape. The same study found 37% of SMEs are now <strong>testing</strong> AI (up from
+            33%), so the share actively using it may keep climbing, though whether this pace
+            holds is the open question worth tracking.
+          </p>
+        </div>
+
+        <details class="di-method">
+          <summary>How we measured this</summary>
+          <div class="di-method__inner">
+            <p>
+              All figures come from <strong>AXA's "KMU-Arbeitsmarktstudie 2025"</strong> (4th edition),
+              conducted by the research institute <strong>Sotomo</strong>. Fieldwork ran 3&ndash;10
+              March 2025 with <strong>300 SMEs</strong> from German- and French-speaking Switzerland;
+              the AI chapter was published 8 October 2025. The figures are independently reported by
+              the Swiss Confederation's SME portal.
+            </p>
+            <table class="di-table">
+              <thead>
+                <tr><th>Figure</th><th>2024</th><th>2025</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>SMEs deliberately integrating AI</td><td>22%</td><td>34%</td></tr>
+                <tr><td>SMEs that have never used AI</td><td>45%</td><td>29%</td></tr>
+                <tr><td>SMEs testing AI</td><td>33%</td><td>37%</td></tr>
+              </tbody>
+            </table>
+            <p>
+              <strong>Limitations.</strong> This is a commissioned survey (by an insurer), not official
+              statistics; the sample is n&nbsp;=&nbsp;300 and covers only German- and French-speaking
+              Switzerland (no Italian-speaking cantons); and "deliberate integration of AI" is
+              self-reported against the survey's own definition. Treat it as directionally credible
+              rather than a national-statistics ground truth.
+            </p>
+          </div>
+        </details>
+
+        <div class="di-sources">
+          <div class="di-sources-title">Sources</div>
+          <ol>
+            <li>AXA: KMU-Arbeitsmarktstudie 2025 (AI chapter), <a href="https://www.axa.ch/de/ueber-axa/medien/medienmitteilungen/aktuelle-medienmitteilungen/2025/20251008-kmu-arbeitsmarktstudie-2025-ki.html">press release</a> (survey by Sotomo, n=300, fieldwork 3&ndash;10 March 2025).</li>
+            <li>Sotomo: <a href="https://sotomo.ch/site/projekte/axa-kmu-arbeitsmarktstudie-2025/">AXA KMU-Arbeitsmarktstudie 2025</a> (project page).</li>
+            <li>Swiss Confederation SME portal: <a href="https://www.kmu.admin.ch/kmu/en/home/new/news/2025/ai-gains-ground-swiss-smes.html">AI gains ground among Swiss SMEs</a> (corroboration).</li>
+          </ol>
+        </div>
+
+        <div class="di-end"></div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../../lib/html-to-image.min.js"></script>
+  <script src="../../js/insight.js"></script>
+  <script src="../../js/main.js"></script>
+</body>
+</html>
