@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Two-thirds of Google searches now end without a click — Gian-Luca Savino</title>
+  <meta name="description" content="In early 2026, 68% of US Google searches ended without a click to any website, up from 50% in 2019. AI-generated answers are accelerating the decline of the open web's traffic.">
+  <link rel="canonical" href="https://gianlucasavino.com/data/zero-click-search/">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Two-thirds of Google searches now end without a click">
+  <meta property="og:description" content="68% of US Google searches ended with zero clicks in early 2026, up from 50% in 2019. AI answers are accelerating it.">
+  <meta property="og:url" content="https://gianlucasavino.com/data/zero-click-search/">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+/* ---- Data Insight layout (self-contained; uses global :root tokens) ---- */
+.di-wrap { max-width: 720px; margin: 0 auto; padding: 0 var(--space-4); }
+.di-header { padding: var(--space-10) 0 var(--space-5); }
+.di-category {
+  font-family: var(--font-stack);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gray-500);
+  margin-bottom: var(--space-3);
+}
+.di-title {
+  font-family: var(--font-stack);
+  font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--color-black);
+  margin: 0 0 var(--space-3);
+  text-wrap: balance;
+}
+.di-meta { font-family: var(--font-stack); font-size: 0.9rem; color: var(--color-gray-500); }
+.di-lede {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  line-height: 1.45;
+  color: var(--color-black);
+  margin: 0 0 var(--space-5);
+}
+.di-body { font-family: var(--font-heading); font-size: 17px; line-height: 1.5; color: var(--color-black); }
+.di-body p { margin: 0 0 var(--space-4); }
+.di-body strong { font-weight: 700; }
+.di-body h2 {
+  font-family: var(--font-stack);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: var(--space-6) 0 var(--space-3);
+}
+.di-body a { color: var(--color-black); text-decoration-color: var(--color-accent); text-underline-offset: 0.2em; transition: color 0.15s; }
+.di-body a:hover { color: var(--color-accent); }
+
+/* ---- Exportable figure ---- */
+.di-figure-wrap { margin: var(--space-5) calc(-1 * var(--space-4)) var(--space-2); }
+.di-figure {
+  box-sizing: border-box;
+  background: var(--color-white);
+  padding: var(--space-4);
+  margin: 0;
+}
+.di-figure__title { font-family: var(--font-stack); font-size: 1rem; font-weight: 700; color: var(--color-black); margin: 0 0 var(--space-1); }
+.di-figure__sub { font-family: var(--font-stack); font-size: 0.85rem; color: var(--color-gray-500); margin: 0 0 var(--space-4); }
+
+/* ---- Stacked horizontal bars ---- */
+.di-chart { font-family: var(--font-stack); }
+.di-srow { display: flex; align-items: center; margin-bottom: var(--space-2); }
+.di-srow__label { width: 52px; flex-shrink: 0; font-size: 0.85rem; font-weight: 500; color: var(--color-black); text-align: right; padding-right: var(--space-2); }
+.di-srow__track { flex: 1; height: 32px; display: flex; overflow: hidden; }
+.di-seg { height: 100%; display: flex; align-items: center; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+.di-seg--zero { background: rgba(11, 92, 255, 0.45); color: var(--color-black); justify-content: flex-start; padding-left: var(--space-2); }
+.di-seg--click { background: var(--color-gray-200); color: var(--color-gray-700); justify-content: flex-end; padding-right: var(--space-2); }
+.di-legend { display: flex; gap: var(--space-4); padding-left: 52px; margin-top: var(--space-3); font-size: 0.78rem; color: var(--color-gray-700); }
+.di-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.di-legend i { width: 12px; height: 12px; display: inline-block; }
+.di-legend .sw-zero { background: rgba(11, 92, 255, 0.45); }
+.di-legend .sw-click { background: var(--color-gray-200); }
+
+.di-figure__footer {
+  display: flex; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap;
+  margin-top: var(--space-4); padding-top: var(--space-2);
+  border-top: 1px solid var(--color-gray-200);
+  font-size: 0.78rem; color: var(--color-gray-500);
+}
+.di-figure__brand { font-weight: 700; color: var(--color-gray-700); }
+
+.di-export {
+  font-family: var(--font-stack); font-size: 0.8rem; font-weight: 600;
+  color: var(--color-gray-700); background: var(--color-white);
+  border: 1px solid var(--color-gray-200); border-radius: 6px;
+  padding: var(--space-1) var(--space-2); cursor: pointer;
+  transition: background 0.12s, border-color 0.12s; margin-bottom: var(--space-5);
+}
+.di-export:hover { background: var(--color-gray-100); border-color: var(--color-gray-300); }
+.di-export:disabled { opacity: 0.6; cursor: default; }
+
+/* ---- Method + sources ---- */
+.di-method { margin: var(--space-6) 0 0; padding-top: var(--space-5); border-top: 1px solid var(--color-gray-200); }
+.di-method summary { font-family: var(--font-stack); font-size: 0.95rem; font-weight: 600; color: var(--color-black); cursor: pointer; }
+.di-method__inner { font-family: var(--font-stack); font-size: 0.9rem; line-height: 1.6; color: var(--color-gray-700); margin-top: var(--space-3); }
+.di-sources { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--color-gray-200); }
+.di-sources-title { font-family: var(--font-stack); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-gray-500); margin-bottom: var(--space-3); }
+.di-sources ol { padding-left: 1.25rem; font-family: var(--font-stack); font-size: 0.82rem; line-height: 1.6; color: var(--color-gray-500); margin: 0; }
+.di-sources li { margin-bottom: var(--space-1); }
+.di-sources a { color: var(--color-accent); }
+.di-end { height: var(--space-10); }
+
+@media (max-width: 700px) {
+  .di-header { padding-top: var(--space-6); }
+  .di-figure__footer { font-size: 0.72rem; }
+  .di-seg { font-size: 0.7rem; }
+}
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <div class="site-layout">
+    <div id="site-chrome"></div>
+
+    <main id="main" class="site-main">
+      <div class="di-wrap">
+
+        <header class="di-header">
+          <div class="di-category">Data Insight</div>
+          <h1 class="di-title">Two-thirds of Google searches now end without a click</h1>
+          <div class="di-meta">By Gian-Luca Savino &middot; Jun 17, 2026</div>
+        </header>
+
+        <p class="di-lede">
+          In the first months of 2026, <strong>68% of US Google searches ended without a single click</strong>
+          to any website, up from 50% in 2019 and 45% in 2016. The share of searches that still send a
+          visitor to the open web has roughly halved in a decade, and the spread of AI-generated answers
+          is speeding the decline up.
+        </p>
+
+        <!-- ===== Exportable figure ===== -->
+        <div class="di-figure-wrap">
+        <figure class="di-figure" id="di-fig-zero-click">
+          <figcaption class="di-figure__title">Where Google searches end</figcaption>
+          <p class="di-figure__sub">Share of US Google searches with zero clicks vs at least one click</p>
+          <div class="di-chart" role="img" aria-label="Zero-click US Google searches rose from 45% in 2016 to 50% in 2019, 60% in 2024 and 68% in 2026.">
+            <div class="di-srow">
+              <div class="di-srow__label">2016</div>
+              <div class="di-srow__track">
+                <div class="di-seg di-seg--zero" style="width:45.01%">45.01%</div>
+                <div class="di-seg di-seg--click" style="width:54.99%">54.99%</div>
+              </div>
+            </div>
+            <div class="di-srow">
+              <div class="di-srow__label">2019</div>
+              <div class="di-srow__track">
+                <div class="di-seg di-seg--zero" style="width:50.33%">50.33%</div>
+                <div class="di-seg di-seg--click" style="width:49.67%">49.67%</div>
+              </div>
+            </div>
+            <div class="di-srow">
+              <div class="di-srow__label">2024</div>
+              <div class="di-srow__track">
+                <div class="di-seg di-seg--zero" style="width:60.45%">60.45%</div>
+                <div class="di-seg di-seg--click" style="width:39.55%">39.55%</div>
+              </div>
+            </div>
+            <div class="di-srow">
+              <div class="di-srow__label">2026</div>
+              <div class="di-srow__track">
+                <div class="di-seg di-seg--zero" style="width:68.01%">68.01%</div>
+                <div class="di-seg di-seg--click" style="width:31.99%">31.99%</div>
+              </div>
+            </div>
+            <div class="di-legend">
+              <span><i class="sw-zero"></i> Zero-click searches</span>
+              <span><i class="sw-click"></i> Searches with a click</span>
+            </div>
+          </div>
+          <div class="di-figure__footer">
+            <span>Source: SparkToro (Jumpshot 2016/2019, Datos 2024, Similarweb 2026). US, browser searches.</span>
+            <span class="di-figure__brand">gianlucasavino.com &middot; CC-BY</span>
+          </div>
+        </figure>
+        </div>
+
+        <button class="di-export" type="button"
+                data-export-target="#di-fig-zero-click"
+                data-export-name="zero-click-search">&darr; Download PNG</button>
+
+        <div class="di-body">
+          <p>
+            A "zero-click" search is one where the user gets what they need without leaving Google: an
+            answer box, a knowledge panel, a map, or now an AI summary. The searcher is satisfied, but
+            the website that produced the underlying information gets nothing. For two decades the deal
+            of the open web was simple: publish something useful, and search would send you readers. That
+            deal is quietly being rewritten.
+          </p>
+
+          <h2>AI answers are pouring fuel on the fire</h2>
+
+          <p>
+            The jump from 60% in 2024 to 68% in 2026 lines up with one thing: Google putting AI-generated
+            overviews at the top of more and more results. A 2025 <a href="https://www.pewresearch.org/short-reads/2025/07/22/google-users-are-less-likely-to-click-on-links-when-an-ai-summary-appears-in-the-results/">Pew Research</a>
+            study of 900 US adults found that when an AI summary appeared, people clicked a regular search
+            result just <strong>8% of the time, versus 15%</strong> when no summary was shown. They ended
+            their session entirely 26% of the time, and clicked a source cited inside the AI summary in
+            only <strong>1%</strong> of cases. Google disputes the figures, arguing its own data shows
+            healthy click volumes, but the direction is hard to miss.
+          </p>
+
+          <h2>How it looks from Europe</h2>
+
+          <p>
+            The headline numbers are US-only, but SparkToro's 2024 study also measured the EU, which
+            matters more for readers here. Zero-click rates were actually <strong>slightly higher in the
+            EU than the US</strong> (59.7% versus 58.5%). Yet for every 1,000 searches, the EU sent a few
+            more clicks to the open web than the US did (<strong>374 versus 360</strong>). The reason is
+            telling: in the US, a larger slice of the remaining clicks goes to Google's own properties,
+            such as YouTube, Maps and Flights. Across both regions, close to 30% of all search clicks now
+            land on something Google owns rather than an independent site.
+          </p>
+
+          <p>
+            For anyone who builds an audience through search, the takeaway is the same on both sides of the
+            Atlantic: ranking first is no longer the same as getting the visit. The work is shifting from
+            winning the click to being the source the answer is built from.
+          </p>
+        </div>
+
+        <details class="di-method">
+          <summary>How we measured this</summary>
+          <div class="di-method__inner">
+            <p>
+              Figures come from <strong>SparkToro's</strong> zero-click search studies. The four years use
+              different clickstream panels: Jumpshot (2016 and 2019), Datos (2024) and Similarweb (2026).
+              The 2024 and 2026 numbers blend devices using a usage-weighted average of two-thirds mobile
+              and one-third desktop. All figures are <strong>US, browser-based searches only</strong>; they
+              exclude Google's mobile search app, which SparkToro notes would likely push zero-click rates
+              even higher.
+            </p>
+            <p>
+              Because the panels and providers differ across years, SparkToro itself calls the long trend
+              "a bit of apples and oranges." The numbers are not perfectly comparable year to year, but
+              every independent measurement points the same way. The 2026 figure covers January to April
+              2026; the US versus EU comparison uses Datos data from September 2022 to May 2024. The Pew
+              Research figures come from a survey of 900 US adults in March 2025.
+            </p>
+          </div>
+        </details>
+
+        <div class="di-sources">
+          <div class="di-sources-title">Sources</div>
+          <ol>
+            <li>SparkToro: <a href="https://sparktoro.com/blog/in-2026-less-than-one-third-of-google-searches-still-send-a-click/">In 2026, Less than One Third of Google Searches Still Send a Click</a> (2016, 2019, 2024 and 2026 figures).</li>
+            <li>SparkToro: <a href="https://sparktoro.com/blog/2024-zero-click-search-study-for-every-1000-us-google-searches-only-374-clicks-go-to-the-open-web-in-the-eu-its-360/">2024 Zero-Click Search Study</a> (US vs EU; clicks to the open web).</li>
+            <li>SparkToro: <a href="https://sparktoro.com/blog/less-than-half-of-google-searches-now-result-in-a-click/">Less than Half of Google Searches Now Result in a Click</a> (the 2019 50.33% figure).</li>
+            <li>Pew Research Center: <a href="https://www.pewresearch.org/short-reads/2025/07/22/google-users-are-less-likely-to-click-on-links-when-an-ai-summary-appears-in-the-results/">Google users are less likely to click on links when an AI summary appears</a> (2025).</li>
+          </ol>
+        </div>
+
+        <div class="di-end"></div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../../lib/html-to-image.min.js"></script>
+  <script src="../../js/insight.js"></script>
+  <script src="../../js/main.js"></script>
+</body>
+</html>

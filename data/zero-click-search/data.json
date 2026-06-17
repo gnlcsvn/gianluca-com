@@ -1,0 +1,27 @@
+{
+  "slug": "zero-click-search",
+  "title": "Zero-click Google searches (US, 2016-2026)",
+  "unit": "% of US Google searches ending without a click to any website",
+  "license": "CC-BY",
+  "retrieved": "2026-06-17",
+  "verified": true,
+  "scope": "US Google searches, browser only (excludes Google's mobile search app, which SparkToro notes likely understates zero-click rates).",
+  "series": [
+    { "year": "2016", "zero_click": 45.01, "with_click": 54.99, "provider": "Jumpshot" },
+    { "year": "2019", "zero_click": 50.33, "with_click": 49.67, "provider": "Jumpshot" },
+    { "year": "2024", "zero_click": 60.45, "with_click": 39.55, "provider": "Datos" },
+    { "year": "2026", "zero_click": 68.01, "with_click": 31.99, "provider": "Similarweb" }
+  ],
+  "context": {
+    "weighting": "2024 & 2026 figures use a usage-weighted blend of 2/3 mobile, 1/3 desktop (SparkToro 2026 study).",
+    "comparability_caveat": "Providers differ by year (Jumpshot 2016/2019; Datos 2024; Similarweb 2026); SparkToro calls the cross-year comparison 'a bit of apples and oranges'.",
+    "us_vs_eu_2024": { "zero_click_us": 58.5, "zero_click_eu": 59.7, "open_web_clicks_per_1000_us": 360, "open_web_clicks_per_1000_eu": 374, "google_owned_share_of_clicks": "~30%", "provider": "Datos", "period": "Sep 2022 - May 2024" },
+    "ai_overviews_pew_2025": { "click_with_ai_overview": 8, "click_without_ai_overview": 15, "ended_session_share": 26, "clicked_cited_source": 1, "sample": "900 US adults, March 2025", "note": "Google disputes these figures." }
+  },
+  "sources": [
+    { "label": "SparkToro - In 2026, Less than One Third of Google Searches Still Send a Click", "url": "https://sparktoro.com/blog/in-2026-less-than-one-third-of-google-searches-still-send-a-click/" },
+    { "label": "SparkToro - 2024 Zero-Click Search Study (US vs EU)", "url": "https://sparktoro.com/blog/2024-zero-click-search-study-for-every-1000-us-google-searches-only-374-clicks-go-to-the-open-web-in-the-eu-its-360/" },
+    { "label": "SparkToro - Less than Half of Google Searches Now Result in a Click (2019)", "url": "https://sparktoro.com/blog/less-than-half-of-google-searches-now-result-in-a-click/" },
+    { "label": "Pew Research Center - Google users are less likely to click on links when an AI summary appears (2025)", "url": "https://www.pewresearch.org/short-reads/2025/07/22/google-users-are-less-likely-to-click-on-links-when-an-ai-summary-appears-in-the-results/" }
+  ]
+}
