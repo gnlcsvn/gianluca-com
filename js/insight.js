@@ -21,7 +21,11 @@
 
       window.htmlToImage.toPng(node, {
         pixelRatio: 2,
-        backgroundColor: '#fbfbfc'
+        backgroundColor: '#fbfbfc',
+        // keep the interactive toggle chips out of the exported image
+        filter: function (n) {
+          return !(n.classList && n.classList.contains('di-toggle'));
+        }
       }).then(function (dataUrl) {
         var a = document.createElement('a');
         a.href = dataUrl;
