@@ -26,8 +26,10 @@
 .di-chart { font-family: var(--font-stack); }
 .di-row { display: flex; align-items: center; margin-bottom: var(--space-2); }
 .di-row__label { width: var(--di-label-w); flex-shrink: 0; font-size: 0.85rem; font-weight: 500; text-align: right; padding-right: var(--space-2); line-height: 1.2; }
-.di-row__track { flex: 1; height: 30px; background: var(--color-gray-100); }
+.di-row__track { flex: 1; height: 30px; background: var(--color-gray-100); position: relative; }
 .di-row__fill { height: 100%; background: rgba(11, 92, 255, 0.45); display: flex; align-items: center; justify-content: flex-end; padding-right: var(--space-2); font-size: 0.82rem; font-weight: 700; }
+/* value rendered just to the right of short bars so it never overlaps the label */
+.di-row__valout { position: absolute; top: 0; height: 100%; display: flex; align-items: center; padding-left: var(--space-1); font-size: 0.82rem; font-weight: 700; color: var(--color-black); white-space: nowrap; }
 .di-axis { display: flex; justify-content: space-between; padding-left: var(--di-label-w); margin-top: var(--space-1); font-size: 0.7rem; color: var(--color-gray-500); }
 
 /* Toggle chips (switch chart modes, e.g. absolute vs per capita) */
@@ -64,6 +66,16 @@
 .di-sources-title { font-family: var(--font-stack); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-gray-500); margin-bottom: var(--space-3); }
 .di-sources ol { padding-left: 1.25rem; font-family: var(--font-stack); font-size: 0.82rem; line-height: 1.6; color: var(--color-gray-500); margin: 0; }
 .di-sources a { color: var(--color-accent); }
+
+/* Mobile: narrower label column (axis tracks it), smaller chart type */
+@media (max-width: 560px) {
+  :root { --di-label-w: 84px; }
+  .di-row__label { font-size: 0.76rem; }
+  .di-row__fill, .di-row__valout, .di-seg { font-size: 0.72rem; }
+  .di-axis { font-size: 0.62rem; }
+  .di-figure-wrap { margin-left: calc(-1 * var(--space-2)); margin-right: calc(-1 * var(--space-2)); }
+  .di-figure { padding: var(--space-3); }
+}
 
 /* AI transparency footer */
 .di-aifooter { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--color-gray-200); font-family: var(--font-stack); font-size: 0.82rem; line-height: 1.6; color: var(--color-gray-500); }

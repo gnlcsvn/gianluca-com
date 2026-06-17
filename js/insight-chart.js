@@ -37,9 +37,13 @@
         var w = (row.value / m.axis_max) * 100;
         if (w < 0) { w = 0; } if (w > 100) { w = 100; }
         var hl = (m.highlight && row.label === m.highlight) ? ' di-row--hl' : '';
+        var ws = w.toFixed(2);
+        // value sits inside the bar when there's room, otherwise just to its right
+        var inside = w >= 30;
+        var fill = '<div class="di-row__fill" style="width:' + ws + '%">' + (inside ? esc(row.display) : '') + '</div>';
+        var out = inside ? '' : '<span class="di-row__valout" style="left:' + ws + '%">' + esc(row.display) + '</span>';
         html += '<div class="di-row' + hl + '"><div class="di-row__label">' + esc(row.label) +
-          '</div><div class="di-row__track"><div class="di-row__fill" style="width:' + w.toFixed(2) +
-          '%">' + esc(row.display) + '</div></div></div>';
+          '</div><div class="di-row__track">' + fill + out + '</div></div>';
       }
       html += '<div class="di-axis">';
       for (var t = 0; t < m.axis_ticks.length; t++) { html += '<span>' + esc(m.axis_ticks[t]) + '</span>'; }
