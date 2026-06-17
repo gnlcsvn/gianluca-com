@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>I built an AI agent that drafts a data insight every morning — Gian-Luca Savino</title>
+  <meta name="description" content="An autonomous pipeline researches, fact-checks, and drafts one short data insight per day about AI in Switzerland and Europe. Here is how it works, and where a human still has to ship it.">
+  <link rel="canonical" href="https://gianlucasavino.com/articles/autonomous-insight-agent/">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="I built an AI agent that drafts a data insight every morning">
+  <meta property="og:description" content="How an autonomous, fail-closed pipeline drafts data insights, and why a human still ships every one.">
+  <meta property="og:url" content="https://gianlucasavino.com/articles/autonomous-insight-agent/">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/article.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <div class="site-layout">
+    <div id="site-chrome"></div>
+
+    <main id="main" class="site-main">
+      <div class="article-container">
+
+        <header class="ra-header">
+          <div class="ra-category">Behind the scenes</div>
+          <h1 class="ra-title">I built an AI agent that drafts a data insight every morning</h1>
+          <div class="ra-date">Jun 17, 2026</div>
+        </header>
+
+        <div class="ra-text">
+          <p class="ra-lede">I publish short, data-driven insights about how AI is reshaping Switzerland and Europe. Researching, fact-checking, and writing one by hand takes most of a day. So I built an autonomous agent that does the first 90% on its own, every morning, and leaves the last 10%, the judgment, to me.</p>
+        </div>
+
+        <article class="ra-body">
+
+          <div class="ra-text">
+            <p>The agent picks a topic, finds the numbers, checks them against their sources, writes a draft with a chart, and drops it into a private queue. Each morning I open that queue and decide what lives. Most of what you see on this site started as one of those drafts. This piece is about how it works, and, just as importantly, where I still do not trust it.</p>
+
+            <h2>What it makes</h2>
+            <p>The unit of output is a <strong>Data Insight</strong>: one sharp, quantifiable finding, one chart, and every number traceable to a source. Small enough to read in a minute, rigorous enough to cite. The agent is tuned for a specific beat, AI's impact on work and the economy in Switzerland and Europe, but the format is general.</p>
+          </div>
+
+          <div class="ra-media">
+            <figure class="ra-figure">
+              <div class="shot-todo">[ Figure 1: screenshot of a published Data Insight<br>from gianlucasavino.com/data/switzerland-ai-talent-funding-paradox/<br>(toggle chart visible) → images/01-published-insight.png ]</div>
+              <figcaption><strong>Figure 1.</strong> A finished, human-edited Data Insight on this site. The agent wrote the first draft of it.</figcaption>
+            </figure>
+          </div>
+
+          <div class="ra-text">
+            <h2>The pipeline</h2>
+            <p>Under the hood it is not one clever prompt. It is a chain of small, single-purpose steps, each a separate headless call to <a href="https://www.claude.com/product/claude-code">Claude Code</a>, with plain code controlling the flow between them.</p>
+
+            <figure class="ra-figure">
+              <div class="pipe">
+                <span class="pipe-step">Scout</span><span class="pipe-arrow">&rarr;</span>
+                <span class="pipe-step">Research</span><span class="pipe-arrow">&rarr;</span>
+                <span class="pipe-step">Verify</span><span class="pipe-arrow">&rarr;</span>
+                <span class="pipe-step">Write</span><span class="pipe-arrow">&rarr;</span>
+                <span class="pipe-step is-gate">Gate</span>
+              </div>
+              <div class="pipe-note">If the gate fails, one critic pass fixes the specific problem and the gate runs again. If it passes, the draft lands in the queue.</div>
+              <figcaption><strong>Figure 2.</strong> The five stages. Each runs with its own fresh context; code, not a model, decides what passes.</figcaption>
+            </figure>
+
+            <p><strong>Scout</strong> picks one topic that has both a real source and a genuine angle, not a rephrase of someone else's headline. <strong>Research</strong> gathers the numbers, capturing each with the exact sentence and link it came from. <strong>Verify</strong> is an independent, adversarial fact-check: a fresh agent that did not do the research and whose only job is to try to break each number. <strong>Write</strong> drafts the insight using only the numbers that survived. <strong>Gate</strong> is deterministic code that checks the draft before it is allowed anywhere near me.</p>
+
+            <h2>How it avoids making things up</h2>
+            <p>The hard problem with letting a language model write about data is that models are fluent at inventing plausible numbers. The whole design is built around one rule: <strong>fail closed</strong>. A number that cannot be traced to a source is dropped, not guessed.</p>
+            <p>That rule shows up in three places. The verifier re-reads each source itself and has to find an explicit sentence supporting the number, for the exact subject, period, and scope; no quotable line, no number. The writer is only handed the verified facts. And the gate is ordinary code, not a model, so it never reads the prose for meaning. Instead the writer has to hand it a structured list of every figure it used, each tagged with the verified claim it came from; the gate refuses the draft unless each one matches a verified value and every source link resolves, and it is lenient only when a live site blocks its automated request. As a backstop, it also sweeps the text for any number the writer never declared. There is also a clean separation between a <em>reported</em> number, which must come straight from a source, and a <em>derived</em> one, like a ratio or a per-capita figure, which is allowed only if its inputs are verified and the calculation is shown and labeled as analysis.</p>
+            <p>The first time I ran the whole thing end to end, the research step hit an error and produced nothing. The verifier did not paper over the gap or invent a finding to fill it. It noticed there was nothing to check and abstained. That was the moment I trusted the design: it would rather produce nothing than produce something false.</p>
+
+            <h2>A human still ships it</h2>
+            <p>None of this makes the agent a publisher. It makes drafts. Every morning I open the review queue, a private page only I can reach, and go through the night's work the way an editor goes through a slush pile: kill the weak topics, keep the few that are genuinely interesting.</p>
+          </div>
+
+          <div class="ra-media">
+            <figure class="ra-figure">
+              <div class="shot-todo">[ Figure 3: screenshot of the private review queue grid<br>from http://rumpelkammer/insights/ (over Tailscale)<br>→ images/02-review-queue.png ]</div>
+              <figcaption><strong>Figure 3.</strong> The review queue. Each card is a draft from the agent, waiting to be kept or killed.</figcaption>
+            </figure>
+          </div>
+
+          <div class="ra-text">
+            <h2>A real example</h2>
+            <p>Take the piece in Figure 1. The agent found a genuinely sharp angle on its own: Switzerland ranks first in the world for AI researchers per capita, but only fourteenth for total private AI investment. Every number was sourced. It would have been a fine post as written.</p>
+            <p>But absolute investment totals flatter big countries. A nation of nine million will always trail one of sixty-nine million on a raw total. So I added a step the agent had not: I normalized investment by population, using sourced figures, and the story flipped. Per capita, Switzerland actually out-invests the United Kingdom and Germany; the real gap is with small, dense innovators like Israel and Sweden. The agent got me to a strong, sourced draft. The reframing, the judgment about what the numbers actually mean, was the part only I could add.</p>
+          </div>
+
+          <div class="ra-media">
+            <figure class="ra-figure">
+              <div class="shot-todo">[ Figure 4 (optional): screenshot of the same story as a raw draft in the queue<br>→ images/03-draft-in-queue.png ]</div>
+              <figcaption><strong>Figure 4.</strong> The same story as the agent's raw draft, before the per-capita edit.</figcaption>
+            </figure>
+          </div>
+
+          <div class="ra-text">
+            <h2>Where I don't trust it</h2>
+            <div class="ra-callout">
+              <p>The agent produces a draft that is maybe 90% of the way there, not a finished, publishable piece. The adversarial verifier lowers the odds of a wrong or mislabeled number, but it does not remove them, so a person stays in the loop for anything that goes public. And it is deliberately narrow: one short, single-chart insight at a time, not a general research assistant. The point was never to take the human out. It was to take the grind out, and keep the judgment in.</p>
+            </div>
+
+            <h2>It's open source</h2>
+            <p>The whole thing is public, including the exact instructions each stage is given. If you want to see precisely what the agent is told to do, or run your own version on a different beat, it is on GitHub as the <a href="https://github.com/gnlcsvn/autonomous-insight-agent">Autonomous Insight Agent</a>. You can clone it and, fittingly, point a coding agent at it to set it up for your own topic.</p>
+
+            <div class="ra-divider">&bull; &bull; &bull;</div>
+
+            <p>One last bit of transparency. The agent runs on Claude, and so did most of the building of it, and a first draft of this article. I edited that draft the same way I edit everything the agent makes: I kept what was true and useful, and changed what needed my judgment. That is the whole idea.</p>
+          </div>
+
+          <div class="ra-end"></div>
+
+        </article>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../../js/main.js"></script>
+</body>
+</html>

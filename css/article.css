@@ -1,0 +1,75 @@
+/* Long-form article styles (ra-*) for gianlucasavino.com.
+   Shared sheet for new articles. Relies on the tokens in css/style.css.
+   Mirrors the inline styles used by the earlier articles. */
+
+.site-main .article-container { max-width: none; padding: 0; }
+
+/* width containers */
+.ra-text { max-width: 720px; margin: 0 auto; padding: 0 1.25rem; }
+.ra-media { max-width: 880px; margin: 0 auto; padding: 0 1.25rem; }
+
+/* header */
+.ra-header { text-align: center; padding: 4rem 1.25rem 2.5rem; max-width: 1000px; margin: 0 auto; }
+.ra-category { font-family: var(--font-stack); font-size: 0.88rem; font-weight: 700; color: var(--color-black); margin-bottom: 1.5rem; }
+.ra-title { font-family: var(--font-stack); font-size: clamp(2.2rem, 6vw, 3.8rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.025em; color: var(--color-black); margin-bottom: 1.25rem; text-wrap: balance; }
+.ra-date { font-family: var(--font-stack); font-size: 0.92rem; color: var(--color-gray-500); }
+
+/* lede / findings */
+.ra-lede { font-family: var(--font-heading); font-size: 1.25rem; line-height: 1.5; color: var(--color-black); margin-bottom: 2rem; }
+
+/* body */
+.ra-body { font-family: var(--font-heading); font-size: 17px; line-height: 1.55; color: var(--color-black); }
+.ra-body p { margin-bottom: 1rem; }
+.ra-body h2 { font-family: var(--font-stack); font-size: 1.55rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; margin: 3rem 0 1rem; }
+.ra-body h3 { font-family: var(--font-stack); font-size: 1.15rem; font-weight: 600; line-height: 1.2; margin: 2.5rem 0 0.75rem; }
+.ra-body ul, .ra-body ol { padding-left: 1.35rem; margin-bottom: 1rem; }
+.ra-body li { margin-bottom: 0.4rem; line-height: 1.5; }
+.ra-body strong { font-weight: 700; }
+.ra-body em { font-style: italic; }
+.ra-body a { color: var(--color-black); text-decoration-color: var(--color-accent); text-underline-offset: 0.2em; transition: color 0.15s; }
+.ra-body a:hover { color: var(--color-accent); }
+
+/* divider */
+.ra-divider { text-align: center; margin: 3rem 0; color: var(--color-gray-300); font-size: 1.2rem; letter-spacing: 0.5em; }
+
+/* figures (screenshots) */
+.ra-figure { margin: 2.5rem 0; }
+.ra-figure img { display: block; width: 100%; border-radius: 8px; border: 1px solid var(--color-gray-200); }
+.ra-figure figcaption { font-family: var(--font-stack); font-size: 14px; color: var(--color-gray-500); line-height: 1.4; margin-top: 0.6rem; letter-spacing: 0.01em; }
+.ra-figure figcaption strong { color: var(--color-gray-700); }
+.shot-todo { display: flex; align-items: center; justify-content: center; min-height: 220px; background: var(--color-gray-50); border: 1px dashed var(--color-gray-300); border-radius: 8px; color: var(--color-gray-500); font-family: var(--font-mono); font-size: 0.85rem; text-align: center; padding: 1rem; }
+
+/* callout */
+.ra-callout { margin: 2.5rem 0; padding: 1.25rem 1.5rem; background: var(--color-gray-50); border: 1px solid var(--color-gray-200); }
+.ra-callout p { font-family: var(--font-stack); font-size: 0.92rem; line-height: 1.65; color: var(--color-gray-700); margin-bottom: 0.5rem; }
+.ra-callout p:last-child { margin-bottom: 0; }
+
+/* big stat */
+.ra-stat { text-align: center; margin: 2.5rem 0; padding: 2rem 0; }
+.ra-stat-number { font-family: var(--font-heading); font-size: 4rem; font-weight: 700; line-height: 1; letter-spacing: -0.03em; color: var(--color-accent); }
+.ra-stat-label { font-family: var(--font-stack); font-size: 0.88rem; color: var(--color-gray-500); margin-top: 0.4rem; }
+
+/* inline pipeline diagram */
+.pipe { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-family: var(--font-stack); margin: 0.5rem 0; }
+.pipe-step { background: rgba(11, 92, 255, 0.12); color: var(--color-black); font-weight: 600; font-size: 0.92rem; padding: 0.5rem 0.85rem; border-radius: 8px; white-space: nowrap; }
+.pipe-step.is-gate { background: var(--color-black); color: var(--color-white); }
+.pipe-arrow { color: var(--color-gray-300); font-weight: 700; }
+.pipe-note { font-family: var(--font-stack); font-size: 0.85rem; color: var(--color-gray-500); margin-top: 0.75rem; }
+
+/* footnotes */
+.ra-footnotes { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--color-gray-200); }
+.ra-footnotes-title { font-family: var(--font-stack); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-gray-500); margin-bottom: 0.75rem; }
+.ra-footnotes ol { padding-left: 1.25rem; font-family: var(--font-stack); font-size: 0.8rem; line-height: 1.6; color: var(--color-gray-500); }
+.ra-footnotes li { margin-bottom: 0.35rem; }
+.ra-footnotes a { color: var(--color-accent); }
+.ra-body sup a { font-family: var(--font-stack); font-size: 0.65rem; color: var(--color-accent); text-decoration: none; font-weight: 600; }
+
+.ra-end { height: 4rem; }
+
+@media (max-width: 700px) {
+  .ra-header { padding-top: 2.5rem; }
+  .ra-title { font-size: 2rem; }
+  .ra-body { font-size: 16px; }
+  .ra-lede { font-size: 1.1rem; }
+  .ra-stat-number { font-size: 3rem; }
+}
