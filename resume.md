@@ -36,14 +36,6 @@ Research scientist with a Ph.D. in Computer Science/HCI and over six years of ex
 - **M.Sc. Computer Science** · University of Bremen · 2018
 - **B.Sc. Digital Media** · University of Bremen · 2016
 
-## Projects
-
-### [AI Pulse](https://gnlcsvn.github.io/ai-pulse/)
-Fully automated knowledge pipeline that discovers, transcribes, and analyzes AI leader interviews from the web, extracts predictions and risk signals, and serves them as interactive visualizations. Built to explore agentic workflows for automating knowledge work at scale.
-
-### [LocalWhisper](https://gnlcsvn.github.io/local-whisper/)
-Open-source Mac app for private, offline speech-to-text using locally running AI models. Built as a daily driver and the way I interact most efficiently with the many AI agents I work with simultaneously every day. I also built it to learn and explore local LLMs.
-
 ## Selected Publications
 
 - **Savino** et al. [MapRecorder: Analysing real-world usage of mobile map applications.](https://doi.org/10.1080/0144929X.2020.1714733) *Behaviour & Information Technology, 2021*
