@@ -1,31 +1,6 @@
 {
   "posts": [
     {
-      "id": "20261121-094342",
-      "date": "2026-11-21T09:43:42+01:00",
-      "text": "This is a test post with a link to my WoW Character: [Vinny Voss](https://worldofwarcraft.blizzard.com/en-us/forever/eu/armory/character/vinny-voss)\n\n- this is a bullet\n- another one\n\n> nice quote\n\n`And a code block`\n\nLet’s see how that looks\n\nA some pics and a video",
-      "media": [
-        {
-          "type": "image",
-          "src": "media/20261121-094342-1.jpg",
-          "width": 1125,
-          "height": 2000
-        },
-        {
-          "type": "image",
-          "src": "media/20261121-094342-2.jpg",
-          "width": 1500,
-          "height": 2000
-        },
-        {
-          "type": "video",
-          "src": "media/20261121-094342-3.mov",
-          "width": 2160,
-          "height": 3840
-        }
-      ]
-    },
-    {
       "id": "20261121-091439",
       "date": "2026-11-21T09:14:39+01:00",
       "text": "hello world",
