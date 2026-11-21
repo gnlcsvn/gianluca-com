@@ -205,6 +205,7 @@
       })
       .then(function (commit) {
         state.tree = commit.tree.sha;
+        state.when = commit.committer && commit.committer.date;   // wann zuletzt etwas geaendert wurde
         return api('GET', '/contents/' + FILE + '?ref=' + state.head, null, true)
           .then(function (text) { return JSON.parse(text); })
           .catch(function (error) {
@@ -738,7 +739,9 @@
   // ---------- Die Liste der vorhandenen Posts ----------
 
   // Die Liste zeigt die Posts wie im Feed, je mit Knoepfen zum Bearbeiten und Loeschen.
-  function showList(posts) {
+  // since: seit wann die Website nachziehen muss. Beim Neuladen ist das der Zeitpunkt
+  // der letzten Aenderung auf GitHub, damit der Zaehler nicht wieder bei 0 anfaengt.
+  function showList(posts, since) {
     var articles, media, src, i;
     current = posts;
     window.feedRender(list, posts, '../feed/');
@@ -750,7 +753,7 @@
       if (!fresh[src]) { continue; }
       if (media[i].hasAttribute('href')) { media[i].href = fresh[src]; } else { media[i].src = fresh[src]; }
     }
-    syncStart = Date.now();
+    syncStart = since && !isNaN(Date.parse(since)) ? Math.min(Date.now(), Date.parse(since)) : Date.now();
     sync();
   }
 
@@ -882,7 +885,7 @@
     grow();
     say('Loading ...');
     loadState()
-      .then(function (state) { showList(state.data.posts); say(''); })
+      .then(function (state) { showList(state.data.posts, state.when); say(''); })
       .catch(function (error) { say(explain(error), true); });
   }
 
