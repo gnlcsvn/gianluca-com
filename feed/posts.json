@@ -1,6 +1,19 @@
 {
   "posts": [
     {
+      "id": "20261121-150436",
+      "date": "2026-11-21T15:04:36+01:00",
+      "text": "Päffikersee",
+      "media": [
+        {
+          "type": "image",
+          "src": "media/20261121-150436-1.jpg",
+          "width": 1500,
+          "height": 2000
+        }
+      ]
+    },
+    {
       "id": "20261121-130258",
       "date": "2026-11-21T13:15:18+01:00",
       "text": "unnamed, plotter drawing, may 2025",
