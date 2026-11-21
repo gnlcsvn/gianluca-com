@@ -46,6 +46,7 @@
   var attachments = [];               // was am neuen Post haengt: {file, kind, url, name, width, height}
   var editing = '';                   // id des Posts, der gerade bearbeitet wird
   var syncTimer = null;
+  var tickTimer = null;
   var syncStart = 0;
   var fresh = {};                     // gerade hochgeladene Dateien: Pfad -> lokale Adresse
 
@@ -718,6 +719,12 @@
   // GitHub hat die Aenderung sofort, die Website erst nach dem Neubau. sync() fragt
   // die Website alle paar Sekunden, bis sie dieselben Posts zeigt wie GitHub, und
   // markiert solange jeden Post, der dort noch fehlt oder noch den alten Text hat.
+  function tick() {
+    var seconds = Math.round((Date.now() - syncStart) / 1000);
+    liveLine.textContent = 'updating the website ... ' + seconds + ' s' +
+      (seconds > 180 ? ' (longer than usual)' : '');
+  }
+
   function sync() {
     window.clearTimeout(syncTimer);
     fetch('../feed/posts.json?t=' + Date.now(), { cache: 'no-store' })
@@ -732,6 +739,8 @@
         var i, state, post;
 
         if (!data) {
+          window.clearInterval(tickTimer);
+          tickTimer = null;
           liveLine.textContent = 'cannot reach the website, trying again ...';
           syncTimer = window.setTimeout(sync, 5000);
           return;
@@ -758,11 +767,14 @@
         }
 
         if (!waiting) {
+          window.clearInterval(tickTimer);
+          tickTimer = null;
           liveLine.textContent = 'the website is up to date';
           return;
         }
-        liveLine.textContent = 'updating the website ... ' + seconds + ' s' +
-          (seconds > 180 ? ' (longer than usual)' : '');
+        // Gefragt wird alle 3 Sekunden, die Anzeige zaehlt jede Sekunde.
+        tick();
+        if (!tickTimer) { tickTimer = window.setInterval(tick, 1000); }
         syncTimer = window.setTimeout(sync, seconds > 180 ? 10000 : 3000);
       });
   }
@@ -805,6 +817,8 @@
     forgetButton.hidden = true;
     refreshButton.hidden = true;
     window.clearTimeout(syncTimer);
+    window.clearInterval(tickTimer);
+    tickTimer = null;
     liveLine.textContent = '';
     tokenForm.hidden = false;
     list.innerHTML = '';
