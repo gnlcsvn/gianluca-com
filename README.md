@@ -1,19 +1,24 @@
 # gianlucasavino.com
 
-Personal website of Gianluca Savino. One page, a name and a few links.
+Personal website of Gianluca Savino. A card with a name and a few links, and one art page.
 
 ## Stack
 
-- Vanilla HTML and CSS
-- No JavaScript, no frameworks, no build step
+- Vanilla HTML, CSS and one small script
+- No frameworks, no build step
 
 ## Structure
 
 ```
 ├── index.html      # The card
 ├── 404.html
-└── css/
-    └── style.css
+├── art/
+│   ├── index.html  # Art: one scroll page with all pictures
+│   └── bilder/     # The pictures
+├── css/
+│   └── style.css
+└── js/
+    └── mirror.js   # Turns the reflection picture on the art page
 ```
 
 ## Development

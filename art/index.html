@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gianluca Savino, art</title>
+  <meta name="description" content="Gianluca Savino, art">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <a href="../" class="site-header__home">Gianluca Savino</a>
+    <!-- Uebersicht der Projekte: je Projekt ein Link auf dessen eigene Seite -->
+    <nav class="site-header__nav" aria-label="projects">
+      <a href="https://gnlcsvn.github.io/z-fighting/" target="_blank" rel="noopener">z-fighting</a>
+    </nav>
+  </header>
+
+  <!-- Die Sammlung: neueste Arbeit oben. Eine Arbeit = ein <article class="work">
+       mit einem oder mehreren Bildern und einer Zeile darunter. -->
+  <main class="feed">
+
+    <article class="work" id="reflection">
+      <!-- Ohne JavaScript steht hier das ganze Bild. js/mirror.js klappt es zu:
+           dann ist nur die Spiegelung zu sehen, aufrecht gedreht. -->
+      <div class="mirror">
+        <img class="mirror__image" src="bilder/spiegelung.jpg" width="1600" height="2124" alt="A row of old town houses on a riverbank, mirrored in still water.">
+        <button class="mirror__toggle" type="button" aria-pressed="false" aria-label="Turn the picture" hidden></button>
+      </div>
+      <p class="work__caption">
+        <span>reflection</span>
+        <span class="work__meta"><button class="mirror__turn" type="button" hidden>turn</button><a href="bilder/original/spiegelung_1.jpg" target="_blank" rel="noopener">full size</a></span>
+      </p>
+    </article>
+    <script src="../js/mirror.js"></script>
+
+    <article class="work" id="z-fighting">
+      <img class="work__image" src="bilder/zfighting_klein_mockup.png" width="1410" height="1410" loading="lazy" alt="A framed pen plotter drawing of a Klein bottle in blue horizontal and red vertical strokes.">
+      <p class="work__caption"><span>klein bottle</span><a class="work__meta" href="https://gnlcsvn.github.io/z-fighting/" target="_blank" rel="noopener">z-fighting</a></p>
+    </article>
+
+  </main>
+
+</body>
+</html>

@@ -1,4 +1,4 @@
-/* gianlucasavino.com: eine Karte, eine Schrift, zwei Farben. Stil von z-fighting. */
+/* gianlucasavino.com: eine Schrift, zwei Farben. Stil von z-fighting. */
 :root {
   --papier: #fbfaf7;
   --tinte: #1b1b1d;
@@ -6,11 +6,9 @@
   --blau: #2d3c96;
 }
 * { box-sizing: border-box; }
-html { font-size: 14px; height: 100%; }
+html { font-size: 14px; }
 body {
   margin: 0; padding: 0 1.25rem;
-  min-height: 100vh; min-height: 100dvh;
-  display: flex; flex-direction: column;
   background: var(--papier); color: var(--tinte);
   font-family: "Courier Prime", "Courier New", Courier, ui-monospace, monospace;
   line-height: 1.55;
@@ -19,14 +17,7 @@ a { color: var(--blau); text-decoration: none; }
 a:hover, a:focus-visible { text-decoration: underline; }
 a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 
-/* Tabs: oben rechts, wie die Kopfzeile von z-fighting */
-.tabs {
-  display: flex; justify-content: flex-end; gap: 1.3rem;
-  width: 100%; max-width: 62rem; margin: 0 auto; padding: 1.4rem 0;
-}
-.tabs a { color: var(--leise); }
-
-/* Die Karte steht in der Mitte des Fensters, auch wenn Tabs darueber liegen */
+/* Startseite: die Karte steht in der Mitte des Fensters */
 .card {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -38,4 +29,48 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 /* Projekte: eigene Gruppe, eine Leerzeile unter den Links ueber mich */
 .card__links--projects { margin-top: 1.1rem; }
 
-@media (max-width: 640px) { html { font-size: 13px; } }
+/* Unterseiten: Kopfzeile wie bei z-fighting, Name links, Projekte rechts */
+.site-header {
+  display: flex; justify-content: space-between; gap: 1rem;
+  max-width: 46rem; margin: 0 auto; padding: 1.4rem 0;
+}
+.site-header__home { color: var(--tinte); }
+.site-header__nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0 1.3rem; }
+.site-header__nav a { color: var(--leise); }
+
+/* Art: eine lange Seite, eine Arbeit unter der anderen */
+.feed { max-width: 46rem; margin: 0 auto; padding: 1.5rem 0 6rem; }
+.work { margin: 0 0 6rem; scroll-margin-top: 1.5rem; }
+.work__image { display: block; width: 100%; height: auto; margin: 0 0 1rem; }
+.work__caption { display: flex; justify-content: space-between; gap: 1rem; margin: 0; }
+.work__meta { color: var(--leise); }
+
+/* Spiegelung: das Bild ist so zugeschnitten, dass die Spiegelachse (der Gehweg)
+   genau in der Mitte liegt. Zugeklappt zeigt der Rahmen nur die obere Haelfte des
+   um 180 Grad gedrehten Bildes, also die Spiegelung, aufrecht. Beim Aufklappen
+   dreht sich das Bild um den Gehweg zurueck und der Rahmen waechst nach unten. */
+.mirror {
+  position: relative; height: 0; padding-bottom: 132.75%; margin: 0 0 1rem;
+  overflow: hidden; transition: padding-bottom 1.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.mirror__image {
+  position: absolute; top: 0; left: 0; display: block; width: 100%; height: auto;
+  transition: transform 1.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.mirror--closed { padding-bottom: 66.375%; }
+.mirror--closed .mirror__image { transform: rotate(180deg); }
+.mirror__toggle {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  margin: 0; padding: 0; border: 0; background: none; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.mirror__toggle:focus-visible { outline: 1px solid var(--blau); outline-offset: -4px; }
+.mirror__turn { font: inherit; color: var(--blau); background: none; border: 0; margin: 0 1.3rem 0 0; padding: 0; cursor: pointer; }
+.mirror__turn:hover, .mirror__turn:focus-visible { text-decoration: underline; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .mirror, .mirror__image { transition: none; } }
+
+@media (max-width: 640px) {
+  html { font-size: 13px; }
+  .work { margin-bottom: 4rem; }
+}
