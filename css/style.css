@@ -79,6 +79,13 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .post__more { display: block; margin: -0.4rem 0 1rem; color: var(--blau); }
 .post__note { margin: 0 0 0.6rem; color: var(--leise); }
 .posts__back { display: inline-block; margin: 0 0 2rem; color: var(--leise); }
+/* Kurze Meldung unten am Fensterrand (z.B. "link copied") */
+.toast {
+  position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); z-index: 3;
+  transform: translateX(-50%); max-width: calc(100% - 2.5rem); padding: 0.55rem 1rem;
+  background: var(--knopf); color: var(--papier); border-radius: 2px; overflow-wrap: anywhere; text-align: center;
+}
+.toast__field { position: fixed; top: 0; left: 0; width: 1px; height: 1px; padding: 0; border: 0; opacity: 0; font-size: 16px; }
 .post__state { color: var(--tinte); }
 .post__state--live { color: var(--leise); }
 .post__state--error { color: var(--rot); }

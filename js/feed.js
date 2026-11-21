@@ -315,23 +315,53 @@
     return window.location.origin + window.location.pathname + '#' + id;
   }
 
-  // Teilen: auf dem Telefon das Teilen-Blatt des Systems, sonst der Link in die Zwischenablage.
+  // Eine kurze Meldung unten am Fensterrand, die von selbst wieder verschwindet.
+  var toastTimer = null;
+  function toast(message, seconds) {
+    var box = document.getElementById('toast');
+    if (!box) {
+      box = el('div', 'toast');
+      box.id = 'toast';
+      box.setAttribute('role', 'status');
+      document.body.appendChild(box);
+    }
+    box.textContent = message;
+    box.hidden = false;
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(function () { box.hidden = true; }, (seconds || 2) * 1000);
+  }
+
+  // Text in die Zwischenablage. Der neue Weg geht nur ueber https, der alte ueberall.
+  function copy(text) {
+    function oldWay() {
+      var field = document.createElement('textarea');
+      var ok = false;
+      field.value = text;
+      field.setAttribute('readonly', '');
+      field.className = 'toast__field';
+      document.body.appendChild(field);
+      field.select();
+      field.setSelectionRange(0, text.length);
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(field);
+      return ok ? Promise.resolve() : Promise.reject(new Error('copy'));
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).catch(oldWay);
+    }
+    return oldWay();
+  }
+
+  // Teilen: der Link zur Einzelansicht des Posts kommt in die Zwischenablage.
   function addShare(article) {
     var button = el('button', 'post__share', 'share');
     button.type = 'button';
     button.addEventListener('click', function () {
       var url = linkTo(article.id);
-      function told(text) {
-        button.textContent = text;
-        window.setTimeout(function () { button.textContent = 'share'; }, 2000);
-      }
-      if (navigator.share) {
-        navigator.share({ title: document.title, url: url }).catch(function () { /* abgebrochen */ });
-      } else if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(function () { told('link copied'); }, function () { told(url); });
-      } else {
-        told(url);
-      }
+      copy(url).then(
+        function () { toast('link copied'); },
+        function () { toast(url, 8); }      // ging nicht: den Link wenigstens zeigen
+      );
     });
     article.querySelector('.post__head').appendChild(button);
   }
