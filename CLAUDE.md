@@ -19,7 +19,7 @@ No build, lint, or test commands exist—this is intentional.
 
 ## Architecture
 
-- `index.html`: the card, centered in the viewport. A name (`.card__name`) and a list of links (`.card__links`).
+- `index.html`: the card, centered in the viewport. A name (`.card__name`), a list of links about me (`.card__links`), and below it, separated by a blank line, a second list for projects (`.card__links--projects`).
 - `404.html`: same card layout, links back home. Uses root-absolute paths because GitHub Pages serves it for any missing URL.
 - `css/style.css`: the only stylesheet.
 

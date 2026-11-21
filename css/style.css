@@ -35,5 +35,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .card__name { margin: 0 0 1.1rem; font: inherit; }
 .card__links { margin: 0; padding: 0; list-style: none; }
 .card__links li { margin: 0; }
+/* Projekte: eigene Gruppe, eine Leerzeile unter den Links ueber mich */
+.card__links--projects { margin-top: 1.1rem; }
 
 @media (max-width: 640px) { html { font-size: 13px; } }
