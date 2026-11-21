@@ -33,19 +33,24 @@ No build, lint, or test commands exist—this is intentional.
 
 An X-style feed with only the owner's posts.
 
-- `feed/posts.json`: all posts, newest first. Each post has `id` (`YYYYMMDD-HHMMSS`), `date` (ISO with time zone), `text`, and `media` (list of `{type: "image"|"video", src, width, height}`, `src` relative to `feed/`).
-- `feed/media/`: the pictures and videos of the posts, named `<post id>-<n>.<ext>`.
-- `feed/index.html` + `js/feed.js`: load `posts.json` and render it. Post text is always inserted as text, never as HTML; only web addresses become links.
-- `post/index.html` + `js/post.js`: the editor, installable on the phone's home screen (`post/manifest.webmanifest`, icons in `post/`). It writes to this repository through the GitHub API: one commit per post or per deletion, made via the git data API (blobs, tree, commit, ref update) on `main`. GitHub Pages then rebuilds, so a post is live after about a minute.
+- `feed/posts.json`: all posts, newest first. Each post has `id` (`YYYYMMDD-HHMMSS`), `date` (ISO with time zone), `text`, `media`, and `edited` (ISO date, only after an edit).
+- `media` is a list of `{type, src, ...}` with `src` relative to `feed/`. Types: `image` and `video` (with `width`, `height`), `audio` (with `name`), `file` (with `name`, `size`; shown as a download link).
+- `feed/media/`: the files of the posts, named `<post id>-<n>.<ext>`.
+- `feed/index.html` + `js/feed.js`: load `posts.json` and render it. Several pictures or videos in one post become a swipeable carousel (CSS scroll snap, arrows and a counter).
+- **Text format:** post text is plain text with a small markdown subset that `js/feed.js` turns into elements: `**bold**`, `*italic*`, `` `code` ``, `[label](https://...)`, bare web addresses, lines starting with `> ` (quote) and `- ` (list). Text is always inserted as text nodes, never as HTML, and links only accept `http(s):` and `mailto:`.
+- `post/index.html` + `js/post.js`: the editor, installable on the phone's home screen (`post/manifest.webmanifest`, icons in `post/`). It writes to this repository through the GitHub API: one commit per post, edit or deletion, made via the git data API (blobs, tree, commit, ref update) on `main`. GitHub Pages then rebuilds, so a change is live after some seconds up to a minute.
+- **Editor features:** attach any files (file picker, drag and drop, paste), reorder and remove them; a format bar that inserts the markdown characters (hidden behind "format" on the phone, open on wide screens); a live preview that uses the feed's own renderer; edit the text of an existing post; delete a post with its files. After every change it polls the website and marks each post as "publishing ..." or "live".
+- **Editor version:** `post/version.txt` holds a number. The same number is the `?v=` on the stylesheet and the two scripts in `post/index.html` (and in `feed/index.html`). On start, the editor fetches `version.txt` fresh and reloads itself under `?v=<number>` if it differs, which gets around the browser and home screen cache. **Whenever the editor, `js/feed.js` or `css/style.css` changes, raise the number in all of these places.**
 - **Access:** the editor page is public but can do nothing without a GitHub fine-grained personal access token (only this repository, permission "Contents: read and write"). The token is typed into the editor once per device and kept in that browser's `localStorage` under `feed-token`. It must never be written into any file of this repository.
-- The editor shrinks pictures to 2000 px on the long edge and saves them as JPEG (this also drops camera metadata); GIFs stay as they are; videos are uploaded unchanged, up to 50 MB.
+- The editor shrinks pictures to 2000 px on the long edge and saves them as JPEG (this also drops camera metadata); GIF and SVG stay as they are; pictures the browser cannot open, and all other files, are uploaded unchanged, up to 50 MB each.
 - Posts made through the editor arrive as commits on `origin/main`. Pull before working on the site.
 
 ## Code Conventions
 
+- Buttons follow z-fighting (`.button`): fine 1px frame in `--knopf`, 2px radius, 30px high; filled means selected or open (`aria-expanded`/`aria-pressed`). Joined groups like the format bar use `.tools__group`.
 - Style follows the z-fighting project (`pen plotting/zfighting_web/stil.css`): one typeface, two colors.
 - Typeface: `"Courier Prime", "Courier New", Courier, monospace`. No web fonts are loaded.
-- Palette as custom properties: `--papier` (#fbfaf7), `--tinte` (#1b1b1d), `--leise` (#8a8985), `--blau` (#2d3c96, links).
+- Palette as custom properties: `--papier` (#fbfaf7), `--tinte` (#1b1b1d), `--leise` (#8a8985), `--knopf` (#29292c, buttons), `--blau` (#2d3c96, links).
 - Link labels are lowercase.
 - BEM-style CSS class naming (e.g., `card__links`).
 - JavaScript: ES5 (`var`, no arrow functions), one IIFE per file that checks for its DOM element first.

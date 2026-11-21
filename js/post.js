@@ -10,23 +10,41 @@
   var FILE = FEED + 'posts.json';
   var TOKEN_KEY = 'feed-token';
   var MAX_EDGE = 2000;                // Bilder werden auf diese Kantenlaenge verkleinert
-  var MAX_VIDEO = 50 * 1024 * 1024;   // groessere Videos lehnt der Editor ab
+  var MAX_FILE = 50 * 1024 * 1024;    // groessere Dateien lehnt der Editor ab
+  // Die Fassung dieses Editors: die Nummer hinter v= am eigenen <script>.
+  var VERSION = ((document.currentScript && document.currentScript.src || '').match(/[?&]v=(\w+)/) || [])[1] || '';
 
-  var tokenForm = document.getElementById('token-form');
-  var tokenInput = document.getElementById('token');
-  var forgetButton = document.getElementById('forget');
-  var textInput = document.getElementById('text');
-  var fileInput = document.getElementById('files');
-  var fileList = document.getElementById('file-list');
-  var submitButton = document.getElementById('submit');
-  var statusLine = document.getElementById('status');
-  var list = document.getElementById('list');
-  var liveLine = document.getElementById('live');
-  var refreshButton = document.getElementById('refresh');
+  function byId(id) { return document.getElementById(id); }
+
+  var tokenForm = byId('token-form');
+  var tokenInput = byId('token');
+  var forgetButton = byId('forget');
+  var refreshButton = byId('refresh');
+  var textLabel = byId('text-label');
+  var textInput = byId('text');
+  var fileInput = byId('files');
+  var mediaButton = byId('media-button');
+  var attachmentList = byId('attachments');
+  var formatToggle = byId('format-toggle');
+  var previewToggle = byId('preview-toggle');
+  var tools = byId('tools');
+  var linkToggle = byId('link-toggle');
+  var linkForm = byId('link-form');
+  var linkText = byId('link-text');
+  var linkUrl = byId('link-url');
+  var linkInsert = byId('link-insert');
+  var preview = byId('preview');
+  var cancelButton = byId('cancel');
+  var submitButton = byId('submit');
+  var statusLine = byId('status');
+  var liveLine = byId('live');
+  var list = byId('list');
 
   var token = '';
   var busy = false;
   var current = [];                   // die Posts, wie sie auf GitHub stehen
+  var attachments = [];               // was am neuen Post haengt: {file, kind, url, name, width, height}
+  var editing = '';                   // id des Posts, der gerade bearbeitet wird
   var syncTimer = null;
   var syncStart = 0;
   var fresh = {};                     // gerade hochgeladene Dateien: Pfad -> lokale Adresse
@@ -37,21 +55,28 @@
 
   function two(n) { return n < 10 ? '0' + n : String(n); }
 
-  function readToken() {
-    try { return window.localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; }
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text) { node.appendChild(document.createTextNode(text)); }
+    return node;
   }
-  function writeToken(value) {
+
+  function remember(key, value) {
     try {
-      if (value) { window.localStorage.setItem(TOKEN_KEY, value); }
-      else { window.localStorage.removeItem(TOKEN_KEY); }
-    } catch (e) { /* privates Fenster: das Token gilt dann nur bis zum Schliessen */ }
+      if (value) { window.localStorage.setItem(key, value); }
+      else { window.localStorage.removeItem(key); }
+    } catch (e) { /* privates Fenster: gilt dann nur bis zum Schliessen */ }
+  }
+  function recall(key) {
+    try { return window.localStorage.getItem(key) || ''; } catch (e) { return ''; }
   }
 
   function setBusy(value) {
-    busy = value;
-    submitButton.disabled = value;
     var buttons = list.querySelectorAll('button');
     var i;
+    busy = value;
+    submitButton.disabled = value;
     for (i = 0; i < buttons.length; i++) { buttons[i].disabled = value; }
   }
 
@@ -67,6 +92,12 @@
   function idNow(d) {
     return String(d.getFullYear()) + two(d.getMonth() + 1) + two(d.getDate()) +
       '-' + two(d.getHours()) + two(d.getMinutes()) + two(d.getSeconds());
+  }
+
+  function extension(name, fallback) {
+    var parts = String(name).split('.');
+    var ext = parts.length > 1 ? parts.pop().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+    return ext || fallback;
   }
 
   // ---------- GitHub ----------
@@ -88,8 +119,9 @@
       if (res.ok) { return raw ? res.text() : res.json(); }
       return res.text().then(function (text) {
         var message = '';
+        var error;
         try { message = JSON.parse(text).message || ''; } catch (e) { /* kein JSON */ }
-        var error = new Error(message || String(res.status));
+        error = new Error(message || String(res.status));
         error.status = res.status;
         throw error;
       });
@@ -151,13 +183,120 @@
   }
 
   function explain(error) {
+    if (!error.status) { return error.message; }
     if (error.status === 401) { return 'GitHub does not accept this token. Use "forget token" and paste a new one.'; }
     if (error.status === 403 || error.status === 404) { return 'The token may not write to this repository (' + error.message + ').'; }
-    if (error.status === 409 || error.status === 422) { return 'GitHub did not take the change (' + error.message + '). Nothing was posted. Try again.'; }
+    if (error.status === 409 || error.status === 422) { return 'GitHub did not take the change (' + error.message + '). Nothing was saved. Try again.'; }
     return 'That did not work: ' + error.message;
   }
 
-  // ---------- Bilder und Videos vorbereiten ----------
+  // ---------- Dateien: annehmen ----------
+
+  var KINDS = {
+    image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'heic', 'heif', 'svg', 'bmp', 'tif', 'tiff'],
+    video: ['mp4', 'mov', 'm4v', 'webm'],
+    audio: ['mp3', 'm4a', 'aac', 'wav', 'ogg', 'oga', 'flac']
+  };
+
+  function kindOf(file) {
+    var type = file.type || '';
+    var ext = extension(file.name, '');
+    var kind;
+    if (type.indexOf('image/') === 0) { return 'image'; }
+    if (type.indexOf('video/') === 0) { return 'video'; }
+    if (type.indexOf('audio/') === 0) { return 'audio'; }
+    for (kind in KINDS) {
+      if (KINDS.hasOwnProperty(kind) && KINDS[kind].indexOf(ext) !== -1) { return kind; }
+    }
+    return 'file';
+  }
+
+  function addFiles(files) {
+    var i, file;
+    if (editing) { say('Media of an existing post cannot be changed.'); return; }
+    for (i = 0; i < files.length; i++) {
+      file = files[i];
+      if (file.size > MAX_FILE) { say('"' + file.name + '" is larger than 50 MB and was left out.'); continue; }
+      attachments.push({ file: file, kind: kindOf(file), url: URL.createObjectURL(file), name: file.name });
+    }
+    showAttachments();
+    showPreview();
+  }
+
+  function dropAttachments() {
+    var i;
+    for (i = 0; i < attachments.length; i++) { URL.revokeObjectURL(attachments[i].url); }
+    attachments = [];
+    fileInput.value = '';
+    showAttachments();
+  }
+
+  // Je Datei ein Kaestchen: klein zu sehen, verschiebbar, entfernbar.
+  function showAttachments() {
+    attachmentList.innerHTML = '';
+    attachmentList.hidden = !attachments.length;
+    attachments.forEach(function (item, index) {
+      var li = el('li', 'attachments__item');
+      var bar = el('div', 'attachments__bar');
+      var thumb;
+
+      function measured(width, height) {
+        if (item.width || !width) { return; }
+        item.width = width;
+        item.height = height;
+        showPreview();
+      }
+      function control(label, title, action, disabled) {
+        var button = el('button', 'editor__quiet', label);
+        button.type = 'button';
+        button.title = title;
+        button.setAttribute('aria-label', title + ': ' + item.name);
+        button.disabled = !!disabled;
+        button.addEventListener('click', action);
+        bar.appendChild(button);
+      }
+
+      if (item.kind === 'image') {
+        thumb = el('img', 'attachments__thumb');
+        thumb.alt = item.name;
+        thumb.addEventListener('load', function () { measured(thumb.naturalWidth, thumb.naturalHeight); });
+        // Kann der Browser das Bild nicht zeigen, geht es als Datei mit.
+        thumb.addEventListener('error', function () { item.kind = 'file'; showAttachments(); showPreview(); });
+        thumb.src = item.url;
+      } else if (item.kind === 'video') {
+        thumb = el('video', 'attachments__thumb');
+        thumb.muted = true;
+        thumb.preload = 'metadata';
+        thumb.setAttribute('playsinline', '');
+        thumb.addEventListener('loadedmetadata', function () { measured(thumb.videoWidth, thumb.videoHeight); });
+        thumb.src = item.url;
+      } else {
+        thumb = el('span', 'attachments__thumb attachments__thumb--name', extension(item.name, item.kind));
+      }
+      thumb.title = item.name;
+      li.appendChild(thumb);
+
+      control('←', 'move left', function () { move(index, -1); }, index === 0);
+      control('→', 'move right', function () { move(index, 1); }, index === attachments.length - 1);
+      control('remove', 'remove', function () {
+        URL.revokeObjectURL(item.url);
+        attachments.splice(index, 1);
+        showAttachments();
+        showPreview();
+      });
+      li.appendChild(bar);
+      attachmentList.appendChild(li);
+    });
+  }
+
+  function move(index, step) {
+    var item = attachments.splice(index, 1)[0];
+    attachments.splice(index + step, 0, item);
+    showAttachments();
+    showPreview();
+  }
+
+  // ---------- Dateien: zum Hochladen vorbereiten ----------
 
   function toBase64(blob) {
     return new Promise(function (resolve, reject) {
@@ -168,20 +307,24 @@
     });
   }
 
+  function asFile(item) {
+    return { type: 'file', ext: extension(item.name, 'bin'), blob: item.file, name: item.name, size: item.file.size };
+  }
+
   // Bilder: verkleinern und als JPEG speichern. Dabei fallen auch die Kameradaten
-  // (Ort, Datum) weg. GIFs bleiben, wie sie sind, damit sie sich weiter bewegen.
-  function prepareImage(file) {
-    return new Promise(function (resolve, reject) {
-      var url = URL.createObjectURL(file);
+  // (Ort, Datum) weg. GIF und SVG bleiben, wie sie sind.
+  function prepareImage(item) {
+    return new Promise(function (resolve) {
+      var file = item.file;
+      var ext = extension(file.name, 'jpg');
       var img = new Image();
       img.onload = function () {
         var scale = Math.min(1, MAX_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
         var width = Math.round(img.naturalWidth * scale);
         var height = Math.round(img.naturalHeight * scale);
         var canvas, context;
-        if (file.type === 'image/gif') {
-          URL.revokeObjectURL(url);
-          resolve({ type: 'image', ext: 'gif', blob: file, width: img.naturalWidth, height: img.naturalHeight });
+        if (file.type === 'image/gif' || file.type === 'image/svg+xml' || ext === 'gif' || ext === 'svg') {
+          resolve({ type: 'image', ext: ext, blob: file, width: img.naturalWidth || 0, height: img.naturalHeight || 0 });
           return;
         }
         canvas = document.createElement('canvas');
@@ -191,31 +334,26 @@
         context.fillStyle = '#ffffff';
         context.fillRect(0, 0, width, height);
         context.drawImage(img, 0, 0, width, height);
-        URL.revokeObjectURL(url);
         canvas.toBlob(function (blob) {
-          if (!blob) { reject(new Error('The picture could not be converted.')); return; }
+          if (!blob) { resolve(asFile(item)); return; }
           resolve({ type: 'image', ext: 'jpg', blob: blob, width: width, height: height });
         }, 'image/jpeg', 0.85);
       };
-      img.onerror = function () {
-        URL.revokeObjectURL(url);
-        reject(new Error('"' + file.name + '" is not a picture this browser can open.'));
-      };
-      img.src = url;
+      // Ein Bildformat, das dieser Browser nicht oeffnen kann: als Datei anhaengen.
+      img.onerror = function () { resolve(asFile(item)); };
+      img.src = item.url;
     });
   }
 
-  function prepareVideo(file) {
-    var ext = (file.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (file.size > MAX_VIDEO) {
-      return Promise.reject(new Error('"' + file.name + '" is larger than 50 MB.'));
+  function prepare(item) {
+    if (item.kind === 'image') { return prepareImage(item); }
+    if (item.kind === 'video') {
+      return Promise.resolve({ type: 'video', ext: extension(item.name, 'mp4'), blob: item.file, width: item.width || 0, height: item.height || 0 });
     }
-    return Promise.resolve({ type: 'video', ext: ext || 'mp4', blob: file });
-  }
-
-  function prepare(file) {
-    if (file.type.indexOf('video/') === 0) { return prepareVideo(file); }
-    return prepareImage(file);
+    if (item.kind === 'audio') {
+      return Promise.resolve({ type: 'audio', ext: extension(item.name, 'mp3'), blob: item.file, name: item.name });
+    }
+    return Promise.resolve(asFile(item));
   }
 
   // Der Reihe nach, nicht gleichzeitig: schont den Speicher auf dem Telefon.
@@ -231,17 +369,16 @@
 
   function publish() {
     var text = textInput.value.replace(/\s+$/, '');
-    var files = Array.prototype.slice.call(fileInput.files || []);
     var now = new Date();
     var id = idNow(now);
     var media = [];
 
-    if (!text && !files.length) { say('Write something or add a picture.'); return; }
+    if (!text && !attachments.length) { say('Write something or add a file.'); return; }
 
     setBusy(true);
-    say(files.length ? 'Preparing files ...' : 'Posting ...');
+    say(attachments.length ? 'Preparing files ...' : 'Posting ...');
 
-    inOrder(files, prepare)
+    inOrder(attachments, prepare)
       .then(function (items) {
         // Erst die Dateien hochladen, dann alles in einem Commit eintragen.
         return inOrder(items, function (item, index) {
@@ -252,6 +389,8 @@
             .then(function (blob) {
               var entry = { type: item.type, src: 'media/' + name };
               if (item.width) { entry.width = item.width; entry.height = item.height; }
+              if (item.name) { entry.name = item.name; }
+              if (item.size) { entry.size = item.size; }
               media.push(entry);
               // Bis die Website neu gebaut ist, zeigt der Editor die Datei von hier.
               fresh[entry.src] = URL.createObjectURL(item.blob);
@@ -267,13 +406,72 @@
         }, 'Feed: add post ' + id, 3);
       })
       .then(function (state) {
-        textInput.value = '';
-        fileInput.value = '';
-        showFiles();
+        clearEditor();
         showList(state.data.posts);
         say('Posted. It shows up in the feed within a minute.');
       })
-      .catch(function (error) { say(error.status ? explain(error) : error.message); })
+      .catch(function (error) { say(explain(error)); })
+      .then(function () { setBusy(false); });
+  }
+
+  // ---------- Bearbeiten ----------
+
+  function findPost(posts, id) {
+    var i;
+    for (i = 0; i < posts.length; i++) { if (posts[i].id === id) { return posts[i]; } }
+    return null;
+  }
+
+  function startEdit(id) {
+    var post = findPost(current, id);
+    if (!post || busy) { return; }
+    dropAttachments();
+    editing = id;
+    textInput.value = post.text || '';
+    textLabel.textContent = 'edit post';
+    submitButton.textContent = 'save';
+    cancelButton.hidden = false;
+    mediaButton.hidden = true;
+    say('');
+    grow();
+    showPreview();
+    window.scrollTo(0, 0);
+    textInput.focus();
+  }
+
+  function clearEditor() {
+    editing = '';
+    textInput.value = '';
+    textLabel.textContent = 'new post';
+    submitButton.textContent = 'post';
+    cancelButton.hidden = true;
+    mediaButton.hidden = false;
+    dropAttachments();
+    closeLink();
+    grow();
+    showPreview();
+  }
+
+  function saveEdit() {
+    var id = editing;
+    var text = textInput.value.replace(/\s+$/, '');
+    var old = findPost(current, id);
+    if (!text && !(old && old.media && old.media.length)) { say('The post would be empty. Delete it instead.'); return; }
+    setBusy(true);
+    say('Saving ...');
+    save(function (state) {
+      var post = findPost(state.data.posts, id);
+      if (!post) { throw new Error('This post no longer exists.'); }
+      post.text = text;
+      post.edited = isoNow(new Date());
+      return [];
+    }, 'Feed: edit post ' + id, 3)
+      .then(function (state) {
+        clearEditor();
+        showList(state.data.posts);
+        say('Saved. The feed shows the change within a minute.');
+      })
+      .catch(function (error) { say(explain(error)); })
       .then(function () { setBusy(false); });
   }
 
@@ -282,6 +480,7 @@
   function remove(id) {
     if (busy) { return; }
     if (!window.confirm('Delete this post?')) { return; }
+    if (editing === id) { clearEditor(); }
     setBusy(true);
     say('Deleting ...');
     save(function (state) {
@@ -303,56 +502,186 @@
         showList(state.data.posts);
         say('Deleted. It disappears from the feed within a minute.');
       })
-      .catch(function (error) { say(error.status ? explain(error) : error.message); })
+      .catch(function (error) { say(explain(error)); })
       .then(function () { setBusy(false); });
   }
 
-  // ---------- Anzeige ----------
+  // ---------- Werkzeuge fuer den Text ----------
+  // Die Werkzeuge setzen nur Zeichen in den Text; js/feed.js macht daraus die Form.
 
-  function showFiles() {
-    var files = fileInput.files || [];
-    var i, li;
-    fileList.innerHTML = '';
-    for (i = 0; i < files.length; i++) {
-      li = document.createElement('li');
-      li.appendChild(document.createTextNode(files[i].name));
-      fileList.appendChild(li);
+  function grow() {
+    textInput.style.height = 'auto';
+    textInput.style.height = (textInput.scrollHeight + 2) + 'px';
+  }
+
+  function changed() {
+    grow();
+    showPreview();
+  }
+
+  function replaceSelection(text, selectFrom, selectTo) {
+    var start = textInput.selectionStart;
+    var end = textInput.selectionEnd;
+    textInput.focus();
+    textInput.setRangeText(text, start, end, 'end');
+    if (selectFrom !== undefined) { textInput.setSelectionRange(start + selectFrom, start + selectTo); }
+    changed();
+  }
+
+  // Zeichen um die Auswahl setzen, oder wieder wegnehmen, wenn sie schon da sind.
+  function wrap(mark, placeholder) {
+    var value = textInput.value;
+    var start = textInput.selectionStart;
+    var end = textInput.selectionEnd;
+    var chosen = value.slice(start, end);
+    var n = mark.length;
+    if (value.slice(start - n, start) === mark && value.slice(end, end + n) === mark) {
+      textInput.focus();
+      textInput.setRangeText(chosen, start - n, end + n, 'select');
+      changed();
+      return;
+    }
+    if (!chosen) { chosen = placeholder; }
+    replaceSelection(mark + chosen + mark, n, n + chosen.length);
+  }
+
+  // Ein Zeichen an den Anfang jeder gewaehlten Zeile setzen, oder wieder wegnehmen.
+  function prefix(mark) {
+    var value = textInput.value;
+    var start = value.lastIndexOf('\n', textInput.selectionStart - 1) + 1;
+    var end = value.indexOf('\n', textInput.selectionEnd);
+    var lines, all, i, text;
+    if (end === -1) { end = value.length; }
+    lines = value.slice(start, end).split('\n');
+    all = true;
+    for (i = 0; i < lines.length; i++) { if (lines[i].indexOf(mark) !== 0) { all = false; } }
+    for (i = 0; i < lines.length; i++) {
+      lines[i] = all ? lines[i].slice(mark.length) : (lines[i].indexOf(mark) === 0 ? lines[i] : mark + lines[i]);
+    }
+    text = lines.join('\n');
+    textInput.focus();
+    textInput.setRangeText(text, start, end, 'select');
+    changed();
+  }
+
+  function openLink() {
+    var chosen = textInput.value.slice(textInput.selectionStart, textInput.selectionEnd);
+    linkForm.hidden = false;
+    linkToggle.setAttribute('aria-expanded', 'true');
+    if (/^https?:\/\/\S+$/.test(chosen)) { linkUrl.value = chosen; linkText.value = ''; }
+    else { linkText.value = chosen; linkUrl.value = ''; }
+    (linkText.value ? linkUrl : linkText).focus();
+  }
+
+  function closeLink() {
+    linkForm.hidden = true;
+    linkToggle.setAttribute('aria-expanded', 'false');
+    linkText.value = '';
+    linkUrl.value = '';
+  }
+
+  function insertLink() {
+    var url = linkUrl.value.replace(/\s/g, '');
+    var label = linkText.value.replace(/[\[\]]/g, '').replace(/^\s+|\s+$/g, '');
+    if (!url) { linkUrl.focus(); return; }
+    if (!/^(https?:\/\/|mailto:)/.test(url)) { url = 'https://' + url; }
+    url = url.replace(/\)/g, '%29');
+    closeLink();
+    replaceSelection(label ? '[' + label + '](' + url + ')' : url);
+  }
+
+  function useTool(name) {
+    if (name === 'bold') { wrap('**', 'bold'); }
+    if (name === 'italic') { wrap('*', 'italic'); }
+    if (name === 'code') { wrap('`', 'code'); }
+    if (name === 'quote') { prefix('> '); }
+    if (name === 'list') { prefix('- '); }
+    if (name === 'link') { if (linkForm.hidden) { openLink(); } else { closeLink(); textInput.focus(); } }
+  }
+
+  function setOpen(toggle, panel, open, key) {
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (key) { remember(key, open ? 'open' : 'closed'); }
+  }
+
+  // ---------- Vorschau ----------
+
+  // Der Post, wie er im Feed aussehen wird, mit den Dateien direkt vom Geraet.
+  function showPreview() {
+    var text = textInput.value.replace(/\s+$/, '');
+    var old = editing ? findPost(current, editing) : null;
+    var media = [];
+    var base = '';
+    var i, item, swap, src;
+    if (preview.hidden) { return; }
+    preview.innerHTML = '';
+    if (old) {
+      media = old.media || [];
+      base = '../feed/';
+    } else {
+      for (i = 0; i < attachments.length; i++) {
+        item = attachments[i];
+        media.push({ type: item.kind, src: item.url, width: item.width, height: item.height, name: item.name, size: item.file.size });
+      }
+    }
+    if (!text && !media.length) {
+      preview.appendChild(el('p', 'posts__note', 'Nothing to preview yet.'));
+      return;
+    }
+    preview.appendChild(window.feedBuildPost({
+      id: 'preview', date: old ? old.date : isoNow(new Date()), text: text, media: media
+    }, base, true));
+    preview.querySelector('.post').removeAttribute('id');
+    if (old) {
+      swap = preview.querySelectorAll('.post__media');
+      for (i = 0; i < swap.length; i++) {
+        src = swap[i].getAttribute('src').replace('../feed/', '');
+        if (fresh[src]) { swap[i].src = fresh[src]; }
+      }
     }
   }
 
-  // Die Liste zeigt die Posts wie im Feed, je mit einem Knopf zum Loeschen.
+  // ---------- Die Liste der vorhandenen Posts ----------
+
+  // Die Liste zeigt die Posts wie im Feed, je mit Knoepfen zum Bearbeiten und Loeschen.
   function showList(posts) {
     var articles, media, src, i;
     current = posts;
     window.feedRender(list, posts, '../feed/');
     articles = list.querySelectorAll('.post');
-    for (i = 0; i < articles.length; i++) { addDelete(articles[i]); }
-    media = list.querySelectorAll('.post__media');
+    for (i = 0; i < articles.length; i++) { addControls(articles[i]); }
+    media = list.querySelectorAll('.post__media, .post__file');
     for (i = 0; i < media.length; i++) {
-      src = media[i].getAttribute('src').replace('../feed/', '');
-      if (fresh[src]) { media[i].src = fresh[src]; }
+      src = (media[i].getAttribute('src') || media[i].getAttribute('href')).replace('../feed/', '');
+      if (!fresh[src]) { continue; }
+      if (media[i].hasAttribute('href')) { media[i].href = fresh[src]; } else { media[i].src = fresh[src]; }
     }
     syncStart = Date.now();
     sync();
   }
 
-  function addDelete(article) {
-    var button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'editor__quiet post__delete';
-    button.appendChild(document.createTextNode('delete'));
-    button.addEventListener('click', function () { remove(article.id); });
-    var state = document.createElement('span');
-    state.className = 'post__state';
-    article.insertBefore(state, article.firstChild);
-    article.insertBefore(button, article.firstChild);
+  function addControls(article) {
+    var head = article.querySelector('.post__head');
+    var box = el('span', 'post__controls');
+    var state = el('span', 'post__state');
+    var edit = el('button', 'editor__quiet', 'edit');
+    var del = el('button', 'editor__quiet', 'delete');
+    edit.type = 'button';
+    del.type = 'button';
+    edit.addEventListener('click', function () { startEdit(article.id); });
+    del.addEventListener('click', function () { remove(article.id); });
+    box.appendChild(state);
+    box.appendChild(edit);
+    box.appendChild(del);
+    head.appendChild(box);
   }
 
   // ---------- Ist es schon live? ----------
 
   // GitHub hat die Aenderung sofort, die Website erst nach dem Neubau. sync() fragt
   // die Website alle paar Sekunden, bis sie dieselben Posts zeigt wie GitHub, und
-  // markiert solange jeden Post, der dort noch fehlt.
+  // markiert solange jeden Post, der dort noch fehlt oder noch den alten Text hat.
   function sync() {
     window.clearTimeout(syncTimer);
     fetch('../feed/posts.json?t=' + Date.now(), { cache: 'no-store' })
@@ -364,19 +693,20 @@
         var waiting = 0;
         var seconds = Math.round((Date.now() - syncStart) / 1000);
         var articles = list.querySelectorAll('.post');
-        var i, state;
+        var i, state, post;
 
         if (!data) {
           liveLine.textContent = 'cannot reach the website, trying again ...';
           syncTimer = window.setTimeout(sync, 5000);
           return;
         }
-        for (i = 0; i < (data.posts || []).length; i++) { live[data.posts[i].id] = true; }
-        for (i = 0; i < current.length; i++) { mine[current[i].id] = true; }
+        for (i = 0; i < (data.posts || []).length; i++) { live[data.posts[i].id] = data.posts[i]; }
+        for (i = 0; i < current.length; i++) { mine[current[i].id] = current[i]; }
 
         for (i = 0; i < articles.length; i++) {
           state = articles[i].querySelector('.post__state');
-          if (live[articles[i].id]) {
+          post = live[articles[i].id];
+          if (post && post.text === mine[articles[i].id].text) {
             state.textContent = 'live';
             state.className = 'post__state post__state--live';
           } else {
@@ -400,11 +730,33 @@
       });
   }
 
+  // ---------- Neuere Fassung des Editors? ----------
+
+  // Der Browser (und die App auf dem Homescreen) haelt die Seite eine Weile fest.
+  // version.txt wird immer frisch geholt: steht dort eine andere Nummer als die
+  // dieses Skripts, laedt sich der Editor unter neuer Adresse selbst neu.
+  function checkVersion() {
+    if (!VERSION) { return; }
+    fetch('version.txt?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.text() : ''; })
+      .then(function (text) {
+        var latest = text.replace(/\s/g, '');
+        if (!latest || latest === VERSION) { return; }
+        if (window.location.search.indexOf('v=' + latest) !== -1) { return; }   // schon versucht
+        if (busy || textInput.value || attachments.length) { return; }          // nichts Ungespeichertes verlieren
+        window.location.replace('./?v=' + encodeURIComponent(latest));
+      })
+      .catch(function () { /* ohne Netz: spaeter wieder */ });
+  }
+
+  // ---------- Anzeige ----------
+
   function showEditor() {
     tokenForm.hidden = true;
     postForm.hidden = false;
     forgetButton.hidden = false;
     refreshButton.hidden = false;
+    grow();
     say('Loading ...');
     loadState()
       .then(function (state) { showList(state.data.posts); say(''); })
@@ -429,33 +781,99 @@
     token = tokenInput.value.replace(/\s/g, '');
     tokenInput.value = '';
     if (!token) { return; }
-    writeToken(token);
+    remember(TOKEN_KEY, token);
     showEditor();
   });
 
   forgetButton.addEventListener('click', function () {
     if (!window.confirm('Remove the token from this browser?')) { return; }
     token = '';
-    writeToken('');
+    remember(TOKEN_KEY, '');
     showTokenForm();
   });
 
   postForm.addEventListener('submit', function (event) {
     event.preventDefault();
-    if (!busy) { publish(); }
+    if (busy) { return; }
+    if (editing) { saveEdit(); } else { publish(); }
   });
 
-  fileInput.addEventListener('change', showFiles);
+  cancelButton.addEventListener('click', function () { clearEditor(); say(''); });
+
+  fileInput.addEventListener('change', function () {
+    addFiles(fileInput.files || []);
+    fileInput.value = '';
+  });
+
+  // Dateien auf den Editor ziehen oder aus der Zwischenablage einfuegen.
+  postForm.addEventListener('dragover', function (event) { event.preventDefault(); });
+  postForm.addEventListener('drop', function (event) {
+    event.preventDefault();
+    if (event.dataTransfer && event.dataTransfer.files.length) { addFiles(event.dataTransfer.files); }
+  });
+  textInput.addEventListener('paste', function (event) {
+    var files = event.clipboardData && event.clipboardData.files;
+    if (files && files.length) { event.preventDefault(); addFiles(files); }
+  });
+
+  textInput.addEventListener('input', changed);
+  textInput.addEventListener('keydown', function (event) {
+    var key = (event.key || '').toLowerCase();
+    if (!(event.metaKey || event.ctrlKey) || event.altKey) { return; }
+    if (key === 'b') { event.preventDefault(); useTool('bold'); }
+    if (key === 'i') { event.preventDefault(); useTool('italic'); }
+    if (key === 'k') {
+      event.preventDefault();
+      setOpen(formatToggle, tools, true, 'feed-format');
+      if (linkForm.hidden) { openLink(); }
+    }
+    if (key === 'enter') { event.preventDefault(); if (!busy) { if (editing) { saveEdit(); } else { publish(); } } }
+  });
+
+  tools.addEventListener('click', function (event) {
+    var name = event.target.getAttribute && event.target.getAttribute('data-tool');
+    if (name) { useTool(name); }
+  });
+  // Ein Tipp auf ein Werkzeug soll die Auswahl im Text nicht aufheben.
+  tools.addEventListener('mousedown', function (event) {
+    if (event.target.getAttribute && event.target.getAttribute('data-tool')) { event.preventDefault(); }
+  });
+
+  linkInsert.addEventListener('click', insertLink);
+  linkForm.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') { event.preventDefault(); insertLink(); }
+    if (event.key === 'Escape') { closeLink(); textInput.focus(); }
+  });
+
+  formatToggle.addEventListener('click', function () {
+    setOpen(formatToggle, tools, tools.hidden, 'feed-format');
+  });
+  previewToggle.addEventListener('click', function () {
+    setOpen(previewToggle, preview, preview.hidden, 'feed-preview');
+    showPreview();
+  });
 
   // Die App auf dem Homescreen hat keinen Knopf zum Neuladen: hier ist einer,
   // und beim Zurueckkommen in die App wird von selbst neu geladen.
   refreshButton.addEventListener('click', function () {
+    checkVersion();
     if (token && !busy) { showEditor(); }
   });
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && token && !busy) { showEditor(); }
+    if (document.hidden) { return; }
+    checkVersion();
+    if (token && !busy) { showEditor(); }
   });
 
-  token = readToken();
+  // Werkzeuge: am grossen Bildschirm von Anfang an offen, am Telefon erst auf Wunsch.
+  (function () {
+    var format = recall('feed-format');
+    var wide = window.matchMedia && window.matchMedia('(min-width: 641px)').matches;
+    setOpen(formatToggle, tools, format ? format === 'open' : wide);
+    setOpen(previewToggle, preview, recall('feed-preview') === 'open');
+  })();
+
+  checkVersion();
+  token = recall(TOKEN_KEY);
   if (token) { showEditor(); } else { showTokenForm(); }
 })();

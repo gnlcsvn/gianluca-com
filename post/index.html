@@ -16,7 +16,10 @@
   <meta name="theme-color" content="#fbfaf7">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="icon" href="icon-192.png">
-  <link rel="stylesheet" href="../css/style.css?v=3">
+  <!-- Die Nummer hinter v= ist die Fassung des Editors. Bei jeder Aenderung an
+       Editor, Feed-Skript oder Stylesheet hier (dreimal) und in version.txt hochzaehlen:
+       daran merkt eine schon geoeffnete App, dass es eine neuere Fassung gibt. -->
+  <link rel="stylesheet" href="../css/style.css?v=5">
 </head>
 <body class="editor-page">
 
@@ -33,31 +36,62 @@
       <p>Paste your GitHub token. It is stored in this browser only and is sent to GitHub and nowhere else.</p>
       <label class="editor__label" for="token">token</label>
       <input class="editor__input" id="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required>
-      <button class="editor__button" type="submit">save</button>
+      <button class="button" type="submit">save</button>
     </form>
 
     <!-- Schritt 2: schreiben und absenden -->
     <form class="editor__form" id="post-form" hidden>
-      <label class="editor__label" for="text">new post</label>
-      <textarea class="editor__input editor__text" id="text" rows="5"></textarea>
+      <label class="editor__label" id="text-label" for="text">new post</label>
+      <textarea class="editor__input editor__text" id="text" rows="4"></textarea>
+
+      <!-- Was angehaengt ist: je Datei ein Kaestchen mit Reihenfolge und Entfernen -->
+      <ul class="attachments" id="attachments" hidden></ul>
+
+      <!-- Die Zeile unter dem Text: links die Werkzeuge (erst auf Wunsch offen), rechts Absenden -->
       <div class="editor__row">
-        <label class="editor__file">
-          <span>add pictures or video</span>
-          <input id="files" type="file" accept="image/*,video/*" multiple>
-        </label>
-        <button class="editor__button" id="submit" type="submit">post</button>
+        <div class="editor__switches">
+          <label class="button editor__file" id="media-button">
+            <span>media</span>
+            <input id="files" type="file" multiple>
+          </label>
+          <button class="button" id="format-toggle" type="button" aria-expanded="false" aria-controls="tools">format</button>
+          <button class="button" id="preview-toggle" type="button" aria-expanded="false" aria-controls="preview">preview</button>
+        </div>
+        <div class="editor__switches">
+          <button class="button" id="cancel" type="button" hidden>cancel</button>
+          <button class="button" id="submit" type="submit">post</button>
+        </div>
       </div>
-      <ul class="editor__files" id="file-list"></ul>
+
+      <!-- Werkzeuge fuer den Text. Sie setzen nur Zeichen in den Text (z.B. **fett**). -->
+      <div class="tools" id="tools" hidden>
+        <div class="tools__group" role="group" aria-label="format">
+          <button type="button" data-tool="bold" title="bold (cmd/ctrl + b)">bold</button>
+          <button type="button" data-tool="italic" title="italic (cmd/ctrl + i)">italic</button>
+          <button type="button" data-tool="link" id="link-toggle" aria-expanded="false" title="link (cmd/ctrl + k)">link</button>
+          <button type="button" data-tool="quote">quote</button>
+          <button type="button" data-tool="list">list</button>
+          <button type="button" data-tool="code">code</button>
+        </div>
+        <div class="tools__link" id="link-form" hidden>
+          <input class="editor__input" id="link-text" type="text" placeholder="link text" aria-label="link text" autocapitalize="off">
+          <input class="editor__input" id="link-url" type="url" inputmode="url" placeholder="https://" aria-label="address" autocapitalize="off" spellcheck="false">
+          <button class="button" id="link-insert" type="button">insert</button>
+        </div>
+      </div>
+
+      <!-- Vorschau: der Post, wie er im Feed aussehen wird -->
+      <div class="editor__preview" id="preview" hidden></div>
     </form>
 
     <p class="editor__status" id="status" role="status" aria-live="polite"></p>
 
-    <!-- Die vorhandenen Posts, je mit einem Knopf zum Loeschen -->
+    <!-- Die vorhandenen Posts, je mit Knoepfen zum Bearbeiten und Loeschen -->
     <p class="editor__live" id="live" role="status" aria-live="polite"></p>
     <div class="posts posts--editor" id="list"></div>
   </main>
 
-  <script src="../js/feed.js?v=3"></script>
-  <script src="../js/post.js?v=3"></script>
+  <script src="../js/feed.js?v=5"></script>
+  <script src="../js/post.js?v=5"></script>
 </body>
 </html>

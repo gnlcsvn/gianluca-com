@@ -1,5 +1,5 @@
 // Feed: laedt feed/posts.json und setzt die Posts untereinander, neueste oben.
-// window.feedRender wird auch vom Editor (/post/) benutzt.
+// window.feedRender und window.feedBuildPost werden auch vom Editor (/post/) benutzt.
 (function () {
   var MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
@@ -12,82 +12,244 @@
       ', ' + two(d.getHours()) + ':' + two(d.getMinutes());
   }
 
-  // Text als Text einsetzen (nie als HTML), nur Webadressen werden zu Links.
-  function fillText(node, text) {
-    var parts = text.split(/(https?:\/\/[^\s]+)/);
-    var i, a, url, tail;
+  function formatSize(bytes) {
+    if (!bytes) { return ''; }
+    if (bytes < 1024 * 1024) { return Math.max(1, Math.round(bytes / 1024)) + ' kb'; }
+    return (Math.round(bytes / 1024 / 1024 * 10) / 10) + ' mb';
+  }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text) { node.appendChild(document.createTextNode(text)); }
+    return node;
+  }
+
+  // ---------- Text ----------
+  // Der Text eines Posts ist reiner Text mit ein paar Zeichen fuer die Form:
+  //   **fett**   *kursiv*   `code`   [Linktext](https://...)   https://...
+  //   Zeilen mit "> " am Anfang sind ein Zitat, Zeilen mit "- " eine Liste.
+  // Daraus werden hier Elemente gebaut. Der Text wird nie als HTML eingesetzt.
+
+  var INLINE = /(\*\*[^*\n]+?\*\*|\*[^*\s][^*\n]*?\*|`[^`\n]+?`|\[[^\]\n]+?\]\((?:https?:\/\/|mailto:)[^\s)]+\)|https?:\/\/[^\s<]+)/;
+
+  function link(url, label) {
+    var a = document.createElement('a');
+    a.href = url;
+    if (url.indexOf('mailto:') !== 0) { a.target = '_blank'; a.rel = 'noopener'; }
+    fillInline(a, label, true);
+    return a;
+  }
+
+  function fillInline(node, text, insideLink) {
+    var parts = text.split(INLINE);
+    var i, part, match, url, tail, child;
     for (i = 0; i < parts.length; i++) {
-      if (i % 2 === 1) {
-        url = parts[i];
+      part = parts[i];
+      if (!part) { continue; }
+      if (i % 2 === 0) {
+        node.appendChild(document.createTextNode(part));
+      } else if (part.indexOf('**') === 0) {
+        child = document.createElement('strong');
+        fillInline(child, part.slice(2, -2), insideLink);
+        node.appendChild(child);
+      } else if (part.charAt(0) === '*') {
+        child = document.createElement('em');
+        fillInline(child, part.slice(1, -1), insideLink);
+        node.appendChild(child);
+      } else if (part.charAt(0) === '`') {
+        node.appendChild(el('code', '', part.slice(1, -1)));
+      } else if (insideLink) {
+        node.appendChild(document.createTextNode(part));
+      } else if (part.charAt(0) === '[') {
+        match = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(part);
+        node.appendChild(link(match[2], match[1]));
+      } else {
+        url = part;
         tail = '';
         while (/[.,;:!?)]$/.test(url)) { tail = url.slice(-1) + tail; url = url.slice(0, -1); }
-        a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        a.appendChild(document.createTextNode(url.replace(/^https?:\/\//, '').replace(/\/$/, '')));
-        node.appendChild(a);
+        node.appendChild(link(url, url.replace(/^https?:\/\//, '').replace(/\/$/, '')));
         if (tail) { node.appendChild(document.createTextNode(tail)); }
-      } else if (parts[i]) {
-        node.appendChild(document.createTextNode(parts[i]));
       }
     }
   }
 
-  function buildMedia(item, base, eager) {
-    var el;
+  // Mehrere Zeilen in einen Absatz: jede neue Zeile ist ein Umbruch.
+  function fillLines(node, lines) {
+    var i;
+    for (i = 0; i < lines.length; i++) {
+      if (i) { node.appendChild(document.createElement('br')); }
+      fillInline(node, lines[i], false);
+    }
+  }
+
+  function buildText(text) {
+    var box = el('div', 'post__text');
+    var lines = text.replace(/\r/g, '').split('\n');
+    var kind = '';
+    var group = [];
+    var i, line, next;
+
+    function flush() {
+      var node, j, item;
+      if (!group.length) { return; }
+      if (kind === 'list') {
+        node = document.createElement('ul');
+        for (j = 0; j < group.length; j++) {
+          item = document.createElement('li');
+          fillInline(item, group[j], false);
+          node.appendChild(item);
+        }
+      } else {
+        node = document.createElement(kind === 'quote' ? 'blockquote' : 'p');
+        fillLines(node, group);
+      }
+      box.appendChild(node);
+      group = [];
+    }
+
+    for (i = 0; i < lines.length; i++) {
+      line = lines[i];
+      if (!line.replace(/\s/g, '')) { flush(); kind = ''; continue; }
+      next = /^>\s?/.test(line) ? 'quote' : (/^- /.test(line) ? 'list' : 'text');
+      if (next !== kind) { flush(); kind = next; }
+      group.push(next === 'quote' ? line.replace(/^>\s?/, '') : (next === 'list' ? line.slice(2) : line));
+    }
+    flush();
+    return box;
+  }
+
+  // ---------- Bilder, Videos, Ton, Dateien ----------
+
+  function buildVisual(item, base, eager) {
+    var node;
     if (item.type === 'video') {
-      el = document.createElement('video');
-      el.controls = true;
-      el.preload = 'metadata';
-      el.setAttribute('playsinline', '');
+      node = document.createElement('video');
+      node.controls = true;
+      node.preload = 'metadata';
+      node.setAttribute('playsinline', '');
     } else {
-      el = document.createElement('img');
-      el.alt = '';
-      if (!eager) { el.loading = 'lazy'; }
+      node = document.createElement('img');
+      node.alt = item.alt || '';
+      if (!eager) { node.loading = 'lazy'; }
     }
     if (item.width && item.height) {
-      el.width = item.width;
-      el.height = item.height;
+      node.width = item.width;
+      node.height = item.height;
     }
-    el.className = 'post__media';
-    el.src = base + item.src;
-    return el;
+    node.className = 'post__media';
+    node.src = base + item.src;
+    return node;
+  }
+
+  // Mehrere Bilder: nebeneinander zum Wischen, darunter Pfeile und ein Zaehler.
+  function buildCarousel(items, base, eager) {
+    var box = el('div', 'carousel');
+    var track = el('div', 'carousel__track');
+    var bar = el('div', 'carousel__bar');
+    var prev = el('button', 'carousel__step', '←');
+    var next = el('button', 'carousel__step', '→');
+    var count = el('span', 'carousel__count', '1 / ' + items.length);
+    var first = items[0];
+    var ratio = first.width && first.height ? first.width / first.height : 1;
+    var i, slide;
+
+    // Der Rahmen nimmt das Format des ersten Bildes, in Grenzen.
+    ratio = Math.max(0.75, Math.min(2, ratio));
+    track.style.aspectRatio = String(ratio);
+    track.tabIndex = 0;
+    track.setAttribute('aria-label', items.length + ' pictures, swipe or use the arrows');
+
+    for (i = 0; i < items.length; i++) {
+      slide = el('div', 'carousel__slide');
+      slide.appendChild(buildVisual(items[i], base, eager && i === 0));
+      track.appendChild(slide);
+    }
+
+    function index() { return Math.round(track.scrollLeft / (track.clientWidth || 1)); }
+    function show() {
+      var at = Math.max(0, Math.min(items.length - 1, index()));
+      count.textContent = (at + 1) + ' / ' + items.length;
+      prev.disabled = at === 0;
+      next.disabled = at === items.length - 1;
+    }
+    function go(step) {
+      var left = (index() + step) * track.clientWidth;
+      if (track.scrollTo) { track.scrollTo({ left: left, behavior: 'smooth' }); }
+      else { track.scrollLeft = left; }
+    }
+
+    prev.type = 'button';
+    next.type = 'button';
+    prev.setAttribute('aria-label', 'previous picture');
+    next.setAttribute('aria-label', 'next picture');
+    prev.addEventListener('click', function () { go(-1); });
+    next.addEventListener('click', function () { go(1); });
+    track.addEventListener('scroll', show);
+    show();
+
+    bar.appendChild(prev);
+    bar.appendChild(count);
+    bar.appendChild(next);
+    box.appendChild(track);
+    box.appendChild(bar);
+    return box;
+  }
+
+  function buildAudio(item, base) {
+    var box = el('div', 'post__audio');
+    var node = document.createElement('audio');
+    node.controls = true;
+    node.preload = 'metadata';
+    node.className = 'post__media';
+    node.src = base + item.src;
+    if (item.name) { box.appendChild(el('span', 'post__name', item.name)); }
+    box.appendChild(node);
+    return box;
+  }
+
+  function buildFile(item, base) {
+    var a = el('a', 'post__file');
+    var size = formatSize(item.size);
+    a.href = base + item.src;
+    a.setAttribute('download', item.name || '');
+    a.appendChild(el('span', '', item.name || item.src.split('/').pop()));
+    if (size) { a.appendChild(el('span', 'post__size', size)); }
+    return a;
   }
 
   function buildPost(post, base, eager) {
-    var article = document.createElement('article');
-    var date = document.createElement('a');
-    var time = document.createElement('time');
-    var text, i;
+    var article = el('article', 'post');
+    var head = el('div', 'post__head');
+    var date = el('a', 'post__date');
+    var time = el('time', '', formatDate(post.date));
+    var media = post.media || [];
+    var visual = [];
+    var i;
 
-    article.className = 'post';
     article.id = post.id;
-
-    date.className = 'post__date';
     date.href = '#' + post.id;
     time.setAttribute('datetime', post.date);
-    time.appendChild(document.createTextNode(formatDate(post.date)));
     date.appendChild(time);
-    article.appendChild(date);
+    head.appendChild(date);
+    article.appendChild(head);
 
-    if (post.text) {
-      text = document.createElement('p');
-      text.className = 'post__text';
-      fillText(text, post.text);
-      article.appendChild(text);
+    if (post.text) { article.appendChild(buildText(post.text)); }
+
+    for (i = 0; i < media.length; i++) {
+      if (media[i].type === 'image' || media[i].type === 'video') { visual.push(media[i]); }
     }
-    for (i = 0; i < (post.media || []).length; i++) {
-      article.appendChild(buildMedia(post.media[i], base, eager));
+    if (visual.length === 1) { article.appendChild(buildVisual(visual[0], base, eager)); }
+    if (visual.length > 1) { article.appendChild(buildCarousel(visual, base, eager)); }
+    for (i = 0; i < media.length; i++) {
+      if (media[i].type === 'audio') { article.appendChild(buildAudio(media[i], base)); }
+      if (media[i].type === 'file') { article.appendChild(buildFile(media[i], base)); }
     }
     return article;
   }
 
   function note(container, message) {
-    var p = document.createElement('p');
-    p.className = 'posts__note';
-    p.appendChild(document.createTextNode(message));
-    container.appendChild(p);
+    container.appendChild(el('p', 'posts__note', message));
   }
 
   // Setzt die Posts in den Container. base ist der Pfad zum Ordner feed/.
@@ -101,7 +263,7 @@
   }
 
   window.feedRender = render;
-  window.feedFormatDate = formatDate;
+  window.feedBuildPost = buildPost;
 
   var container = document.getElementById('posts');
   if (!container) { return; }
