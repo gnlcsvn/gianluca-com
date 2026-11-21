@@ -21,9 +21,14 @@
   var submitButton = document.getElementById('submit');
   var statusLine = document.getElementById('status');
   var list = document.getElementById('list');
+  var liveLine = document.getElementById('live');
+  var refreshButton = document.getElementById('refresh');
 
   var token = '';
   var busy = false;
+  var current = [];                   // die Posts, wie sie auf GitHub stehen
+  var syncTimer = null;
+  var syncStart = 0;
   var fresh = {};                     // gerade hochgeladene Dateien: Pfad -> lokale Adresse
 
   // ---------- kleine Helfer ----------
@@ -318,6 +323,7 @@
   // Die Liste zeigt die Posts wie im Feed, je mit einem Knopf zum Loeschen.
   function showList(posts) {
     var articles, media, src, i;
+    current = posts;
     window.feedRender(list, posts, '../feed/');
     articles = list.querySelectorAll('.post');
     for (i = 0; i < articles.length; i++) { addDelete(articles[i]); }
@@ -326,6 +332,8 @@
       src = media[i].getAttribute('src').replace('../feed/', '');
       if (fresh[src]) { media[i].src = fresh[src]; }
     }
+    syncStart = Date.now();
+    sync();
   }
 
   function addDelete(article) {
@@ -334,13 +342,69 @@
     button.className = 'editor__quiet post__delete';
     button.appendChild(document.createTextNode('delete'));
     button.addEventListener('click', function () { remove(article.id); });
+    var state = document.createElement('span');
+    state.className = 'post__state';
+    article.insertBefore(state, article.firstChild);
     article.insertBefore(button, article.firstChild);
+  }
+
+  // ---------- Ist es schon live? ----------
+
+  // GitHub hat die Aenderung sofort, die Website erst nach dem Neubau. sync() fragt
+  // die Website alle paar Sekunden, bis sie dieselben Posts zeigt wie GitHub, und
+  // markiert solange jeden Post, der dort noch fehlt.
+  function sync() {
+    window.clearTimeout(syncTimer);
+    fetch('../feed/posts.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : { posts: [] }; })
+      .catch(function () { return null; })
+      .then(function (data) {
+        var live = {};
+        var mine = {};
+        var waiting = 0;
+        var seconds = Math.round((Date.now() - syncStart) / 1000);
+        var articles = list.querySelectorAll('.post');
+        var i, state;
+
+        if (!data) {
+          liveLine.textContent = 'cannot reach the website, trying again ...';
+          syncTimer = window.setTimeout(sync, 5000);
+          return;
+        }
+        for (i = 0; i < (data.posts || []).length; i++) { live[data.posts[i].id] = true; }
+        for (i = 0; i < current.length; i++) { mine[current[i].id] = true; }
+
+        for (i = 0; i < articles.length; i++) {
+          state = articles[i].querySelector('.post__state');
+          if (live[articles[i].id]) {
+            state.textContent = 'live';
+            state.className = 'post__state post__state--live';
+          } else {
+            state.textContent = 'publishing ...';
+            state.className = 'post__state';
+            waiting++;
+          }
+        }
+        // geloeschte Posts, die auf der Website noch stehen
+        for (i = 0; i < (data.posts || []).length; i++) {
+          if (!mine[data.posts[i].id]) { waiting++; }
+        }
+
+        if (!waiting) {
+          liveLine.textContent = 'the website is up to date';
+          return;
+        }
+        liveLine.textContent = 'updating the website ... ' + seconds + ' s' +
+          (seconds > 180 ? ' (longer than usual)' : '');
+        syncTimer = window.setTimeout(sync, seconds > 180 ? 10000 : 3000);
+      });
   }
 
   function showEditor() {
     tokenForm.hidden = true;
     postForm.hidden = false;
     forgetButton.hidden = false;
+    refreshButton.hidden = false;
     say('Loading ...');
     loadState()
       .then(function (state) { showList(state.data.posts); say(''); })
@@ -350,6 +414,9 @@
   function showTokenForm() {
     postForm.hidden = true;
     forgetButton.hidden = true;
+    refreshButton.hidden = true;
+    window.clearTimeout(syncTimer);
+    liveLine.textContent = '';
     tokenForm.hidden = false;
     list.innerHTML = '';
     say('');
@@ -379,6 +446,15 @@
   });
 
   fileInput.addEventListener('change', showFiles);
+
+  // Die App auf dem Homescreen hat keinen Knopf zum Neuladen: hier ist einer,
+  // und beim Zurueckkommen in die App wird von selbst neu geladen.
+  refreshButton.addEventListener('click', function () {
+    if (token && !busy) { showEditor(); }
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && token && !busy) { showEditor(); }
+  });
 
   token = readToken();
   if (token) { showEditor(); } else { showTokenForm(); }

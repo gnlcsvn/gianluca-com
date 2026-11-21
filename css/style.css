@@ -55,6 +55,8 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .post__text { margin: 0 0 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 .post__media { display: block; width: 100%; height: auto; margin: 0 0 0.6rem; }
 .post__delete { float: right; }
+.post__state { float: right; margin-right: 1.3rem; color: var(--tinte); }
+.post__state--live { color: var(--leise); }
 
 /* Editor (/post/): schreiben, absenden, loeschen */
 .editor { max-width: 34rem; margin: 0 auto; padding: 1.5rem 0 0; }
@@ -83,7 +85,8 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .editor__quiet:disabled { visibility: hidden; }
 .editor__files { margin: 0.8rem 0 0; padding: 0; list-style: none; color: var(--leise); overflow-wrap: anywhere; }
 .editor__status { min-height: 1.55em; margin: 1.2rem 0 0; }
-.posts--editor { padding-top: 2.5rem; border-top: 1px solid #e4e2dc; margin-top: 1.5rem; }
+.editor__live { margin: 1.5rem 0 0; padding-top: 1.2rem; border-top: 1px solid #e4e2dc; color: var(--leise); min-height: 1.55em; box-sizing: content-box; }
+.posts--editor { padding-top: 1.8rem; }
 /* Als App auf dem Homescreen: Platz fuer die Statusleiste und den unteren Rand */
 .editor-page { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
 

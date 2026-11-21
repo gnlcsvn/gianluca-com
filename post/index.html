@@ -16,13 +16,13 @@
   <meta name="theme-color" content="#fbfaf7">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="icon" href="icon-192.png">
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=3">
 </head>
 <body class="editor-page">
 
   <header class="site-header site-header--narrow">
     <a href="../feed/" class="site-header__home">feed</a>
-    <span class="site-header__nav"><button class="editor__quiet" id="forget" type="button" hidden>forget token</button></span>
+    <span class="site-header__nav"><button class="editor__quiet" id="refresh" type="button" hidden>refresh</button><button class="editor__quiet" id="forget" type="button" hidden>forget token</button></span>
   </header>
 
   <main class="editor">
@@ -53,10 +53,11 @@
     <p class="editor__status" id="status" role="status" aria-live="polite"></p>
 
     <!-- Die vorhandenen Posts, je mit einem Knopf zum Loeschen -->
+    <p class="editor__live" id="live" role="status" aria-live="polite"></p>
     <div class="posts posts--editor" id="list"></div>
   </main>
 
-  <script src="../js/feed.js?v=2"></script>
-  <script src="../js/post.js?v=2"></script>
+  <script src="../js/feed.js?v=3"></script>
+  <script src="../js/post.js?v=3"></script>
 </body>
 </html>
