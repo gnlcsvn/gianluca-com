@@ -23,7 +23,6 @@ concurrency:
 
 permissions:
   contents: write
-  pages: write
 
 jobs:
   video:
@@ -60,8 +59,5 @@ jobs:
           python3 -m pip install --quiet --disable-pip-version-check pillow
           python3 .github/share.py
 
-      - name: Website neu bauen
-        if: steps.todo.outputs.found == 'yes' || steps.share.outputs.changed == 'yes'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
+      # Die Website baut GitHub nach dem Push dieser Action von selbst neu. Ein zweiter
+      # Anstoss von hier hat Builds doppelt gestartet und einmal die Warteschlange blockiert.

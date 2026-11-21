@@ -238,10 +238,6 @@ def main():
             return
         run('git', 'commit', '--quiet', '-m', 'Feed: update post pages')
         if run('git', 'push', '--quiet', 'origin', 'HEAD:main', check=False).returncode == 0:
-            out = os.environ.get('GITHUB_OUTPUT')
-            if out:
-                with open(out, 'a', encoding='utf-8') as f:
-                    f.write('changed=yes\n')
             return
         time.sleep(3 + attempt * 2)
     raise RuntimeError('Der Push auf main ist sechsmal gescheitert.')
