@@ -1,0 +1,54 @@
+# Rechnet Videos aus dem Feed klein.
+#
+# Der Editor (/post/) legt ein Video nicht in den Feed, sondern in einen eigenen Zweig
+# "upload/<post>-<n>", und traegt es in feed/posts.json mit "processing": true ein.
+# Diese Action laeuft, sobald sich posts.json aendert: sie holt das Original aus dem
+# Zweig, rechnet es mit ffmpeg um, legt die kleine Fassung nach feed/media/ und loescht
+# den Zweig. So landet das grosse Original nie im Verlauf von main.
+name: video
+
+on:
+  push:
+    branches: [main]
+    paths: ['feed/posts.json']
+  workflow_dispatch:
+
+# Immer nur ein Lauf zur Zeit, weitere warten.
+concurrency:
+  group: video
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gibt es etwas zu tun?
+        id: todo
+        run: |
+          if grep -q '"processing": *true' feed/posts.json; then echo "found=yes" >> "$GITHUB_OUTPUT"; fi
+
+      - name: ffmpeg einrichten
+        if: steps.todo.outputs.found == 'yes'
+        run: |
+          if ! command -v ffmpeg >/dev/null; then sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; fi
+          ffmpeg -version | head -1
+
+      - name: Videos umrechnen und eintragen
+        if: steps.todo.outputs.found == 'yes'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 .github/video.py
+
+      - name: Website neu bauen
+        if: steps.todo.outputs.found == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || true

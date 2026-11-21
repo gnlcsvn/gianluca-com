@@ -271,6 +271,13 @@
     }
     if (visual.length === 1) { article.appendChild(buildVisual(visual[0], base, eager)); }
     if (visual.length > 1) { article.appendChild(buildCarousel(visual, base, eager)); }
+    for (i = 0; i < visual.length; i++) {
+      // Das Video wird gerade auf GitHub kleingerechnet: bis dahin steht nur das Vorschaubild.
+      if (visual[i].processing) {
+        article.appendChild(el('p', 'post__note', 'The video is being prepared. It plays here in a minute or two.'));
+        break;
+      }
+    }
     for (i = 0; i < media.length; i++) {
       if (media[i].type === 'audio') { article.appendChild(buildAudio(media[i], base)); }
       if (media[i].type === 'file') { article.appendChild(buildFile(media[i], base)); }
@@ -298,19 +305,105 @@
   var container = document.getElementById('posts');
   if (!container) { return; }
 
+  // ---------- Nur auf der Feed-Seite: Teilen, lange Texte, ein Post allein ----------
+
+  var all = [];
+  var CLAMP_LINES = 14;   // laengere Texte werden im Feed auf so viele Zeilen gekuerzt
+  var LONG_LINES = 18;    // ... aber erst, wenn sie deutlich laenger sind
+
+  function linkTo(id) {
+    return window.location.origin + window.location.pathname + '#' + id;
+  }
+
+  // Teilen: auf dem Telefon das Teilen-Blatt des Systems, sonst der Link in die Zwischenablage.
+  function addShare(article) {
+    var button = el('button', 'post__share', 'share');
+    button.type = 'button';
+    button.addEventListener('click', function () {
+      var url = linkTo(article.id);
+      function told(text) {
+        button.textContent = text;
+        window.setTimeout(function () { button.textContent = 'share'; }, 2000);
+      }
+      if (navigator.share) {
+        navigator.share({ title: document.title, url: url }).catch(function () { /* abgebrochen */ });
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () { told('link copied'); }, function () { told(url); });
+      } else {
+        told(url);
+      }
+    });
+    article.querySelector('.post__head').appendChild(button);
+  }
+
+  // Lange Texte: gekuerzt, mit "more" zum Ausklappen.
+  function addMore(article) {
+    var text = article.querySelector('.post__text');
+    var line, button;
+    if (!text) { return; }
+    line = parseFloat(window.getComputedStyle(text).lineHeight) || 22;
+    if (text.scrollHeight <= line * LONG_LINES) { return; }
+    button = el('button', 'post__more', 'more');
+    button.type = 'button';
+    button.setAttribute('aria-expanded', 'false');
+    text.style.maxHeight = (line * CLAMP_LINES) + 'px';
+    text.className = 'post__text post__text--clamped';
+    button.addEventListener('click', function () {
+      var open = button.getAttribute('aria-expanded') !== 'true';
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      button.textContent = open ? 'less' : 'more';
+      text.className = open ? 'post__text' : 'post__text post__text--clamped';
+      text.style.maxHeight = open ? '' : (line * CLAMP_LINES) + 'px';
+      if (!open) { article.scrollIntoView(); }
+    });
+    text.parentNode.insertBefore(button, text.nextSibling);
+  }
+
+  function find(id) {
+    var i;
+    for (i = 0; i < all.length; i++) { if (all[i].id === id) { return all[i]; } }
+    return null;
+  }
+
+  // Steht hinter der Adresse "#<id>", zeigt die Seite nur diesen einen Post, ungekuerzt,
+  // mit einem Weg zurueck. Das ist die Adresse, die "share" verschickt.
+  function show(from) {
+    var id = decodeURIComponent(window.location.hash.slice(1));
+    var post = id ? find(id) : null;
+    var articles, back, i, target;
+    if (post) {
+      render(container, [post], '');
+      back = el('a', 'posts__back', '\u2190 all posts');
+      back.href = './';
+      back.addEventListener('click', function (event) {
+        event.preventDefault();
+        window.history.pushState(null, '', window.location.pathname);
+        show(id);
+      });
+      container.insertBefore(back, container.firstChild);
+      addShare(container.querySelector('.post'));
+      window.scrollTo(0, 0);
+      return;
+    }
+    render(container, all, '');
+    articles = container.querySelectorAll('.post');
+    for (i = 0; i < articles.length; i++) { addShare(articles[i]); addMore(articles[i]); }
+    // zurueck aus der Einzelansicht: wieder an die Stelle des Posts
+    target = from ? document.getElementById(from) : null;
+    if (target) { target.scrollIntoView(); }
+  }
+
+  window.addEventListener('hashchange', function () { show(''); });
+  window.addEventListener('popstate', function () { show(''); });
+
   fetch('posts.json', { cache: 'no-cache' })
     .then(function (res) {
       if (!res.ok) { throw new Error(String(res.status)); }
       return res.json();
     })
     .then(function (data) {
-      var target;
-      render(container, data.posts || [], '');
-      // Link auf einen einzelnen Post: nach dem Einsetzen dorthin springen.
-      if (window.location.hash) {
-        target = document.getElementById(window.location.hash.slice(1));
-        if (target) { target.scrollIntoView(); }
-      }
+      all = data.posts || [];
+      show('');
     })
     .catch(function () {
       container.innerHTML = '';

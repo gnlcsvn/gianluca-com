@@ -73,6 +73,12 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .post__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0 1rem; margin: 0 0 0.5rem; }
 .post__date { color: var(--leise); white-space: nowrap; }
 .post__controls { display: flex; gap: 1.1rem; white-space: nowrap; }
+.post__share, .post__more { font: inherit; color: var(--leise); background: none; border: 0; margin: 0; padding: 0; cursor: pointer; }
+.post__share:hover, .post__more:hover { color: var(--blau); text-decoration: underline; }
+.post__share:focus-visible, .post__more:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
+.post__more { display: block; margin: -0.4rem 0 1rem; color: var(--blau); }
+.post__note { margin: 0 0 0.6rem; color: var(--leise); }
+.posts__back { display: inline-block; margin: 0 0 2rem; color: var(--leise); }
 .post__state { color: var(--tinte); }
 .post__state--live { color: var(--leise); }
 .post__state--error { color: var(--rot); }
@@ -84,6 +90,12 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .post__text { margin: 0 0 1rem; overflow-wrap: anywhere; }
 .post__text p, .post__text ul, .post__text blockquote { margin: 0 0 0.8rem; }
 .post__text > :last-child { margin-bottom: 0; }
+/* Lange Texte im Feed: gekuerzt, unten laeuft der Text ins Papier aus */
+.post__text--clamped { position: relative; overflow: hidden; }
+.post__text--clamped::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3.1em;
+  background: linear-gradient(rgba(251, 250, 247, 0), var(--papier));
+}
 .post__text blockquote { padding-left: 1rem; border-left: 1px solid var(--leise); color: var(--leise); }
 .post__text ul { padding: 0; list-style: none; }
 .post__text li { position: relative; padding-left: 1.3rem; }

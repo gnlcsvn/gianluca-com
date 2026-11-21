@@ -491,6 +491,7 @@
     var now = new Date();
     var id = idNow(now);
     var media = [];
+    var parked = [];
 
     if (!text && !attachments.length) { say('Write something or add a file.'); return; }
 
@@ -524,22 +525,30 @@
         var entries = [];
         done.forEach(function (one, index) {
           var ready = one.ready;
-          var name = id + '-' + (index + 1) + '.' + ready.ext;
+          // Videos werden auf GitHub kleingerechnet (.github/workflows/video.yml): im Feed
+          // steht deshalb schon der Name der fertigen Datei, das Original geht in einen
+          // eigenen Zweig (siehe parkVideos) und nicht in den Feed.
+          var park = ready.type === 'video';
+          var name = id + '-' + (index + 1) + '.' + (park ? 'mp4' : ready.ext);
           var entry = { type: ready.type, src: 'media/' + name };
+          if (park) {
+            entry.processing = true;
+            parked.push({ name: id + '-' + (index + 1), file: id + '-' + (index + 1) + '.' + ready.ext, sha: one.sha });
+          }
           if (ready.width) { entry.width = ready.width; entry.height = ready.height; }
           if (ready.name) { entry.name = ready.name; }
           if (ready.size) { entry.size = ready.size; }
           media.push(entry);
           // Bis die Website neu gebaut ist, zeigt der Editor die Datei von hier.
           fresh[entry.src] = URL.createObjectURL(ready.blob);
-          entries.push({ path: FEED + 'media/' + name, mode: '100644', type: 'blob', sha: one.sha });
+          if (!park) { entries.push({ path: FEED + 'media/' + name, mode: '100644', type: 'blob', sha: one.sha }); }
           if (one.poster) {
             entry.poster = 'media/' + id + '-' + (index + 1) + '-poster.jpg';
             fresh[entry.poster] = URL.createObjectURL(ready.poster);
             entries.push({ path: FEED + entry.poster, mode: '100644', type: 'blob', sha: one.poster });
           }
         });
-        return entries;
+        return parkVideos(parked).then(function () { return entries; });
       })
       .then(function (entries) {
         say('Posting ...');
@@ -551,10 +560,22 @@
       .then(function (state) {
         clearEditor();
         showList(state.data.posts);
-        say('Posted. It shows up in the feed within a minute.');
+        say(parked.length
+          ? 'Posted. The video is being compressed, it plays in the feed in a minute or two.'
+          : 'Posted. It shows up in the feed within a minute.');
       })
       .catch(function (error) { say(explain(error), true); })
       .then(function () { keepAwake(false); setBusy(false); });
+  }
+
+  // Legt jedes Video in einen eigenen Zweig "upload/<post>-<n>", der nur diese eine
+  // Datei enthaelt. Die Action holt es dort ab und loescht den Zweig danach wieder.
+  function parkVideos(parked) {
+    return inOrder(parked, function (one) {
+      return api('POST', '/git/trees', { tree: [{ path: one.file, mode: '100644', type: 'blob', sha: one.sha }] })
+        .then(function (tree) { return api('POST', '/git/commits', { message: 'Upload ' + one.name, tree: tree.sha, parents: [] }); })
+        .then(function (made) { return api('POST', '/git/refs', { ref: 'refs/heads/upload/' + one.name, sha: made.sha }); });
+    });
   }
 
   // ---------- Bearbeiten ----------
@@ -638,8 +659,11 @@
         post = data.data.posts[i];
         if (post.id !== id) { kept.push(post); continue; }
         for (j = 0; j < (post.media || []).length; j++) {
-          // sha null heisst: diese Datei faellt mit dem Commit weg
-          entries.push({ path: FEED + post.media[j].src, mode: '100644', type: 'blob', sha: null });
+          // sha null heisst: diese Datei faellt mit dem Commit weg. Ein Video, das noch
+          // umgerechnet wird, liegt noch nicht im Feed und kann nicht wegfallen.
+          if (!post.media[j].processing) {
+            entries.push({ path: FEED + post.media[j].src, mode: '100644', type: 'blob', sha: null });
+          }
           if (post.media[j].poster) {
             entries.push({ path: FEED + post.media[j].poster, mode: '100644', type: 'blob', sha: null });
           }
@@ -859,6 +883,12 @@
   // GitHub hat die Aenderung sofort, die Website erst nach dem Neubau. sync() fragt
   // die Website alle paar Sekunden, bis sie dieselben Posts zeigt wie GitHub, und
   // markiert solange jeden Post, der dort noch fehlt oder noch den alten Text hat.
+  function isProcessing(post) {
+    var i;
+    for (i = 0; i < (post.media || []).length; i++) { if (post.media[i].processing) { return true; } }
+    return false;
+  }
+
   function tick() {
     var seconds = Math.round((Date.now() - syncStart) / 1000);
     liveLine.textContent = 'updating the website ... ' + seconds + ' s' +
@@ -892,7 +922,11 @@
           state = articles[i].querySelector('.post__state');
           post = live[articles[i].id];
           if (articles[i].className !== 'post' || state.className.indexOf('--error') !== -1) { continue; }
-          if (post && post.text === mine[articles[i].id].text) {
+          if (post && post.text === mine[articles[i].id].text && isProcessing(post)) {
+            state.textContent = 'compressing video ...';
+            state.className = 'post__state';
+            waiting++;
+          } else if (post && post.text === mine[articles[i].id].text) {
             state.textContent = 'live';
             state.className = 'post__state post__state--live';
           } else {
