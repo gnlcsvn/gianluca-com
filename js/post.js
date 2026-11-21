@@ -36,6 +36,7 @@
   var preview = byId('preview');
   var cancelButton = byId('cancel');
   var submitButton = byId('submit');
+  var draftButton = byId('draft');
   var statusLine = byId('status');
   var liveLine = byId('live');
   var list = byId('list');
@@ -43,7 +44,8 @@
   var token = '';
   var busy = false;
   var current = [];                   // die Posts, wie sie auf GitHub stehen
-  var attachments = [];               // was am neuen Post haengt: {file, kind, url, name, width, height}
+  var attachments = [];               // was am Post haengt: {file, kind, url, name, width, height};
+                                      // beim Bearbeiten statt file: old, der vorhandene Eintrag aus posts.json
   var editing = '';                   // id des Posts, der gerade bearbeitet wird
   var draft = {};                     // Nummer und Zeit des Posts, der gerade abgeschickt wird
   var syncTimer = null;
@@ -90,6 +92,7 @@
     var i;
     busy = value;
     submitButton.disabled = value;
+    draftButton.disabled = value;
     textInput.readOnly = value;
     fileInput.disabled = value;
     mediaButton.className = value ? 'button editor__file editor__file--off' : 'button editor__file';
@@ -302,7 +305,6 @@
 
   function addFiles(files) {
     var i, file;
-    if (editing) { say('Media of an existing post cannot be changed.'); return; }
     for (i = 0; i < files.length; i++) {
       file = files[i];
       if (file.size > MAX_FILE) { say('"' + file.name + '" is larger than 50 MB and was left out.'); continue; }
@@ -314,7 +316,7 @@
 
   function dropAttachments() {
     var i;
-    for (i = 0; i < attachments.length; i++) { URL.revokeObjectURL(attachments[i].url); }
+    for (i = 0; i < attachments.length; i++) { if (attachments[i].file) { URL.revokeObjectURL(attachments[i].url); } }
     attachments = [];
     fileInput.value = '';
     showAttachments();
@@ -345,14 +347,17 @@
         bar.appendChild(button);
       }
 
-      if (item.kind === 'image') {
+      if (item.kind === 'image' || (item.old && item.old.poster)) {
         thumb = el('img', 'attachments__thumb');
         thumb.alt = item.name;
         thumb.addEventListener('load', function () { measured(thumb.naturalWidth, thumb.naturalHeight); });
         // Kann der Browser das Bild nicht zeigen, geht es als Datei mit.
-        thumb.addEventListener('error', function () { item.kind = 'file'; showAttachments(); showPreview(); });
-        thumb.src = item.url;
-      } else if (item.kind === 'video') {
+        thumb.addEventListener('error', function () {
+          if (item.old) { return; }
+          item.kind = 'file'; showAttachments(); showPreview();
+        });
+        thumb.src = item.kind === 'image' ? item.url : located(item.old.poster);
+      } else if (item.kind === 'video' && !(item.old && item.old.processing)) {
         thumb = el('video', 'attachments__thumb');
         thumb.muted = true;
         thumb.preload = 'metadata';
@@ -364,12 +369,12 @@
       }
       thumb.title = item.name;
       li.appendChild(thumb);
-      li.appendChild(el('span', 'attachments__size', megabytes(item.file.size)));
+      li.appendChild(el('span', 'attachments__size', item.file ? megabytes(item.file.size) : 'saved'));
 
       control('←', 'move left', function () { move(index, -1); }, index === 0);
       control('→', 'move right', function () { move(index, 1); }, index === attachments.length - 1);
       control('remove', 'remove', function () {
-        URL.revokeObjectURL(item.url);
+        if (item.file) { URL.revokeObjectURL(item.url); }
         attachments.splice(index, 1);
         showAttachments();
         showPreview();
@@ -378,6 +383,9 @@
       attachmentList.appendChild(li);
     });
   }
+
+  // Wo eine Datei des Feeds von hier aus liegt. Gerade hochgeladene zeigt der Editor von hier.
+  function located(src) { return fresh[src] || '../feed/' + src; }
 
   function move(index, step) {
     var item = attachments.splice(index, 1)[0];
@@ -515,28 +523,15 @@
 
   // ---------- Posten ----------
 
-  function publish() {
-    var text = textInput.value.replace(/\s+$/, '');
-    // Nummer und Zeit des Posts stehen fest, sobald zum ersten Mal "post" getippt wird, und
-    // bleiben fuer jeden weiteren Versuch gleich. Ging der erste Versuch doch durch (die
-    // Antwort kam nur nicht mehr an), erkennt der zweite den Post an der Nummer wieder.
-    var now = draft.now || (draft.now = new Date());
-    var id = draft.id || (draft.id = idNow(now));
-    var media = [];
-    var parked = [];
-
-    if (!text && !attachments.length) { say('Write something or add a file.'); return; }
-
-    setBusy(true);
-    say(attachments.length ? 'Preparing files ...' : 'Posting ...');
-
-    keepAwake(true);
-    // Erst die Dateien hochladen, dann alles in einem Commit eintragen. Was schon
-    // oben ist (item.done), wird bei einem zweiten Versuch nicht noch einmal geschickt.
-    inOrder(attachments, function (item, index) {
-      var label = 'Uploading ' + (index + 1) + ' of ' + attachments.length;
+  // Laedt die neuen Dateien hoch (items: Anhaenge mit file) und nennt sie <id>-<n>, ab n = start.
+  // Ergebnis: media (je Datei der Eintrag fuer posts.json), entries (fuer den Commit) und
+  // parked (Videos, die in einen eigenen Zweig gehen). Was schon oben ist (item.done),
+  // wird bei einem zweiten Versuch nicht noch einmal geschickt.
+  function sendFiles(items, id, start) {
+    return inOrder(items, function (item, index) {
+      var label = 'Uploading ' + (index + 1) + ' of ' + items.length;
       if (item.done) { return item.done; }
-      say('Preparing ' + (index + 1) + ' of ' + attachments.length + ' ...');
+      say('Preparing ' + (index + 1) + ' of ' + items.length + ' ...');
       return prepare(item)
         .then(function (ready) {
           say(label + ' ...');
@@ -554,48 +549,72 @@
         });
     })
       .then(function (done) {
-        var entries = [];
+        var sent = { media: [], entries: [], parked: [] };
         done.forEach(function (one, index) {
           var ready = one.ready;
           // Videos werden auf GitHub kleingerechnet (.github/workflows/video.yml): im Feed
           // steht deshalb schon der Name der fertigen Datei, das Original geht in einen
           // eigenen Zweig (siehe parkVideos) und nicht in den Feed.
           var park = ready.type === 'video';
-          var name = id + '-' + (index + 1) + '.' + (park ? 'mp4' : ready.ext);
+          var stem = id + '-' + (start + index);
+          var name = stem + '.' + (park ? 'mp4' : ready.ext);
           var entry = { type: ready.type, src: 'media/' + name };
           if (park) {
             entry.processing = true;
-            parked.push({ name: id + '-' + (index + 1), file: id + '-' + (index + 1) + '.' + ready.ext, sha: one.sha });
+            sent.parked.push({ name: stem, file: stem + '.' + ready.ext, sha: one.sha });
           }
           if (ready.width) { entry.width = ready.width; entry.height = ready.height; }
           if (ready.name) { entry.name = ready.name; }
           if (ready.size) { entry.size = ready.size; }
-          media.push(entry);
+          sent.media.push(entry);
           // Bis die Website neu gebaut ist, zeigt der Editor die Datei von hier.
           fresh[entry.src] = URL.createObjectURL(ready.blob);
-          if (!park) { entries.push({ path: FEED + 'media/' + name, mode: '100644', type: 'blob', sha: one.sha }); }
+          if (!park) { sent.entries.push({ path: FEED + 'media/' + name, mode: '100644', type: 'blob', sha: one.sha }); }
           if (one.poster) {
-            entry.poster = 'media/' + id + '-' + (index + 1) + '-poster.jpg';
+            entry.poster = 'media/' + stem + '-poster.jpg';
             fresh[entry.poster] = URL.createObjectURL(ready.poster);
-            entries.push({ path: FEED + entry.poster, mode: '100644', type: 'blob', sha: one.poster });
+            sent.entries.push({ path: FEED + entry.poster, mode: '100644', type: 'blob', sha: one.poster });
           }
         });
-        return parkVideos(parked).then(function () { return entries; });
-      })
-      .then(function (entries) {
-        say('Posting ...');
+        return parkVideos(sent.parked).then(function () { return sent; });
+      });
+  }
+
+  // asDraft: der Post kommt als Entwurf nach posts.json und steht noch nicht im Feed.
+  function publish(asDraft) {
+    var text = textInput.value.replace(/\s+$/, '');
+    // Nummer und Zeit des Posts stehen fest, sobald zum ersten Mal "post" getippt wird, und
+    // bleiben fuer jeden weiteren Versuch gleich. Ging der erste Versuch doch durch (die
+    // Antwort kam nur nicht mehr an), erkennt der zweite den Post an der Nummer wieder.
+    var now = draft.now || (draft.now = new Date());
+    var id = draft.id || (draft.id = idNow(now));
+    var videos = false;
+
+    if (!text && !attachments.length) { say('Write something or add a file.'); return; }
+
+    setBusy(true);
+    say(attachments.length ? 'Preparing files ...' : 'Posting ...');
+
+    keepAwake(true);
+    // Erst die Dateien hochladen, dann alles in einem Commit eintragen.
+    sendFiles(attachments, id, 1)
+      .then(function (sent) {
+        videos = sent.parked.length > 0;
+        say(asDraft ? 'Saving ...' : 'Posting ...');
         return save(function (state) {
+          var post = { id: id, date: isoNow(now), text: text, media: sent.media };
           if (findPost(state.data.posts, id)) { return null; }   // schon gepostet
-          state.data.posts.unshift({ id: id, date: isoNow(now), text: text, media: media });
-          return entries.slice();
-        }, 'Feed: add post ' + id, 3);
+          if (asDraft) { post.draft = true; }
+          state.data.posts.unshift(post);
+          return sent.entries.slice();
+        }, 'Feed: add ' + (asDraft ? 'draft ' : 'post ') + id, 3);
       })
       .then(function (state) {
         clearEditor();
         showList(state.data.posts);
-        say(parked.length
-          ? 'Posted. The video is being compressed, it plays in the feed in a minute or two.'
-          : 'Posted. It shows up in the feed within a minute.');
+        say(asDraft ? 'Saved as a draft. It is not in the feed until you publish it.'
+          : videos ? 'Posted. The video is being compressed, it plays in the feed in a minute or two.'
+            : 'Posted. It shows up in the feed within a minute.');
       })
       .catch(function (error) { say(explain(error), true); })
       .then(function () { keepAwake(false); setBusy(false); });
@@ -634,11 +653,19 @@
     }
     dropAttachments();
     editing = id;
+    // Die vorhandenen Dateien haengen wie neue am Entwurf: ordnen, entfernen, weitere dazu.
+    attachments = (post.media || []).map(function (entry) {
+      return {
+        old: entry, kind: entry.type, url: located(entry.src),
+        name: entry.name || entry.src.replace(/^.*\//, ''), width: entry.width, height: entry.height
+      };
+    });
+    showAttachments();
     textInput.value = post.text || '';
     textLabel.textContent = 'edit post';
     submitButton.textContent = 'save';
     cancelButton.hidden = false;
-    mediaButton.hidden = true;
+    draftButton.hidden = true;
     say('');
     grow();
     showPreview();
@@ -653,34 +680,70 @@
     textLabel.textContent = 'new post';
     submitButton.textContent = 'post';
     cancelButton.hidden = true;
-    mediaButton.hidden = false;
+    draftButton.hidden = false;
     dropAttachments();
     closeLink();
     grow();
     showPreview();
   }
 
+  // Die Dateien eines Posts, die mit dem Commit wegfallen (sha null).
+  function dropped(entries, item) {
+    // Ein Video, das noch umgerechnet wird, liegt noch nicht im Feed und kann nicht wegfallen.
+    if (!item.processing) { entries.push({ path: FEED + item.src, mode: '100644', type: 'blob', sha: null }); }
+    if (item.poster) { entries.push({ path: FEED + item.poster, mode: '100644', type: 'blob', sha: null }); }
+  }
+
   function saveEdit() {
     var id = editing;
     var text = textInput.value.replace(/\s+$/, '');
     var old = findPost(current, id);
-    if (!text && !(old && old.media && old.media.length)) { say('The post would be empty. Delete it instead.'); return; }
+    var order = attachments.slice();
+    var added = order.filter(function (item) { return !!item.file; });
+    var start = 1;
+
+    if (!old) { say('This post no longer exists.', true); return; }
+    if (!text && !order.length) { say('The post would be empty. Delete it instead.'); return; }
+    // Neue Dateien zaehlen hinter der hoechsten Nummer weiter, die der Post schon hat.
+    (old.media || []).forEach(function (entry) {
+      var n = /-(\d+)(-poster)?\.\w+$/.exec(entry.src);
+      if (n) { start = Math.max(start, Number(n[1]) + 1); }
+    });
+
     setBusy(true);
-    say('Saving ...');
-    save(function (state) {
-      var post = findPost(state.data.posts, id);
-      if (!post) { throw new Error('This post no longer exists.'); }
-      post.text = text;
-      if (!post.draft) { post.edited = isoNow(new Date()); }
-      return [];
-    }, 'Feed: edit post ' + id, 3)
+    say(added.length ? 'Preparing files ...' : 'Saving ...');
+    keepAwake(true);
+    sendFiles(added, id, start)
+      .then(function (sent) {
+        say('Saving ...');
+        return save(function (state) {
+          var post = findPost(state.data.posts, id);
+          var there = {};
+          var kept = {};
+          var media = [];
+          var entries = sent.entries.slice();
+          if (!post) { throw new Error('This post no longer exists.'); }
+          // Die vorhandenen Eintraege kommen so, wie sie jetzt auf GitHub stehen: ein Video
+          // kann inzwischen fertig umgerechnet sein.
+          (post.media || []).forEach(function (entry) { there[entry.src] = entry; });
+          order.forEach(function (item) {
+            var entry = item.old ? there[item.old.src] : sent.media[added.indexOf(item)];
+            if (entry) { media.push(entry); kept[entry.src] = true; }
+          });
+          (post.media || []).forEach(function (entry) { if (!kept[entry.src]) { dropped(entries, entry); } });
+          post.text = text;
+          post.media = media;
+          if (!post.draft) { post.edited = isoNow(new Date()); }
+          return entries;
+        }, 'Feed: edit post ' + id, 3);
+      })
       .then(function (state) {
         clearEditor();
         showList(state.data.posts);
         say('Saved. The feed shows the change within a minute.');
       })
       .catch(function (error) { say(explain(error), true); })
-      .then(function () { setBusy(false); });
+      .then(function () { keepAwake(false); setBusy(false); });
   }
 
   // ---------- Einen Entwurf veroeffentlichen ----------
@@ -729,16 +792,7 @@
       for (i = 0; i < data.data.posts.length; i++) {
         post = data.data.posts[i];
         if (post.id !== id) { kept.push(post); continue; }
-        for (j = 0; j < (post.media || []).length; j++) {
-          // sha null heisst: diese Datei faellt mit dem Commit weg. Ein Video, das noch
-          // umgerechnet wird, liegt noch nicht im Feed und kann nicht wegfallen.
-          if (!post.media[j].processing) {
-            entries.push({ path: FEED + post.media[j].src, mode: '100644', type: 'blob', sha: null });
-          }
-          if (post.media[j].poster) {
-            entries.push({ path: FEED + post.media[j].poster, mode: '100644', type: 'blob', sha: null });
-          }
-        }
+        for (j = 0; j < (post.media || []).length; j++) { dropped(entries, post.media[j]); }
       }
       data.data.posts = kept;
       return entries;
@@ -865,17 +919,18 @@
     var text = textInput.value.replace(/\s+$/, '');
     var old = editing ? findPost(current, editing) : null;
     var media = [];
-    var base = '';
-    var i, item, swap, src;
+    var i, item, entry;
     if (preview.hidden) { return; }
     window.feedRelease(preview);
     preview.innerHTML = '';
-    if (old) {
-      media = old.media || [];
-      base = '../feed/';
-    } else {
-      for (i = 0; i < attachments.length; i++) {
-        item = attachments[i];
+    for (i = 0; i < attachments.length; i++) {
+      item = attachments[i];
+      if (item.old) {
+        entry = { type: item.old.type, src: item.url, width: item.width, height: item.height, name: item.old.name, size: item.old.size };
+        if (item.old.poster) { entry.poster = located(item.old.poster); }
+        if (item.old.processing) { entry.processing = true; }
+        media.push(entry);
+      } else {
         media.push({ type: item.kind, src: item.url, width: item.width, height: item.height, name: item.name, size: item.file.size });
       }
     }
@@ -885,15 +940,8 @@
     }
     preview.appendChild(window.feedBuildPost({
       id: 'preview', date: old ? old.date : isoNow(new Date()), text: text, media: media
-    }, base, true));
+    }, '', true));
     preview.querySelector('.post').removeAttribute('id');
-    if (old) {
-      swap = preview.querySelectorAll('.post__media');
-      for (i = 0; i < swap.length; i++) {
-        src = swap[i].getAttribute('src').replace('../feed/', '').replace(/#.*$/, '');
-        if (fresh[src]) { swap[i].src = fresh[src]; }
-      }
-    }
   }
 
   // ---------- Die Liste der vorhandenen Posts ----------
@@ -967,6 +1015,11 @@
   // GitHub hat die Aenderung sofort, die Website erst nach dem Neubau. sync() fragt
   // die Website alle paar Sekunden, bis sie dieselben Posts zeigt wie GitHub, und
   // markiert solange jeden Post, der dort noch fehlt oder noch den alten Text hat.
+  // Woran der Abgleich erkennt, dass die Website den Post schon so zeigt wie GitHub.
+  function mark(post) {
+    return [post.text, post.draft ? 'draft' : ''].concat((post.media || []).map(function (item) { return item.src; })).join('\n');
+  }
+
   function isProcessing(post) {
     var i;
     for (i = 0; i < (post.media || []).length; i++) { if (post.media[i].processing) { return true; } }
@@ -1014,7 +1067,7 @@
           state = articles[i].querySelector('.post__state');
           post = live[articles[i].id];
           if (articles[i].className !== 'post' || state.className.indexOf('--error') !== -1) { continue; }
-          same = post && post.text === mine[articles[i].id].text && !post.draft === !mine[articles[i].id].draft;
+          same = post && mark(post) === mark(mine[articles[i].id]);
           if (same && isProcessing(post)) {
             state.textContent = 'compressing video ...';
             state.className = 'post__state';
@@ -1024,7 +1077,7 @@
             state.className = 'post__state post__state--live';
             settle(articles[i], mine[articles[i].id]);
           } else {
-            state.textContent = 'publishing ...';
+            state.textContent = mine[articles[i].id].draft ? 'saving ...' : 'publishing ...';
             state.className = 'post__state';
             waiting++;
           }
@@ -1125,8 +1178,10 @@
   postForm.addEventListener('submit', function (event) {
     event.preventDefault();
     if (busy) { return; }
-    if (editing) { saveEdit(); } else { publish(); }
+    if (editing) { saveEdit(); } else { publish(false); }
   });
+
+  draftButton.addEventListener('click', function () { if (!busy && !editing) { publish(true); } });
 
   cancelButton.addEventListener('click', function () { clearEditor(); say(''); });
   statusLine.addEventListener('click', function () { say(''); });
