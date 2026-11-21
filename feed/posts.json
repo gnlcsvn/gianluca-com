@@ -7,15 +7,15 @@
       "media": [
         {
           "type": "image",
-          "src": "media/20261121-130258-1.jpg",
-          "width": 1500,
-          "height": 2000
-        },
-        {
-          "type": "image",
           "src": "media/20261121-130258-2.jpg",
           "width": 1780,
           "height": 1780
+        },
+        {
+          "type": "image",
+          "src": "media/20261121-130258-1.jpg",
+          "width": 1500,
+          "height": 2000
         },
         {
           "type": "image",
