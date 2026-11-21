@@ -3,7 +3,7 @@
     {
       "id": "20261121-102442",
       "date": "2026-11-21T10:24:42+01:00",
-      "text": "Video Test compression 2",
+      "text": "Z-Fight!",
       "media": [
         {
           "type": "video",
@@ -12,7 +12,8 @@
           "height": 540,
           "poster": "media/20261121-102442-1-poster.jpg"
         }
-      ]
+      ],
+      "edited": "2026-11-21T10:35:53+01:00"
     },
     {
       "id": "20261121-094827",
