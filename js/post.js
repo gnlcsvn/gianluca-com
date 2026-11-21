@@ -24,6 +24,7 @@
 
   var token = '';
   var busy = false;
+  var fresh = {};                     // gerade hochgeladene Dateien: Pfad -> lokale Adresse
 
   // ---------- kleine Helfer ----------
 
@@ -68,6 +69,9 @@
   function api(method, path, body, raw) {
     var options = {
       method: method,
+      // Nie aus dem Zwischenspeicher: sonst sieht der Editor einen alten Stand
+      // und der naechste Post scheitert ("not a fast forward").
+      cache: 'no-store',
       headers: {
         'Authorization': 'Bearer ' + token,
         'Accept': raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json',
@@ -126,10 +130,25 @@
       });
   }
 
+  // change(state) traegt die Aenderung in state.data ein und gibt die Dateien zurueck.
+  // Hat sich das Repository inzwischen geaendert, wird neu geladen und wiederholt.
+  function save(change, message, tries) {
+    return loadState().then(function (state) {
+      var entries = change(state);
+      return commit(state, entries, message).then(function () { return state; });
+    }).catch(function (error) {
+      if ((error.status === 409 || error.status === 422) && tries > 1) {
+        return new Promise(function (resolve) { window.setTimeout(resolve, 1500); })
+          .then(function () { return save(change, message, tries - 1); });
+      }
+      throw error;
+    });
+  }
+
   function explain(error) {
     if (error.status === 401) { return 'GitHub does not accept this token. Use "forget token" and paste a new one.'; }
     if (error.status === 403 || error.status === 404) { return 'The token may not write to this repository (' + error.message + ').'; }
-    if (error.status === 409 || error.status === 422) { return 'The repository changed in the meantime. Try again. (' + error.message + ')'; }
+    if (error.status === 409 || error.status === 422) { return 'GitHub did not take the change (' + error.message + '). Nothing was posted. Try again.'; }
     return 'That did not work: ' + error.message;
   }
 
@@ -210,7 +229,7 @@
     var files = Array.prototype.slice.call(fileInput.files || []);
     var now = new Date();
     var id = idNow(now);
-    var prepared;
+    var media = [];
 
     if (!text && !files.length) { say('Write something or add a picture.'); return; }
 
@@ -219,44 +238,38 @@
 
     inOrder(files, prepare)
       .then(function (items) {
-        prepared = items;
-        return loadState();
-      })
-      .then(function (state) {
-        var media = [];
-        while (hasId(state.data.posts, id)) { id += 'x'; }
-        return inOrder(prepared, function (item, index) {
+        // Erst die Dateien hochladen, dann alles in einem Commit eintragen.
+        return inOrder(items, function (item, index) {
           var name = id + '-' + (index + 1) + '.' + item.ext;
-          say('Uploading ' + (index + 1) + ' of ' + prepared.length + ' ...');
+          say('Uploading ' + (index + 1) + ' of ' + items.length + ' ...');
           return toBase64(item.blob)
             .then(function (data) { return api('POST', '/git/blobs', { content: data, encoding: 'base64' }); })
             .then(function (blob) {
               var entry = { type: item.type, src: 'media/' + name };
               if (item.width) { entry.width = item.width; entry.height = item.height; }
               media.push(entry);
+              // Bis die Website neu gebaut ist, zeigt der Editor die Datei von hier.
+              fresh[entry.src] = URL.createObjectURL(item.blob);
               return { path: FEED + 'media/' + name, mode: '100644', type: 'blob', sha: blob.sha };
             });
-        }).then(function (entries) {
-          say('Posting ...');
-          state.data.posts.unshift({ id: id, date: isoNow(now), text: text, media: media });
-          return commit(state, entries, 'Feed: add post ' + id).then(function () { return state; });
         });
+      })
+      .then(function (entries) {
+        say('Posting ...');
+        return save(function (state) {
+          state.data.posts.unshift({ id: id, date: isoNow(now), text: text, media: media });
+          return entries.slice();
+        }, 'Feed: add post ' + id, 3);
       })
       .then(function (state) {
         textInput.value = '';
         fileInput.value = '';
         showFiles();
         showList(state.data.posts);
-        say('Posted. It shows up in the feed in about a minute.');
+        say('Posted. It shows up in the feed within a minute.');
       })
       .catch(function (error) { say(error.status ? explain(error) : error.message); })
       .then(function () { setBusy(false); });
-  }
-
-  function hasId(posts, id) {
-    var i;
-    for (i = 0; i < posts.length; i++) { if (posts[i].id === id) { return true; } }
-    return false;
   }
 
   // ---------- Loeschen ----------
@@ -266,25 +279,24 @@
     if (!window.confirm('Delete this post?')) { return; }
     setBusy(true);
     say('Deleting ...');
-    loadState()
-      .then(function (state) {
-        var entries = [];
-        var kept = [];
-        var i, j, post;
-        for (i = 0; i < state.data.posts.length; i++) {
-          post = state.data.posts[i];
-          if (post.id !== id) { kept.push(post); continue; }
-          for (j = 0; j < (post.media || []).length; j++) {
-            // sha null heisst: diese Datei faellt mit dem Commit weg
-            entries.push({ path: FEED + post.media[j].src, mode: '100644', type: 'blob', sha: null });
-          }
+    save(function (state) {
+      var entries = [];
+      var kept = [];
+      var i, j, post;
+      for (i = 0; i < state.data.posts.length; i++) {
+        post = state.data.posts[i];
+        if (post.id !== id) { kept.push(post); continue; }
+        for (j = 0; j < (post.media || []).length; j++) {
+          // sha null heisst: diese Datei faellt mit dem Commit weg
+          entries.push({ path: FEED + post.media[j].src, mode: '100644', type: 'blob', sha: null });
         }
-        state.data.posts = kept;
-        return commit(state, entries, 'Feed: delete post ' + id).then(function () { return state; });
-      })
+      }
+      state.data.posts = kept;
+      return entries;
+    }, 'Feed: delete post ' + id, 3)
       .then(function (state) {
         showList(state.data.posts);
-        say('Deleted. It disappears from the feed in about a minute.');
+        say('Deleted. It disappears from the feed within a minute.');
       })
       .catch(function (error) { say(error.status ? explain(error) : error.message); })
       .then(function () { setBusy(false); });
@@ -305,10 +317,15 @@
 
   // Die Liste zeigt die Posts wie im Feed, je mit einem Knopf zum Loeschen.
   function showList(posts) {
-    var articles, i;
+    var articles, media, src, i;
     window.feedRender(list, posts, '../feed/');
     articles = list.querySelectorAll('.post');
     for (i = 0; i < articles.length; i++) { addDelete(articles[i]); }
+    media = list.querySelectorAll('.post__media');
+    for (i = 0; i < media.length; i++) {
+      src = media[i].getAttribute('src').replace('../feed/', '');
+      if (fresh[src]) { media[i].src = fresh[src]; }
+    }
   }
 
   function addDelete(article) {
