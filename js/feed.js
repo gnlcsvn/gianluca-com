@@ -121,13 +121,42 @@
 
   // ---------- Bilder, Videos, Ton, Dateien ----------
 
+  // Ein Video spielt, solange es gut zur Haelfte zu sehen ist, und haelt sonst an.
+  // Wer im System "Bewegung reduzieren" gewaehlt hat, startet Videos selbst.
+  var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var watcher = null;
+  function watch(video) {
+    if (still || !window.IntersectionObserver) { return; }
+    if (!watcher) {
+      watcher = new IntersectionObserver(function (entries) {
+        var i, playing;
+        for (i = 0; i < entries.length; i++) {
+          if (entries[i].intersectionRatio >= 0.6) {
+            playing = entries[i].target.play();
+            if (playing && playing.catch) { playing.catch(function () { /* der Browser will einen Tipp */ }); }
+          } else {
+            entries[i].target.pause();
+          }
+        }
+      }, { threshold: [0, 0.6] });
+    }
+    watcher.observe(video);
+  }
+
   function buildVisual(item, base, eager) {
     var node;
     if (item.type === 'video') {
+      // Videos laufen stumm und in Schleife, sobald sie im Bild sind (siehe watch).
+      // Stumm ist die Bedingung der Browser fuer ein Abspielen ohne Tipp.
       node = document.createElement('video');
       node.controls = true;
+      node.muted = true;
+      node.loop = true;
       node.preload = 'metadata';
+      node.setAttribute('muted', '');
       node.setAttribute('playsinline', '');
+      if (item.poster) { node.poster = base + item.poster; }
+      watch(node);
     } else {
       node = document.createElement('img');
       node.alt = item.alt || '';
@@ -138,7 +167,8 @@
       node.height = item.height;
     }
     node.className = 'post__media';
-    node.src = base + item.src;
+    // "#t=0.001" laesst Safari das erste Bild des Videos zeigen, auch ohne Vorschaubild.
+    node.src = base + item.src + (item.type === 'video' && item.src.indexOf('blob:') !== 0 ? '#t=0.001' : '');
     return node;
   }
 

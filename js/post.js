@@ -418,10 +418,56 @@
     });
   }
 
+  // Ein Standbild vom Anfang des Videos, als Vorschaubild im Feed. Gelingt es dem
+  // Browser nicht (oder dauert es zu lange), geht das Video ohne Vorschaubild hoch.
+  function videoPoster(url) {
+    return new Promise(function (resolve) {
+      var video = document.createElement('video');
+      var finished = false;
+      function finish(blob, width, height) {
+        if (finished) { return; }
+        finished = true;
+        video.removeAttribute('src');
+        video.load();
+        resolve(blob ? { blob: blob, width: width, height: height } : null);
+      }
+      function draw() {
+        var scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight, 1));
+        var canvas = document.createElement('canvas');
+        if (!video.videoWidth) { finish(null); return; }
+        canvas.width = Math.round(video.videoWidth * scale);
+        canvas.height = Math.round(video.videoHeight * scale);
+        try {
+          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(function (blob) { finish(blob, video.videoWidth, video.videoHeight); }, 'image/jpeg', 0.8);
+        } catch (e) { finish(null); }
+      }
+      video.muted = true;
+      video.preload = 'auto';
+      video.setAttribute('playsinline', '');
+      video.addEventListener('loadeddata', function () {
+        // ein Stueck hinter den Anfang springen: das allererste Bild ist oft schwarz
+        try { video.currentTime = Math.min(0.5, (video.duration || 1) / 2); } catch (e) { draw(); }
+      });
+      video.addEventListener('seeked', draw);
+      video.addEventListener('error', function () { finish(null); });
+      window.setTimeout(function () { finish(null); }, 8000);
+      video.src = url;
+      video.load();
+    });
+  }
+
   function prepare(item) {
     if (item.kind === 'image') { return prepareImage(item); }
     if (item.kind === 'video') {
-      return Promise.resolve({ type: 'video', ext: extension(item.name, 'mp4'), blob: item.file, width: item.width || 0, height: item.height || 0 });
+      return videoPoster(item.url).then(function (poster) {
+        return {
+          type: 'video', ext: extension(item.name, 'mp4'), blob: item.file,
+          width: (poster && poster.width) || item.width || 0,
+          height: (poster && poster.height) || item.height || 0,
+          poster: poster ? poster.blob : null
+        };
+      });
     }
     if (item.kind === 'audio') {
       return Promise.resolve({ type: 'audio', ext: extension(item.name, 'mp3'), blob: item.file, name: item.name });
@@ -464,13 +510,19 @@
           return toBase64(ready.blob).then(function (data) {
             return upload(data, function (part) { say(label + ', ' + Math.round(part * 100) + ' % ...'); }, 3);
           }).then(function (blob) {
-            item.done = { ready: ready, sha: blob.sha };
+            if (!ready.poster) { return { sha: blob.sha }; }
+            return toBase64(ready.poster)
+              .then(function (data) { return upload(data, function () {}, 3); })
+              .then(function (poster) { return { sha: blob.sha, poster: poster.sha }; });
+          }).then(function (shas) {
+            item.done = { ready: ready, sha: shas.sha, poster: shas.poster };
             return item.done;
           });
         });
     })
       .then(function (done) {
-        return done.map(function (one, index) {
+        var entries = [];
+        done.forEach(function (one, index) {
           var ready = one.ready;
           var name = id + '-' + (index + 1) + '.' + ready.ext;
           var entry = { type: ready.type, src: 'media/' + name };
@@ -480,8 +532,14 @@
           media.push(entry);
           // Bis die Website neu gebaut ist, zeigt der Editor die Datei von hier.
           fresh[entry.src] = URL.createObjectURL(ready.blob);
-          return { path: FEED + 'media/' + name, mode: '100644', type: 'blob', sha: one.sha };
+          entries.push({ path: FEED + 'media/' + name, mode: '100644', type: 'blob', sha: one.sha });
+          if (one.poster) {
+            entry.poster = 'media/' + id + '-' + (index + 1) + '-poster.jpg';
+            fresh[entry.poster] = URL.createObjectURL(ready.poster);
+            entries.push({ path: FEED + entry.poster, mode: '100644', type: 'blob', sha: one.poster });
+          }
         });
+        return entries;
       })
       .then(function (entries) {
         say('Posting ...');
@@ -582,6 +640,9 @@
         for (j = 0; j < (post.media || []).length; j++) {
           // sha null heisst: diese Datei faellt mit dem Commit weg
           entries.push({ path: FEED + post.media[j].src, mode: '100644', type: 'blob', sha: null });
+          if (post.media[j].poster) {
+            entries.push({ path: FEED + post.media[j].poster, mode: '100644', type: 'blob', sha: null });
+          }
         }
       }
       data.data.posts = kept;
@@ -730,7 +791,7 @@
     if (old) {
       swap = preview.querySelectorAll('.post__media');
       for (i = 0; i < swap.length; i++) {
-        src = swap[i].getAttribute('src').replace('../feed/', '');
+        src = swap[i].getAttribute('src').replace('../feed/', '').replace(/#.*$/, '');
         if (fresh[src]) { swap[i].src = fresh[src]; }
       }
     }
@@ -742,14 +803,16 @@
   // since: seit wann die Website nachziehen muss. Beim Neuladen ist das der Zeitpunkt
   // der letzten Aenderung auf GitHub, damit der Zaehler nicht wieder bei 0 anfaengt.
   function showList(posts, since) {
-    var articles, media, src, i;
+    var articles, media, src, poster, i;
     current = posts;
     window.feedRender(list, posts, '../feed/');
     articles = list.querySelectorAll('.post');
     for (i = 0; i < articles.length; i++) { addControls(articles[i]); }
     media = list.querySelectorAll('.post__media, .post__file');
     for (i = 0; i < media.length; i++) {
-      src = (media[i].getAttribute('src') || media[i].getAttribute('href')).replace('../feed/', '');
+      src = (media[i].getAttribute('src') || media[i].getAttribute('href')).replace('../feed/', '').replace(/#.*$/, '');
+      poster = (media[i].getAttribute('poster') || '').replace('../feed/', '');
+      if (fresh[poster]) { media[i].poster = fresh[poster]; }
       if (!fresh[src]) { continue; }
       if (media[i].hasAttribute('href')) { media[i].href = fresh[src]; } else { media[i].src = fresh[src]; }
     }
