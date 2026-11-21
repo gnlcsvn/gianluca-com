@@ -87,8 +87,10 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
   background: var(--knopf); color: var(--papier); border-radius: 2px; overflow-wrap: anywhere; text-align: center;
 }
 .toast__field { position: fixed; top: 0; left: 0; width: 1px; height: 1px; padding: 0; border: 0; opacity: 0; font-size: 16px; }
+.post__draft { color: var(--leise); }
 .post__state { color: var(--tinte); }
 .post__state--live { color: var(--leise); }
+.post__state:empty { display: none; }
 .post__state--error { color: var(--rot); }
 .post__ask { display: inline-flex; gap: 1.1rem; }
 .post__yes { color: var(--rot); }
@@ -200,7 +202,9 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 /* Angehaengte Dateien */
 .attachments { display: flex; flex-wrap: wrap; gap: 0.8rem; margin: 0 0 1rem; padding: 0; list-style: none; }
 .attachments__item { width: 6.5rem; }
-.attachments__thumb { display: block; width: 6.5rem; height: 6.5rem; object-fit: cover; background: #efede7; }
+.attachments__item--dragging { position: relative; z-index: 2; opacity: 0.85; }
+.attachments__item--dragging .attachments__thumb { cursor: grabbing; box-shadow: 0 2px 10px rgba(27, 27, 29, 0.25); }
+.attachments__thumb { cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; display: block; width: 6.5rem; height: 6.5rem; object-fit: cover; background: #efede7; }
 .attachments__thumb--name { display: flex; align-items: center; justify-content: center; color: var(--leise); }
 .attachments__bar { display: flex; justify-content: space-between; padding-top: 0.2rem; }
 .attachments__size { display: block; padding-top: 0.2rem; color: var(--leise); }

@@ -322,29 +322,20 @@
     showAttachments();
   }
 
-  // Je Datei ein Kaestchen: klein zu sehen, verschiebbar, entfernbar.
+  // Je Datei ein Kaestchen: klein zu sehen, mit Maus oder Finger an eine andere Stelle zu ziehen, entfernbar.
   function showAttachments() {
     attachmentList.innerHTML = '';
     attachmentList.hidden = !attachments.length;
     attachments.forEach(function (item, index) {
       var li = el('li', 'attachments__item');
       var bar = el('div', 'attachments__bar');
-      var thumb;
+      var thumb, remove;
 
       function measured(width, height) {
         if (item.width || !width) { return; }
         item.width = width;
         item.height = height;
         showPreview();
-      }
-      function control(label, title, action, disabled) {
-        var button = el('button', 'editor__quiet', label);
-        button.type = 'button';
-        button.title = title;
-        button.setAttribute('aria-label', title + ': ' + item.name);
-        button.disabled = !!disabled;
-        button.addEventListener('click', action);
-        bar.appendChild(button);
       }
 
       if (item.kind === 'image' || (item.old && item.old.poster)) {
@@ -368,17 +359,22 @@
         thumb = el('span', 'attachments__thumb attachments__thumb--name', extension(item.name, item.kind));
       }
       thumb.title = item.name;
+      thumb.draggable = false;
+      li.item = item;
+      draggable(li, thumb);
       li.appendChild(thumb);
       li.appendChild(el('span', 'attachments__size', item.file ? megabytes(item.file.size) : 'saved'));
 
-      control('←', 'move left', function () { move(index, -1); }, index === 0);
-      control('→', 'move right', function () { move(index, 1); }, index === attachments.length - 1);
-      control('remove', 'remove', function () {
+      remove = el('button', 'editor__quiet', 'remove');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', 'remove: ' + item.name);
+      remove.addEventListener('click', function () {
         if (item.file) { URL.revokeObjectURL(item.url); }
         attachments.splice(index, 1);
         showAttachments();
         showPreview();
       });
+      bar.appendChild(remove);
       li.appendChild(bar);
       attachmentList.appendChild(li);
     });
@@ -387,11 +383,69 @@
   // Wo eine Datei des Feeds von hier aus liegt. Gerade hochgeladene zeigt der Editor von hier.
   function located(src) { return fresh[src] || '../feed/' + src; }
 
-  function move(index, step) {
-    var item = attachments.splice(index, 1)[0];
-    attachments.splice(index + step, 0, item);
-    showAttachments();
-    showPreview();
+  // Ein Kaestchen am Bild greifen und an die Stelle eines anderen ziehen. Zeigerereignisse
+  // gelten fuer Maus und Finger gleich. Die anderen Kaestchen ruecken schon beim Ziehen nach;
+  // beim Loslassen wird die Reihenfolge der Kaestchen zur Reihenfolge der Dateien.
+  function draggable(li, handle) {
+    var grabX = 0, grabY = 0;
+    var pointer = null;
+    var moved = false;
+
+    function follow(event) {
+      var others = attachmentList.children;
+      var box, other, i;
+      if (event.pointerId !== pointer) { return; }
+      if (!moved && Math.abs(event.clientX - grabX) + Math.abs(event.clientY - grabY) < 6) { return; }
+      if (!moved) { moved = true; li.className = 'attachments__item attachments__item--dragging'; }
+      event.preventDefault();
+      for (i = 0; i < others.length; i++) {
+        other = others[i];
+        if (other === li) { continue; }
+        box = other.getBoundingClientRect();
+        if (event.clientX > box.left && event.clientX < box.right && event.clientY > box.top && event.clientY < box.bottom) {
+          // Das andere rueckt auf die Seite, von der man kommt. Das gezogene selbst bleibt
+          // im Dokument, wo es ist: wuerde es umgehaengt, verloere es den Zeiger.
+          attachmentList.insertBefore(other, other.compareDocumentPosition(li) & 2 ? li : li.nextSibling);
+          break;
+        }
+      }
+      // Das Kaestchen bleibt unter dem Zeiger, wo auch immer es jetzt in der Reihe steht.
+      li.style.transform = '';
+      box = li.getBoundingClientRect();
+      li.style.transform = 'translate(' + (event.clientX - li.grabLeft - box.left) + 'px,' + (event.clientY - li.grabTop - box.top) + 'px)';
+    }
+
+    function drop(event) {
+      var i, order = [];
+      if (event.pointerId !== pointer) { return; }
+      pointer = null;
+      document.removeEventListener('pointermove', follow);
+      document.removeEventListener('pointerup', drop);
+      document.removeEventListener('pointercancel', drop);
+      if (!moved) { return; }
+      for (i = 0; i < attachmentList.children.length; i++) { order.push(attachmentList.children[i].item); }
+      attachments = order;
+      showAttachments();
+      showPreview();
+    }
+
+    handle.addEventListener('pointerdown', function (event) {
+      var box = li.getBoundingClientRect();
+      if (busy || pointer !== null || (event.pointerType === 'mouse' && event.button !== 0)) { return; }
+      pointer = event.pointerId;
+      moved = false;
+      grabX = event.clientX;
+      grabY = event.clientY;
+      li.grabLeft = event.clientX - box.left;
+      li.grabTop = event.clientY - box.top;
+      try { handle.setPointerCapture(pointer); } catch (e) { /* geht auch ohne */ }
+      document.addEventListener('pointermove', follow);
+      document.addEventListener('pointerup', drop);
+      document.addEventListener('pointercancel', drop);
+    });
+    handle.addEventListener('dragstart', function (event) { event.preventDefault(); });
+    // sonst markiert die Maus beim Ziehen den Text darunter
+    handle.addEventListener('mousedown', function (event) { event.preventDefault(); });
   }
 
   // ---------- Dateien: zum Hochladen vorbereiten ----------
@@ -999,6 +1053,9 @@
     ask.appendChild(no);
     box.appendChild(state);
     if (out) {
+      // Ein Entwurf hat noch kein Datum, das zaehlt: links steht stattdessen "(draft)".
+      head.querySelector('.post__date').hidden = true;
+      head.insertBefore(el('span', 'post__draft', '(draft)'), head.firstChild);
       out.type = 'button';
       out.addEventListener('click', function () { release(article.id); });
       box.appendChild(out);
@@ -1073,7 +1130,7 @@
             state.className = 'post__state';
             waiting++;
           } else if (same) {
-            state.textContent = post.draft ? 'draft, not in the feed' : 'live';
+            state.textContent = post.draft ? '' : 'live';
             state.className = 'post__state post__state--live';
             settle(articles[i], mine[articles[i].id]);
           } else {
