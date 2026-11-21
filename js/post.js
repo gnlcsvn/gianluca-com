@@ -446,7 +446,16 @@
         finished = true;
         video.removeAttribute('src');
         video.load();
-        resolve(blob ? { blob: blob, width: width, height: height } : null);
+        resolve(blob || width ? { blob: blob, width: width, height: height } : null);
+      }
+      function isBlack(canvas) {
+        var probe = document.createElement('canvas');
+        var data, i, sum = 0;
+        probe.width = probe.height = 16;
+        probe.getContext('2d').drawImage(canvas, 0, 0, 16, 16);
+        data = probe.getContext('2d').getImageData(0, 0, 16, 16).data;
+        for (i = 0; i < data.length; i += 4) { sum += data[i] + data[i + 1] + data[i + 2]; }
+        return sum / (data.length / 4 * 3) < 6;
       }
       function draw() {
         var scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight, 1));
@@ -456,6 +465,9 @@
         canvas.height = Math.round(video.videoHeight * scale);
         try {
           canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+          // Manche Telefone liefern hier nur Schwarz. Dann lieber kein Standbild:
+          // die Action auf GitHub macht beim Umrechnen ohnehin ein richtiges.
+          if (isBlack(canvas)) { finish(null, video.videoWidth, video.videoHeight); return; }
           canvas.toBlob(function (blob) { finish(blob, video.videoWidth, video.videoHeight); }, 'image/jpeg', 0.8);
         } catch (e) { finish(null); }
       }
@@ -482,7 +494,7 @@
           type: 'video', ext: extension(item.name, 'mp4'), blob: item.file,
           width: (poster && poster.width) || item.width || 0,
           height: (poster && poster.height) || item.height || 0,
-          poster: poster ? poster.blob : null
+          poster: poster && poster.blob ? poster.blob : null
         };
       });
     }

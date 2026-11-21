@@ -327,11 +327,19 @@
   // ---------- Nur auf der Feed-Seite: Teilen, lange Texte, ein Post allein ----------
 
   var all = [];
+  // Auf der eigenen Seite eines Posts (feed/p/<id>/, erzeugt von .github/share.py) steht
+  // am Container, welcher Post gemeint ist und wo der Ordner feed/ liegt.
+  var FEED = container.getAttribute('data-feed') || '';
+  var ONLY = container.getAttribute('data-post') || '';
   var CLAMP_LINES = 14;   // laengere Texte werden im Feed auf so viele Zeilen gekuerzt
   var LONG_LINES = 18;    // ... aber erst, wenn sie deutlich laenger sind
 
+  // Die Adresse zum Teilen: die eigene Seite des Posts. Nur sie hat die Angaben, aus
+  // denen WhatsApp, iMessage und andere eine Vorschau mit Bild bauen.
   function linkTo(id) {
-    return window.location.origin + window.location.pathname + '#' + id;
+    var a = document.createElement('a');
+    a.href = FEED || './';
+    return a.href.replace(/[?#].*$/, '').replace(/[^\/]*$/, '') + 'p/' + id + '/';
   }
 
   // Eine kurze Meldung unten am Fensterrand, die von selbst wieder verschwindet.
@@ -429,26 +437,30 @@
   // Steht hinter der Adresse "#<id>", zeigt die Seite nur diesen einen Post, ungekuerzt,
   // mit einem Weg zurueck. Das ist die Adresse, die "share" verschickt.
   function show(from) {
-    var id = window.location.hash.slice(1);
+    var id = ONLY || window.location.hash.slice(1);
     var post;
+    var articles, back, i, target;
     try { id = decodeURIComponent(id); } catch (e) { id = ''; }
     post = id ? find(id) : null;
-    var articles, back, i, target;
-    if (post) {
-      render(container, [post], '');
+    if (post || ONLY) {
+      render(container, post ? [post] : [], FEED);
+      if (!post) { container.innerHTML = ''; note(container, 'This post no longer exists.'); }
       back = el('a', 'posts__back', '\u2190 all posts');
-      back.href = './';
-      back.addEventListener('click', function (event) {
-        event.preventDefault();
-        window.history.pushState(null, '', window.location.pathname);
-        show(id);
-      });
+      back.href = FEED || './';
+      if (!ONLY) {
+        // im Feed selbst: zurueck ohne neu zu laden, an die Stelle des Posts
+        back.addEventListener('click', function (event) {
+          event.preventDefault();
+          window.history.pushState(null, '', window.location.pathname);
+          show(id);
+        });
+      }
       container.insertBefore(back, container.firstChild);
-      addShare(container.querySelector('.post'));
-      window.scrollTo(0, 0);
+      if (post) { addShare(container.querySelector('.post')); }
+      if (!ONLY) { window.scrollTo(0, 0); }
       return;
     }
-    render(container, all, '');
+    render(container, all, FEED);
     articles = container.querySelectorAll('.post');
     for (i = 0; i < articles.length; i++) { addShare(articles[i]); addMore(articles[i]); }
     // zurueck aus der Einzelansicht: wieder an die Stelle des Posts
@@ -456,10 +468,12 @@
     if (target) { target.scrollIntoView(); }
   }
 
-  window.addEventListener('hashchange', function () { show(''); });
-  window.addEventListener('popstate', function () { show(''); });
+  if (!ONLY) {
+    window.addEventListener('hashchange', function () { show(''); });
+    window.addEventListener('popstate', function () { show(''); });
+  }
 
-  fetch('posts.json', { cache: 'no-cache' })
+  fetch(FEED + 'posts.json', { cache: 'no-cache' })
     .then(function (res) {
       if (!res.ok) { throw new Error(String(res.status)); }
       return res.json();

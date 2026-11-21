@@ -70,6 +70,14 @@ def encode(source, target):
         '-map_metadata', '-1', '-movflags', '+faststart', target)
 
 
+def still(video, target):
+    """Ein Standbild kurz nach dem Anfang, als Vorschaubild. Das Telefon liefert oft nur Schwarz."""
+    run('ffmpeg', '-v', 'error', '-y', '-ss', '0.5', '-i', video, '-frames:v', '1', '-q:v', '4', target)
+    if not os.path.exists(target) or os.path.getsize(target) == 0:
+        # kuerzer als eine halbe Sekunde: das allererste Bild
+        run('ffmpeg', '-v', 'error', '-y', '-i', video, '-frames:v', '1', '-q:v', '4', target)
+
+
 def size_of(path):
     out = run('ffprobe', '-v', 'error', '-select_streams', 'v:0',
               '-show_entries', 'stream=width,height', '-of', 'csv=p=0', path).stdout.strip()
@@ -109,6 +117,12 @@ def main():
             encode(original, target)
             width, height = size_of(target)
             result = {'file': target, 'src': item['src'], 'width': width, 'height': height}
+            try:
+                poster = os.path.join(WORK, name + '-poster.jpg')
+                still(target, poster)
+                result['poster'] = poster
+            except Exception as error:  # noqa: BLE001
+                print('%s: kein Standbild (%s)' % (item['src'], error))
             print('%s: %d kb -> %d kb, %dx%d' % (
                 item['src'], os.path.getsize(original) // 1024, os.path.getsize(target) // 1024, width, height))
         except Exception as error:  # noqa: BLE001
@@ -145,6 +159,12 @@ def commit(src, result):
             item['src'] = result['src']
             if result.get('width'):
                 item['width'], item['height'] = result['width'], result['height']
+            if result.get('poster'):
+                item['poster'] = 'media/' + name_of({'src': src}) + '-poster.jpg'
+                poster_path = os.path.join(FEED, item['poster'])
+                with open(result['poster'], 'rb') as source, open(poster_path, 'wb') as out:
+                    out.write(source.read())
+                run('git', 'add', poster_path)
             del item['processing']
             run('git', 'add', path)
         with open(POSTS, 'w', encoding='utf-8') as f:

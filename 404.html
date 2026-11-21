@@ -10,6 +10,15 @@
 </head>
 <body>
 
+  <!-- Die eigene Seite eines Posts (feed/p/<id>/) entsteht erst kurz nach dem Posten.
+       Bis dahin, und fuer geloeschte Posts, fuehrt der Link in den Feed zu diesem Post. -->
+  <script>
+    (function () {
+      var match = /^\/feed\/p\/([\w-]+)\/?$/.exec(window.location.pathname);
+      if (match) { window.location.replace('/feed/#' + match[1]); }
+    })();
+  </script>
+
   <main class="card">
     <h1 class="card__name">404</h1>
     <ul class="card__links">

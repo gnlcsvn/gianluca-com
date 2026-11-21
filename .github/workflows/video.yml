@@ -1,5 +1,8 @@
-# Rechnet Videos aus dem Feed klein.
+# Laeuft nach jeder Aenderung an feed/posts.json und tut zwei Dinge:
+# 1. rechnet neue Videos klein (.github/video.py),
+# 2. baut fuer jeden Post eine eigene Seite mit Vorschaubild fuer Messenger (.github/share.py).
 #
+# Zu 1:
 # Der Editor (/post/) legt ein Video nicht in den Feed, sondern in einen eigenen Zweig
 # "upload/<post>-<n>", und traegt es in feed/posts.json mit "processing": true ein.
 # Diese Action laeuft, sobald sich posts.json aendert: sie holt das Original aus dem
@@ -42,15 +45,23 @@ jobs:
           if ! command -v ffmpeg >/dev/null; then sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; fi
           ffmpeg -version | head -1
 
-      - name: Videos umrechnen und eintragen
-        if: steps.todo.outputs.found == 'yes'
+      - name: Wer hier committet
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          python3 .github/video.py
+
+      - name: Videos umrechnen und eintragen
+        if: steps.todo.outputs.found == 'yes'
+        run: python3 .github/video.py
+
+      - name: Seiten und Vorschaubilder der Posts
+        id: share
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check pillow
+          python3 .github/share.py
 
       - name: Website neu bauen
-        if: steps.todo.outputs.found == 'yes'
+        if: steps.todo.outputs.found == 'yes' || steps.share.outputs.changed == 'yes'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
