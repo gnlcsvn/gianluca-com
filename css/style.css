@@ -76,6 +76,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .post__share, .post__more { font: inherit; color: var(--leise); background: none; border: 0; margin: 0; padding: 0; cursor: pointer; }
 .post__share:hover, .post__more:hover { color: var(--blau); text-decoration: underline; }
 .post__share:focus-visible, .post__more:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
+.post__share--done, .post__share--done:hover { color: var(--tinte); text-decoration: none; }
 .post__more { display: block; margin: -0.4rem 0 1rem; color: var(--blau); }
 .post__note { margin: 0 0 0.6rem; color: var(--leise); }
 .posts__back { display: inline-block; margin: 0 0 2rem; color: var(--leise); }

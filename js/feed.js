@@ -356,10 +356,22 @@
   function addShare(article) {
     var button = el('button', 'post__share', 'share');
     button.type = 'button';
+    var timer = null;
+    // Die Rueckmeldung steht dort, wo getippt wurde: der Knopf selbst sagt kurz
+    // "link copied" und wird dann wieder zu "share".
+    button.setAttribute('aria-live', 'polite');
     button.addEventListener('click', function () {
       var url = linkTo(article.id);
       copy(url).then(
-        function () { toast('link copied'); },
+        function () {
+          button.textContent = 'link copied';
+          button.className = 'post__share post__share--done';
+          window.clearTimeout(timer);
+          timer = window.setTimeout(function () {
+            button.textContent = 'share';
+            button.className = 'post__share';
+          }, 2000);
+        },
         function () { toast(url, 8); }      // ging nicht: den Link wenigstens zeigen
       );
     });
