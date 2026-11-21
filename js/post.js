@@ -104,6 +104,11 @@
       '-' + two(d.getHours()) + two(d.getMinutes()) + two(d.getSeconds());
   }
 
+  function megabytes(bytes) {
+    if (bytes < 1024 * 1024) { return Math.max(1, Math.round(bytes / 1024)) + ' kb'; }
+    return (Math.round(bytes / 1024 / 1024 * 10) / 10) + ' mb';
+  }
+
   function extension(name, fallback) {
     var parts = String(name).split('.');
     var ext = parts.length > 1 ? parts.pop().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
@@ -136,6 +141,58 @@
         throw error;
       });
     });
+  }
+
+  // Eine Datei hochladen. Anders als fetch meldet XMLHttpRequest, wie weit es ist.
+  // Bricht die Verbindung ab, wird es noch einmal versucht.
+  function upload(data, progress, tries) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      function fail(message, status) {
+        var error = new Error(message);
+        error.status = status || 0;
+        error.network = !status;
+        reject(error);
+      }
+      xhr.open('POST', API + '/git/blobs');
+      xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+      xhr.setRequestHeader('Accept', 'application/vnd.github+json');
+      xhr.setRequestHeader('X-GitHub-Api-Version', '2022-11-28');
+      xhr.upload.onprogress = function (event) {
+        if (event.lengthComputable) { progress(event.loaded / event.total); }
+      };
+      xhr.onload = function () {
+        var body = {};
+        try { body = JSON.parse(xhr.responseText); } catch (e) { /* kein JSON */ }
+        if (xhr.status >= 200 && xhr.status < 300 && body.sha) { resolve(body); }
+        else { fail(body.message || String(xhr.status), xhr.status || 500); }
+      };
+      xhr.onerror = function () { fail('connection lost'); };
+      xhr.onabort = function () { fail('connection lost'); };
+      xhr.ontimeout = function () { fail('connection lost'); };
+      xhr.send(JSON.stringify({ content: data, encoding: 'base64' }));
+    }).catch(function (error) {
+      if (error.network && tries > 1) {
+        progress(0);
+        return new Promise(function (resolve) { window.setTimeout(resolve, 2000); })
+          .then(function () { return upload(data, progress, tries - 1); });
+      }
+      throw error;
+    });
+  }
+
+  // Solange hochgeladen wird, soll der Bildschirm nicht ausgehen: sonst haelt das
+  // Telefon die App an und der Upload bricht ab. Geht nicht in jedem Browser.
+  var wakeLock = null;
+  function keepAwake(on) {
+    try {
+      if (on && navigator.wakeLock) {
+        navigator.wakeLock.request('screen').then(function (lock) { wakeLock = lock; }).catch(function () {});
+      } else if (!on && wakeLock) {
+        wakeLock.release();
+        wakeLock = null;
+      }
+    } catch (e) { /* ohne Wake Lock geht es auch */ }
   }
 
   // Der aktuelle Stand: letzter Commit, sein Dateibaum und der Inhalt von posts.json.
@@ -193,6 +250,10 @@
   }
 
   function explain(error) {
+    // Safari nennt einen Abbruch der Verbindung "Load failed", andere "Failed to fetch".
+    if (error.network || /load failed|failed to fetch|networkerror/i.test(error.message)) {
+      return 'The connection broke off. Nothing was posted and your draft is still here. Keep the app open and tap post again.';
+    }
     if (!error.status) { return error.message; }
     if (error.status === 401) { return 'GitHub does not accept this token. Use "forget token" and paste a new one.'; }
     if (error.status === 403 || error.status === 404) { return 'The token may not write to this repository (' + error.message + ').'; }
@@ -285,6 +346,7 @@
       }
       thumb.title = item.name;
       li.appendChild(thumb);
+      li.appendChild(el('span', 'attachments__size', megabytes(item.file.size)));
 
       control('←', 'move left', function () { move(index, -1); }, index === 0);
       control('→', 'move right', function () { move(index, 1); }, index === attachments.length - 1);
@@ -388,24 +450,36 @@
     setBusy(true);
     say(attachments.length ? 'Preparing files ...' : 'Posting ...');
 
-    inOrder(attachments, prepare)
-      .then(function (items) {
-        // Erst die Dateien hochladen, dann alles in einem Commit eintragen.
-        return inOrder(items, function (item, index) {
-          var name = id + '-' + (index + 1) + '.' + item.ext;
-          say('Uploading ' + (index + 1) + ' of ' + items.length + ' ...');
-          return toBase64(item.blob)
-            .then(function (data) { return api('POST', '/git/blobs', { content: data, encoding: 'base64' }); })
-            .then(function (blob) {
-              var entry = { type: item.type, src: 'media/' + name };
-              if (item.width) { entry.width = item.width; entry.height = item.height; }
-              if (item.name) { entry.name = item.name; }
-              if (item.size) { entry.size = item.size; }
-              media.push(entry);
-              // Bis die Website neu gebaut ist, zeigt der Editor die Datei von hier.
-              fresh[entry.src] = URL.createObjectURL(item.blob);
-              return { path: FEED + 'media/' + name, mode: '100644', type: 'blob', sha: blob.sha };
-            });
+    keepAwake(true);
+    // Erst die Dateien hochladen, dann alles in einem Commit eintragen. Was schon
+    // oben ist (item.done), wird bei einem zweiten Versuch nicht noch einmal geschickt.
+    inOrder(attachments, function (item, index) {
+      var label = 'Uploading ' + (index + 1) + ' of ' + attachments.length;
+      if (item.done) { return item.done; }
+      say('Preparing ' + (index + 1) + ' of ' + attachments.length + ' ...');
+      return prepare(item)
+        .then(function (ready) {
+          say(label + ' ...');
+          return toBase64(ready.blob).then(function (data) {
+            return upload(data, function (part) { say(label + ', ' + Math.round(part * 100) + ' % ...'); }, 3);
+          }).then(function (blob) {
+            item.done = { ready: ready, sha: blob.sha };
+            return item.done;
+          });
+        });
+    })
+      .then(function (done) {
+        return done.map(function (one, index) {
+          var ready = one.ready;
+          var name = id + '-' + (index + 1) + '.' + ready.ext;
+          var entry = { type: ready.type, src: 'media/' + name };
+          if (ready.width) { entry.width = ready.width; entry.height = ready.height; }
+          if (ready.name) { entry.name = ready.name; }
+          if (ready.size) { entry.size = ready.size; }
+          media.push(entry);
+          // Bis die Website neu gebaut ist, zeigt der Editor die Datei von hier.
+          fresh[entry.src] = URL.createObjectURL(ready.blob);
+          return { path: FEED + 'media/' + name, mode: '100644', type: 'blob', sha: one.sha };
         });
       })
       .then(function (entries) {
@@ -421,7 +495,7 @@
         say('Posted. It shows up in the feed within a minute.');
       })
       .catch(function (error) { say(explain(error), true); })
-      .then(function () { setBusy(false); });
+      .then(function () { keepAwake(false); setBusy(false); });
   }
 
   // ---------- Bearbeiten ----------
