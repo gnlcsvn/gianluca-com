@@ -5,6 +5,7 @@
   --leise: #8a8985;
   --knopf: #29292c;
   --blau: #2d3c96;
+  --rot: #d7463c;
 }
 * { box-sizing: border-box; }
 html { font-size: 14px; }
@@ -74,6 +75,10 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .post__controls { display: flex; gap: 1.1rem; white-space: nowrap; }
 .post__state { color: var(--tinte); }
 .post__state--live { color: var(--leise); }
+.post__state--error { color: var(--rot); }
+.post__ask { display: inline-flex; gap: 1.1rem; }
+.post__yes { color: var(--rot); }
+.post--leaving > :not(.post__head) { opacity: 0.3; }
 
 /* Der Text eines Posts: Absaetze, Zitat, Liste, fett, kursiv, code */
 .post__text { margin: 0 0 1rem; overflow-wrap: anywhere; }
@@ -137,7 +142,14 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .editor__quiet { font: inherit; color: var(--leise); background: none; border: 0; margin: 0; padding: 0; cursor: pointer; }
 .editor__quiet:hover { color: var(--blau); text-decoration: underline; }
 .editor__quiet:disabled { color: #cfcdc6; text-decoration: none; cursor: default; }
-.editor__status { min-height: 1.55em; margin: 1.2rem 0 0; }
+/* Was gerade passiert: unten am Fensterrand, damit es ueberall auf der Seite zu sehen ist */
+.editor__status {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 2; margin: 0;
+  padding: 0.8rem 1.25rem calc(0.8rem + env(safe-area-inset-bottom));
+  background: var(--knopf); color: var(--papier); text-align: center;
+}
+.editor__status:empty { display: none; }
+.editor-page .editor { padding-bottom: 4rem; }
 .editor__live { margin: 1.5rem 0 0; padding-top: 1.2rem; border-top: 1px solid #e4e2dc; color: var(--leise); min-height: 1.55em; box-sizing: content-box; }
 .posts--editor { padding-top: 1.8rem; }
 /* Als App auf dem Homescreen: Platz fuer die Statusleiste und den unteren Rand */

@@ -51,7 +51,16 @@
 
   // ---------- kleine Helfer ----------
 
-  function say(message) { statusLine.textContent = message; }
+  // Die Zeile unten am Fensterrand. Erfolgsmeldungen gehen nach ein paar Sekunden
+  // von selbst weg; Fehler (stay) bleiben stehen, bis man sie antippt.
+  var sayTimer = null;
+  function say(message, stay) {
+    window.clearTimeout(sayTimer);
+    statusLine.textContent = message;
+    if (message && !stay && !/\.\.\.$/.test(message)) {
+      sayTimer = window.setTimeout(function () { statusLine.textContent = ''; }, 6000);
+    }
+  }
 
   function two(n) { return n < 10 ? '0' + n : String(n); }
 
@@ -410,7 +419,7 @@
         showList(state.data.posts);
         say('Posted. It shows up in the feed within a minute.');
       })
-      .catch(function (error) { say(explain(error)); })
+      .catch(function (error) { say(explain(error), true); })
       .then(function () { setBusy(false); });
   }
 
@@ -471,38 +480,47 @@
         showList(state.data.posts);
         say('Saved. The feed shows the change within a minute.');
       })
-      .catch(function (error) { say(explain(error)); })
+      .catch(function (error) { say(explain(error), true); })
       .then(function () { setBusy(false); });
   }
 
   // ---------- Loeschen ----------
 
-  function remove(id) {
+  // article ist der Post in der Liste: dort steht auch, was gerade passiert.
+  function remove(id, article) {
+    var state = article.querySelector('.post__state');
     if (busy) { return; }
-    if (!window.confirm('Delete this post?')) { return; }
     if (editing === id) { clearEditor(); }
     setBusy(true);
+    article.className = 'post post--leaving';
+    state.className = 'post__state';
+    state.textContent = 'deleting ...';
     say('Deleting ...');
-    save(function (state) {
+    save(function (data) {
       var entries = [];
       var kept = [];
       var i, j, post;
-      for (i = 0; i < state.data.posts.length; i++) {
-        post = state.data.posts[i];
+      for (i = 0; i < data.data.posts.length; i++) {
+        post = data.data.posts[i];
         if (post.id !== id) { kept.push(post); continue; }
         for (j = 0; j < (post.media || []).length; j++) {
           // sha null heisst: diese Datei faellt mit dem Commit weg
           entries.push({ path: FEED + post.media[j].src, mode: '100644', type: 'blob', sha: null });
         }
       }
-      state.data.posts = kept;
+      data.data.posts = kept;
       return entries;
     }, 'Feed: delete post ' + id, 3)
-      .then(function (state) {
-        showList(state.data.posts);
+      .then(function (data) {
+        showList(data.data.posts);
         say('Deleted. It disappears from the feed within a minute.');
       })
-      .catch(function (error) { say(explain(error)); })
+      .catch(function (error) {
+        article.className = 'post';
+        state.className = 'post__state post__state--error';
+        state.textContent = 'not deleted';
+        say(explain(error), true);
+      })
       .then(function () { setBusy(false); });
   }
 
@@ -667,14 +685,32 @@
     var state = el('span', 'post__state');
     var edit = el('button', 'editor__quiet', 'edit');
     var del = el('button', 'editor__quiet', 'delete');
-    edit.type = 'button';
-    del.type = 'button';
+    // Rueckfrage direkt am Post statt in einem Dialog des Browsers
+    var ask = el('span', 'post__ask');
+    var yes = el('button', 'editor__quiet post__yes', 'yes, delete');
+    var no = el('button', 'editor__quiet', 'no');
+
+    function asking(on) {
+      ask.hidden = !on;
+      edit.hidden = on;
+      del.hidden = on;
+      state.hidden = on;
+    }
+
+    edit.type = del.type = yes.type = no.type = 'button';
     edit.addEventListener('click', function () { startEdit(article.id); });
-    del.addEventListener('click', function () { remove(article.id); });
+    del.addEventListener('click', function () { asking(true); yes.focus(); });
+    no.addEventListener('click', function () { asking(false); del.focus(); });
+    yes.addEventListener('click', function () { asking(false); remove(article.id, article); });
+
+    ask.appendChild(yes);
+    ask.appendChild(no);
     box.appendChild(state);
     box.appendChild(edit);
     box.appendChild(del);
+    box.appendChild(ask);
     head.appendChild(box);
+    asking(false);
   }
 
   // ---------- Ist es schon live? ----------
@@ -706,6 +742,7 @@
         for (i = 0; i < articles.length; i++) {
           state = articles[i].querySelector('.post__state');
           post = live[articles[i].id];
+          if (articles[i].className !== 'post' || state.className.indexOf('--error') !== -1) { continue; }
           if (post && post.text === mine[articles[i].id].text) {
             state.textContent = 'live';
             state.className = 'post__state post__state--live';
@@ -760,7 +797,7 @@
     say('Loading ...');
     loadState()
       .then(function (state) { showList(state.data.posts); say(''); })
-      .catch(function (error) { say(explain(error)); });
+      .catch(function (error) { say(explain(error), true); });
   }
 
   function showTokenForm() {
@@ -785,8 +822,14 @@
     showEditor();
   });
 
+  // Zweimal tippen statt eines Dialogs: der erste Tipp fragt nach.
   forgetButton.addEventListener('click', function () {
-    if (!window.confirm('Remove the token from this browser?')) { return; }
+    if (forgetButton.textContent !== 'really forget?') {
+      forgetButton.textContent = 'really forget?';
+      window.setTimeout(function () { forgetButton.textContent = 'forget token'; }, 4000);
+      return;
+    }
+    forgetButton.textContent = 'forget token';
     token = '';
     remember(TOKEN_KEY, '');
     showTokenForm();
@@ -799,6 +842,7 @@
   });
 
   cancelButton.addEventListener('click', function () { clearEditor(); say(''); });
+  statusLine.addEventListener('click', function () { say(''); });
 
   fileInput.addEventListener('change', function () {
     addFiles(fileInput.files || []);
