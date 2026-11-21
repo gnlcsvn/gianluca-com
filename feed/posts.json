@@ -1,6 +1,21 @@
 {
   "posts": [
     {
+      "id": "20261121-102442",
+      "date": "2026-11-21T10:24:42+01:00",
+      "text": "Video Test compression 2",
+      "media": [
+        {
+          "type": "video",
+          "src": "media/20261121-102442-1.mp4",
+          "processing": true,
+          "width": 960,
+          "height": 540,
+          "poster": "media/20261121-102442-1-poster.jpg"
+        }
+      ]
+    },
+    {
       "id": "20261121-102346",
       "date": "2026-11-21T10:23:46+01:00",
       "text": "Video Test compression",
