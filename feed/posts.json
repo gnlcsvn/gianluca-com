@@ -34,20 +34,6 @@
       "media": []
     },
     {
-      "id": "20261121-100756",
-      "date": "2026-11-21T10:07:56+01:00",
-      "text": "Es geht doch nichts über einen guten z-fight",
-      "media": [
-        {
-          "type": "video",
-          "src": "media/20261121-100756-1.mov",
-          "width": 960,
-          "height": 540,
-          "poster": "media/20261121-100756-1-poster.jpg"
-        }
-      ]
-    },
-    {
       "id": "20261121-094827",
       "date": "2026-11-21T09:48:27+01:00",
       "text": "`hello world`",
