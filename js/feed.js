@@ -67,7 +67,12 @@
       } else {
         url = part;
         tail = '';
-        while (/[.,;:!?)]$/.test(url)) { tail = url.slice(-1) + tail; url = url.slice(0, -1); }
+        // Satzzeichen am Ende gehoeren nicht zur Adresse. Eine schliessende Klammer nur dann
+        // nicht, wenn in der Adresse keine offen ist (wie bei .../Foo_(bar)).
+        while (/[.,;:!?]$/.test(url) || (/\)$/.test(url) && url.split(')').length > url.split('(').length)) {
+          tail = url.slice(-1) + tail;
+          url = url.slice(0, -1);
+        }
         node.appendChild(link(url, url.replace(/^https?:\/\//, '').replace(/\/$/, '')));
         if (tail) { node.appendChild(document.createTextNode(tail)); }
       }
@@ -289,9 +294,22 @@
     container.appendChild(el('p', 'posts__note', message));
   }
 
+  // Vor dem Leeren eines Containers: seine Videos anhalten, freigeben und nicht mehr beobachten.
+  function release(container) {
+    var videos = container.querySelectorAll('video');
+    var i;
+    for (i = 0; i < videos.length; i++) {
+      if (watcher) { watcher.unobserve(videos[i]); }
+      videos[i].pause();
+      videos[i].removeAttribute('src');
+      videos[i].load();
+    }
+  }
+
   // Setzt die Posts in den Container. base ist der Pfad zum Ordner feed/.
   function render(container, posts, base) {
     var i;
+    release(container);
     container.innerHTML = '';
     if (!posts.length) { note(container, 'Nothing here yet.'); return; }
     for (i = 0; i < posts.length; i++) {
@@ -301,6 +319,7 @@
 
   window.feedRender = render;
   window.feedBuildPost = buildPost;
+  window.feedRelease = release;
 
   var container = document.getElementById('posts');
   if (!container) { return; }
@@ -410,8 +429,10 @@
   // Steht hinter der Adresse "#<id>", zeigt die Seite nur diesen einen Post, ungekuerzt,
   // mit einem Weg zurueck. Das ist die Adresse, die "share" verschickt.
   function show(from) {
-    var id = decodeURIComponent(window.location.hash.slice(1));
-    var post = id ? find(id) : null;
+    var id = window.location.hash.slice(1);
+    var post;
+    try { id = decodeURIComponent(id); } catch (e) { id = ''; }
+    post = id ? find(id) : null;
     var articles, back, i, target;
     if (post) {
       render(container, [post], '');

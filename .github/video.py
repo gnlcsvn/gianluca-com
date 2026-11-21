@@ -60,7 +60,8 @@ def fetch_original(name):
 
 def encode(source, target):
     """H.264 und AAC in MP4, hoechstens 720p und 30 Bilder, ohne Ort und Kameradaten."""
-    scale = ("scale='if(gt(iw,ih),-2,min(%d,iw))':'if(gt(iw,ih),min(%d,ih),-2)'"
+    # Die kurze Seite hoechstens 720, beide Seiten gerade (x264 nimmt keine ungeraden Masse).
+    scale = ("scale='if(gt(iw,ih),-2,trunc(min(%d,iw)/2)*2)':'if(gt(iw,ih),trunc(min(%d,ih)/2)*2,-2)'"
              % (SHORT_SIDE, SHORT_SIDE))
     run('ffmpeg', '-v', 'error', '-y', '-i', source,
         '-vf', scale + ",fps='min(30,source_fps)'",
@@ -76,68 +77,91 @@ def size_of(path):
     return int(width), int(height)
 
 
+def age_of(post):
+    """Alter des Posts in Sekunden, aus seiner Nummer JJJJMMTT-HHMMSS (Ortszeit, also grob)."""
+    try:
+        stamp = time.mktime(time.strptime(post['id'][:15], '%Y%m%d-%H%M%S'))
+    except (ValueError, KeyError):
+        return 0
+    return time.time() - stamp
+
+
 def main():
-    done = {}       # src -> (Datei, Breite, Hoehe)
+    """Ein Video nach dem anderen, jedes mit eigenem Commit: was fertig ist, ist sicher.
+
+    Kein Post darf auf "processing" haengen bleiben:
+    - laesst sich ein Video nicht umrechnen, geht das Original unveraendert in den Feed;
+    - fehlt das Original auch nach einer Stunde noch, faellt das Video aus dem Post.
+    """
+    finished = []
     for post, item in pending(load()):
         name = name_of(item)
         original = fetch_original(name)
         if not original:
-            print('%s: kein Zweig upload/%s, wird uebersprungen' % (item['src'], name))
+            if age_of(post) > 3600 + 86400:   # ein Tag Spielraum fuer die Zeitzone der Post-Nummer
+                print('%s: kein Original im Zweig upload/%s, das Video wird aus dem Post genommen' % (item['src'], name))
+                commit(item['src'], None)
+            else:
+                print('%s: noch kein Zweig upload/%s, naechster Lauf' % (item['src'], name))
             continue
         target = os.path.join(WORK, name + '.mp4')
         try:
             encode(original, target)
-            # Ist das Ergebnis groesser als das Original, bleibt nichts gewonnen: trotzdem
-            # nehmen, weil es ueberall abspielt und keine Kameradaten mehr enthaelt.
             width, height = size_of(target)
+            result = {'file': target, 'src': item['src'], 'width': width, 'height': height}
+            print('%s: %d kb -> %d kb, %dx%d' % (
+                item['src'], os.path.getsize(original) // 1024, os.path.getsize(target) // 1024, width, height))
         except Exception as error:  # noqa: BLE001
-            print('%s: Umrechnen gescheitert (%s)' % (item['src'], error))
-            continue
-        print('%s: %d kb -> %d kb, %dx%d' % (
-            item['src'], os.path.getsize(original) // 1024, os.path.getsize(target) // 1024, width, height))
-        done[item['src']] = (target, width, height)
-
-    if done:
-        commit(done)
-    clean_up(done)
+            # Umrechnen gescheitert: lieber das Original zeigen als gar nichts.
+            ext = os.path.splitext(original)[1] or '.mp4'
+            result = {'file': original, 'src': 'media/' + name + ext}
+            print('%s: Umrechnen gescheitert, das Original geht unveraendert in den Feed (%s)' % (item['src'], error))
+        commit(item['src'], result)
+        finished.append(name)
+    clean_up(finished)
 
 
-def commit(done):
-    """Traegt die fertigen Videos auf main ein. Kam inzwischen ein Post dazu, noch einmal."""
+def commit(src, result):
+    """Meldet das Video mit der Adresse src fertig. result None heisst: aus dem Post nehmen.
+
+    Kam inzwischen ein Post dazu, wird der neue Stand geholt und es noch einmal versucht.
+    """
     for attempt in range(6):
         run('git', 'fetch', '--quiet', 'origin', 'main')
         run('git', 'reset', '--quiet', '--hard', 'origin/main')
         data = load()
-        changed = False
-        for post, item in pending(data):
-            if item['src'] not in done:
-                continue
-            target, width, height = done[item['src']]
-            path = os.path.join(FEED, item['src'])
+        found = [(post, item) for post, item in pending(data) if item['src'] == src]
+        if not found:
+            print('%s: den Post gibt es nicht mehr, nichts einzutragen' % src)
+            return
+        post, item = found[0]
+        if result is None:
+            post['media'].remove(item)
+        else:
+            path = os.path.join(FEED, result['src'])
             os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(target, 'rb') as src, open(path, 'wb') as out:
-                out.write(src.read())
-            item['width'], item['height'] = width, height
+            with open(result['file'], 'rb') as source, open(path, 'wb') as out:
+                out.write(source.read())
+            item['src'] = result['src']
+            if result.get('width'):
+                item['width'], item['height'] = result['width'], result['height']
             del item['processing']
             run('git', 'add', path)
-            changed = True
-        if not changed:
-            print('Die Posts gibt es nicht mehr, nichts einzutragen.')
-            return
         with open(POSTS, 'w', encoding='utf-8') as f:
             f.write(json.dumps(data, indent=2, ensure_ascii=False) + '\n')
         run('git', 'add', POSTS)
-        run('git', 'commit', '--quiet', '-m', 'Feed: add compressed video')
+        run('git', 'commit', '--quiet', '-m', 'Feed: add compressed video' if result else 'Feed: drop video without original')
         if run('git', 'push', '--quiet', 'origin', 'HEAD:main', check=False).returncode == 0:
             return
         time.sleep(3 + attempt * 2)
     raise RuntimeError('Der Push auf main ist sechsmal gescheitert.')
 
 
-def clean_up(done):
+def clean_up(finished):
     """Loescht die Zweige der fertigen Videos und liegengebliebene, die aelter als eine Stunde sind."""
+    run('git', 'fetch', '--quiet', 'origin', 'main')
+    run('git', 'reset', '--quiet', '--hard', 'origin/main')
     still_needed = set(name_of(item) for _, item in pending(load()))
-    finished = set(os.path.splitext(os.path.basename(src))[0] for src in done)
     refs = run('git', 'ls-remote', '--heads', 'origin', 'refs/heads/upload/*').stdout.split('\n')
     for line in refs:
         if not line.strip():

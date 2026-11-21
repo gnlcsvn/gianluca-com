@@ -32,7 +32,9 @@ jobs:
       - name: Gibt es etwas zu tun?
         id: todo
         run: |
+          # ein Video wartet auf das Umrechnen, oder ein Zweig mit einem Original liegt noch herum
           if grep -q '"processing": *true' feed/posts.json; then echo "found=yes" >> "$GITHUB_OUTPUT"; fi
+          if [ -n "$(git ls-remote --heads origin 'refs/heads/upload/*')" ]; then echo "found=yes" >> "$GITHUB_OUTPUT"; fi
 
       - name: ffmpeg einrichten
         if: steps.todo.outputs.found == 'yes'

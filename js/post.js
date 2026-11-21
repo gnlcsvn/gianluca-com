@@ -45,6 +45,7 @@
   var current = [];                   // die Posts, wie sie auf GitHub stehen
   var attachments = [];               // was am neuen Post haengt: {file, kind, url, name, width, height}
   var editing = '';                   // id des Posts, der gerade bearbeitet wird
+  var draft = {};                     // Nummer und Zeit des Posts, der gerade abgeschickt wird
   var syncTimer = null;
   var tickTimer = null;
   var syncStart = 0;
@@ -82,12 +83,18 @@
     try { return window.localStorage.getItem(key) || ''; } catch (e) { return ''; }
   }
 
+  // Solange gearbeitet wird, ist alles gesperrt, was den Entwurf oder die Liste aendert:
+  // sonst ginge beim Hochladen etwas anderes hoch, als auf dem Bildschirm steht.
   function setBusy(value) {
-    var buttons = list.querySelectorAll('button');
+    var buttons = document.querySelectorAll('#list button, #attachments button, #tools button, #cancel');
     var i;
     busy = value;
     submitButton.disabled = value;
+    textInput.readOnly = value;
+    fileInput.disabled = value;
+    mediaButton.className = value ? 'button editor__file editor__file--off' : 'button editor__file';
     for (i = 0; i < buttons.length; i++) { buttons[i].disabled = value; }
+    if (!value) { showAttachments(); }   // stellt die Pfeile am ersten und letzten Anhang wieder richtig
   }
 
   // Zeit mit Zeitzone, z.B. 2026-11-21T09:30:00+01:00
@@ -158,9 +165,18 @@
       xhr.setRequestHeader('Authorization', 'Bearer ' + token);
       xhr.setRequestHeader('Accept', 'application/vnd.github+json');
       xhr.setRequestHeader('X-GitHub-Api-Version', '2022-11-28');
+      // Kommt 90 Sekunden lang nichts voran, gilt die Verbindung als verloren.
+      var stalled = null;
+      function alive() {
+        window.clearTimeout(stalled);
+        stalled = window.setTimeout(function () { xhr.abort(); }, 90000);
+      }
       xhr.upload.onprogress = function (event) {
+        alive();
         if (event.lengthComputable) { progress(event.loaded / event.total); }
       };
+      xhr.onloadend = function () { window.clearTimeout(stalled); };
+      alive();
       xhr.onload = function () {
         var body = {};
         try { body = JSON.parse(xhr.responseText); } catch (e) { /* kein JSON */ }
@@ -240,6 +256,7 @@
   function save(change, message, tries) {
     return loadState().then(function (state) {
       var entries = change(state);
+      if (entries === null) { return state; }   // nichts zu tun, z.B. der Post ist schon da
       return commit(state, entries, message).then(function () { return state; });
     }).catch(function (error) {
       if ((error.status === 409 || error.status === 422) && tries > 1) {
@@ -253,7 +270,7 @@
   function explain(error) {
     // Safari nennt einen Abbruch der Verbindung "Load failed", andere "Failed to fetch".
     if (error.network || /load failed|failed to fetch|networkerror/i.test(error.message)) {
-      return 'The connection broke off. Nothing was posted and your draft is still here. Keep the app open and tap post again.';
+      return 'The connection broke off. Your draft is still here. Keep the app open and try again.';
     }
     if (!error.status) { return error.message; }
     if (error.status === 401) { return 'GitHub does not accept this token. Use "forget token" and paste a new one.'; }
@@ -488,8 +505,11 @@
 
   function publish() {
     var text = textInput.value.replace(/\s+$/, '');
-    var now = new Date();
-    var id = idNow(now);
+    // Nummer und Zeit des Posts stehen fest, sobald zum ersten Mal "post" getippt wird, und
+    // bleiben fuer jeden weiteren Versuch gleich. Ging der erste Versuch doch durch (die
+    // Antwort kam nur nicht mehr an), erkennt der zweite den Post an der Nummer wieder.
+    var now = draft.now || (draft.now = new Date());
+    var id = draft.id || (draft.id = idNow(now));
     var media = [];
     var parked = [];
 
@@ -553,6 +573,7 @@
       .then(function (entries) {
         say('Posting ...');
         return save(function (state) {
+          if (findPost(state.data.posts, id)) { return null; }   // schon gepostet
           state.data.posts.unshift({ id: id, date: isoNow(now), text: text, media: media });
           return entries.slice();
         }, 'Feed: add post ' + id, 3);
@@ -574,7 +595,12 @@
     return inOrder(parked, function (one) {
       return api('POST', '/git/trees', { tree: [{ path: one.file, mode: '100644', type: 'blob', sha: one.sha }] })
         .then(function (tree) { return api('POST', '/git/commits', { message: 'Upload ' + one.name, tree: tree.sha, parents: [] }); })
-        .then(function (made) { return api('POST', '/git/refs', { ref: 'refs/heads/upload/' + one.name, sha: made.sha }); });
+        .then(function (made) { return api('POST', '/git/refs', { ref: 'refs/heads/upload/' + one.name, sha: made.sha }); })
+        .catch(function (error) {
+          // Den Zweig gibt es schon, von einem frueheren Versuch mit demselben Post: gut so.
+          if (error.status === 422 && /already exists/i.test(error.message)) { return null; }
+          throw error;
+        });
     });
   }
 
@@ -589,6 +615,11 @@
   function startEdit(id) {
     var post = findPost(current, id);
     if (!post || busy) { return; }
+    if (!editing && (textInput.value.replace(/\s/g, '') || attachments.length)) {
+      say('There is an unsent draft. Post it or clear the text first.', true);
+      window.scrollTo(0, 0);
+      return;
+    }
     dropAttachments();
     editing = id;
     textInput.value = post.text || '';
@@ -605,6 +636,7 @@
 
   function clearEditor() {
     editing = '';
+    draft = {};
     textInput.value = '';
     textLabel.textContent = 'new post';
     submitButton.textContent = 'post';
@@ -693,9 +725,12 @@
     textInput.style.height = (textInput.scrollHeight + 2) + 'px';
   }
 
+  var previewTimer = null;
   function changed() {
     grow();
-    showPreview();
+    // erst, wenn kurz nicht getippt wird: die Vorschau baut Bilder und Videos jedes Mal neu
+    window.clearTimeout(previewTimer);
+    previewTimer = window.setTimeout(showPreview, 200);
   }
 
   function replaceSelection(text, selectFrom, selectTo) {
@@ -794,6 +829,7 @@
     var base = '';
     var i, item, swap, src;
     if (preview.hidden) { return; }
+    window.feedRelease(preview);
     preview.innerHTML = '';
     if (old) {
       media = old.media || [];
@@ -889,6 +925,14 @@
     return false;
   }
 
+  // Das Video ist fertig umgerechnet: den Hinweis "being prepared" wegnehmen.
+  function settle(article, post) {
+    var note = article.querySelector('.post__note');
+    var i;
+    if (note) { note.parentNode.removeChild(note); }
+    for (i = 0; i < (post.media || []).length; i++) { delete post.media[i].processing; }
+  }
+
   function tick() {
     var seconds = Math.round((Date.now() - syncStart) / 1000);
     liveLine.textContent = 'updating the website ... ' + seconds + ' s' +
@@ -929,6 +973,7 @@
           } else if (post && post.text === mine[articles[i].id].text) {
             state.textContent = 'live';
             state.className = 'post__state post__state--live';
+            settle(articles[i], mine[articles[i].id]);
           } else {
             state.textContent = 'publishing ...';
             state.className = 'post__state';
@@ -974,16 +1019,21 @@
 
   // ---------- Anzeige ----------
 
-  function showEditor() {
+  // quiet: nur die Liste auffrischen und eine Meldung, die gerade steht, stehen lassen.
+  function showEditor(quiet) {
     tokenForm.hidden = true;
     postForm.hidden = false;
     forgetButton.hidden = false;
     refreshButton.hidden = false;
     grow();
-    say('Loading ...');
+    if (!quiet) { say('Loading ...'); }
     loadState()
-      .then(function (state) { showList(state.data.posts, state.when); say(''); })
-      .catch(function (error) { say(explain(error), true); });
+      .then(function (state) {
+        if (busy) { return; }             // inzwischen wird gepostet: die Liste kommt danach neu
+        showList(state.data.posts, state.when);
+        if (!quiet) { say(''); }
+      })
+      .catch(function (error) { if (!quiet) { say(explain(error), true); } });
   }
 
   function showTokenForm() {
@@ -1094,7 +1144,7 @@
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { return; }
     checkVersion();
-    if (token && !busy) { showEditor(); }
+    if (token && !busy) { showEditor(true); }
   });
 
   // Werkzeuge: am grossen Bildschirm von Anfang an offen, am Telefon erst auf Wunsch.

@@ -159,6 +159,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .editor__switches { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .editor__file input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
 .editor__file:focus-within { outline: 1px solid var(--blau); outline-offset: 3px; }
+.editor__file--off { color: var(--leise); border-color: var(--leise); cursor: default; pointer-events: none; }
 .editor__quiet { font: inherit; color: var(--leise); background: none; border: 0; margin: 0; padding: 0; cursor: pointer; }
 .editor__quiet:hover { color: var(--blau); text-decoration: underline; }
 .editor__quiet:disabled { color: #cfcdc6; text-decoration: none; cursor: default; }
