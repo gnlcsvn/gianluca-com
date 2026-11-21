@@ -35,6 +35,7 @@ No build, lint, or test commands exist—this is intentional.
 An X-style feed with only the owner's posts.
 
 - `feed/posts.json`: all posts, newest first. Each post has `id` (`YYYYMMDD-HHMMSS`), `date` (ISO with time zone), `text`, `media`, and `edited` (ISO date, only after an edit).
+- **Drafts:** a post with `"draft": true` is in `posts.json` (and its files are public by address) but the feed does not show it and it gets no page under `feed/p/`. The editor lists it as "draft, not in the feed" with a "publish" button, which removes the flag, sets the date to now and moves the post to the top; the id stays. The editor itself cannot create drafts yet; they are added by hand.
 - `media` is a list of `{type, src, ...}` with `src` relative to `feed/`. Types: `image` and `video` (with `width`, `height`; a video may have `poster`, a still frame the editor makes at upload), `audio` (with `name`), `file` (with `name`, `size`; shown as a download link).
 - `feed/media/`: the files of the posts, named `<post id>-<n>.<ext>`.
 - `feed/index.html` + `js/feed.js`: load `posts.json` and render it. Several pictures or videos in one post become a swipeable carousel (CSS scroll snap, arrows and a counter). Videos are muted, loop, and play only while at least 60% visible (IntersectionObserver); with "reduce motion" they do not start by themselves.

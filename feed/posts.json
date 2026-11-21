@@ -1,6 +1,32 @@
 {
   "posts": [
     {
+      "id": "20261121-130258",
+      "date": "2026-11-21T13:02:58+01:00",
+      "text": "unnamed, plotter drawing, may 2025",
+      "media": [
+        {
+          "type": "image",
+          "src": "media/20261121-130258-1.jpg",
+          "width": 1500,
+          "height": 2000
+        },
+        {
+          "type": "image",
+          "src": "media/20261121-130258-2.jpg",
+          "width": 1780,
+          "height": 1780
+        },
+        {
+          "type": "image",
+          "src": "media/20261121-130258-3.jpg",
+          "width": 1432,
+          "height": 2000
+        }
+      ],
+      "draft": true
+    },
+    {
       "id": "20261121-102442",
       "date": "2026-11-21T10:24:42+01:00",
       "text": "Z-Fight!",

@@ -479,7 +479,8 @@
       return res.json();
     })
     .then(function (data) {
-      all = data.posts || [];
+      // Entwuerfe ("draft": true) sieht nur der Editor.
+      all = (data.posts || []).filter(function (post) { return !post.draft; });
       show('');
     })
     .catch(function () {

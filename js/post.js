@@ -671,13 +671,40 @@
       var post = findPost(state.data.posts, id);
       if (!post) { throw new Error('This post no longer exists.'); }
       post.text = text;
-      post.edited = isoNow(new Date());
+      if (!post.draft) { post.edited = isoNow(new Date()); }
       return [];
     }, 'Feed: edit post ' + id, 3)
       .then(function (state) {
         clearEditor();
         showList(state.data.posts);
         say('Saved. The feed shows the change within a minute.');
+      })
+      .catch(function (error) { say(explain(error), true); })
+      .then(function () { setBusy(false); });
+  }
+
+  // ---------- Einen Entwurf veroeffentlichen ----------
+
+  // Der Entwurf bekommt die Zeit von jetzt und rueckt nach oben. Seine Nummer bleibt,
+  // weil seine Dateien nach ihr heissen.
+  function release(id) {
+    if (busy) { return; }
+    if (editing) { say('Save or cancel the edit first.', true); window.scrollTo(0, 0); return; }
+    setBusy(true);
+    say('Publishing ...');
+    save(function (state) {
+      var post = findPost(state.data.posts, id);
+      if (!post) { throw new Error('This post no longer exists.'); }
+      if (!post.draft) { return null; }   // schon veroeffentlicht
+      delete post.draft;
+      post.date = isoNow(new Date());
+      state.data.posts.splice(state.data.posts.indexOf(post), 1);
+      state.data.posts.unshift(post);
+      return [];
+    }, 'Feed: publish post ' + id, 3)
+      .then(function (state) {
+        showList(state.data.posts);
+        say('Published. It shows up in the feed within a minute.');
       })
       .catch(function (error) { say(explain(error), true); })
       .then(function () { setBusy(false); });
@@ -898,6 +925,9 @@
     var state = el('span', 'post__state');
     var edit = el('button', 'editor__quiet', 'edit');
     var del = el('button', 'editor__quiet', 'delete');
+    // Ein Entwurf ("draft": true) steht in posts.json, aber nicht im Feed.
+    var post = findPost(current, article.id);
+    var out = post && post.draft ? el('button', 'editor__quiet', 'publish') : null;
     // Rueckfrage direkt am Post statt in einem Dialog des Browsers
     var ask = el('span', 'post__ask');
     var yes = el('button', 'editor__quiet post__yes', 'yes, delete');
@@ -906,6 +936,7 @@
     function asking(on) {
       ask.hidden = !on;
       edit.hidden = on;
+      if (out) { out.hidden = on; }
       del.hidden = on;
       state.hidden = on;
     }
@@ -919,6 +950,11 @@
     ask.appendChild(yes);
     ask.appendChild(no);
     box.appendChild(state);
+    if (out) {
+      out.type = 'button';
+      out.addEventListener('click', function () { release(article.id); });
+      box.appendChild(out);
+    }
     box.appendChild(edit);
     box.appendChild(del);
     box.appendChild(ask);
@@ -962,7 +998,7 @@
         var waiting = 0;
         var seconds = Math.round((Date.now() - syncStart) / 1000);
         var articles = list.querySelectorAll('.post');
-        var i, state, post;
+        var i, state, post, same;
 
         if (!data) {
           window.clearInterval(tickTimer);
@@ -978,12 +1014,13 @@
           state = articles[i].querySelector('.post__state');
           post = live[articles[i].id];
           if (articles[i].className !== 'post' || state.className.indexOf('--error') !== -1) { continue; }
-          if (post && post.text === mine[articles[i].id].text && isProcessing(post)) {
+          same = post && post.text === mine[articles[i].id].text && !post.draft === !mine[articles[i].id].draft;
+          if (same && isProcessing(post)) {
             state.textContent = 'compressing video ...';
             state.className = 'post__state';
             waiting++;
-          } else if (post && post.text === mine[articles[i].id].text) {
-            state.textContent = 'live';
+          } else if (same) {
+            state.textContent = post.draft ? 'draft, not in the feed' : 'live';
             state.className = 'post__state post__state--live';
             settle(articles[i], mine[articles[i].id]);
           } else {

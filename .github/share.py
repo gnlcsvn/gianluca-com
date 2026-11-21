@@ -204,7 +204,7 @@ def build():
     os.makedirs(PAGES, exist_ok=True)
     wanted = set()
     for post in posts:
-        if not re.match(r'^[\w-]+$', post.get('id', '')):
+        if not re.match(r'^[\w-]+$', post.get('id', '')) or post.get('draft'):
             continue
         wanted.add(post['id'])
         folder = os.path.join(PAGES, post['id'])
