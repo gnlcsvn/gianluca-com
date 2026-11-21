@@ -1,19 +1,6 @@
 {
   "posts": [
     {
-      "id": "20261121-102000",
-      "date": "2026-11-21T10:20:00+01:00",
-      "text": "test of the video pipeline, will be removed",
-      "media": [
-        {
-          "type": "video",
-          "src": "media/20261121-102000-1.mp4",
-          "width": 1280,
-          "height": 720
-        }
-      ]
-    },
-    {
       "id": "20261121-100756",
       "date": "2026-11-21T10:07:56+01:00",
       "text": "Es geht doch nichts über einen guten z-fight",
