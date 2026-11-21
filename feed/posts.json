@@ -8,7 +8,6 @@
         {
           "type": "video",
           "src": "media/20261121-102442-1.mp4",
-          "processing": true,
           "width": 960,
           "height": 540,
           "poster": "media/20261121-102442-1-poster.jpg"
