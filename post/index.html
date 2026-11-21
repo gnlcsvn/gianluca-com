@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>post</title>
+  <meta name="robots" content="noindex">
+  <!-- Der Editor laedt nichts von fremden Seiten und spricht nur mit der GitHub-API. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.github.com; img-src 'self' blob:; media-src 'self' blob:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+  <!-- Als App auf dem Homescreen (iPhone: Teilen, Zum Home-Bildschirm) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="post">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#fbfaf7">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="icon" href="icon-192.png">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="editor-page">
+
+  <header class="site-header site-header--narrow">
+    <a href="../feed/" class="site-header__home">feed</a>
+    <span class="site-header__nav"><button class="editor__quiet" id="forget" type="button" hidden>forget token</button></span>
+  </header>
+
+  <main class="editor">
+    <noscript><p class="posts__note">The editor needs JavaScript.</p></noscript>
+
+    <!-- Schritt 1, einmal je Geraet: das GitHub-Token eintragen -->
+    <form class="editor__token" id="token-form" hidden>
+      <p>Paste your GitHub token. It is stored in this browser only and is sent to GitHub and nowhere else.</p>
+      <label class="editor__label" for="token">token</label>
+      <input class="editor__input" id="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+      <button class="editor__button" type="submit">save</button>
+    </form>
+
+    <!-- Schritt 2: schreiben und absenden -->
+    <form class="editor__form" id="post-form" hidden>
+      <label class="editor__label" for="text">new post</label>
+      <textarea class="editor__input editor__text" id="text" rows="5"></textarea>
+      <div class="editor__row">
+        <label class="editor__file">
+          <span>add pictures or video</span>
+          <input id="files" type="file" accept="image/*,video/*" multiple>
+        </label>
+        <button class="editor__button" id="submit" type="submit">post</button>
+      </div>
+      <ul class="editor__files" id="file-list"></ul>
+    </form>
+
+    <p class="editor__status" id="status" role="status" aria-live="polite"></p>
+
+    <!-- Die vorhandenen Posts, je mit einem Knopf zum Loeschen -->
+    <div class="posts posts--editor" id="list"></div>
+  </main>
+
+  <script src="../js/feed.js"></script>
+  <script src="../js/post.js"></script>
+</body>
+</html>

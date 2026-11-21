@@ -45,6 +45,48 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .work__caption { display: flex; justify-content: space-between; gap: 1rem; margin: 0; }
 .work__meta { color: var(--leise); }
 
+/* Feed: schmale Spalte, ein Post unter dem anderen */
+.site-header--narrow { max-width: 34rem; }
+.site-header__nav span { color: var(--leise); }
+.posts { max-width: 34rem; margin: 0 auto; padding: 1.5rem 0 6rem; }
+.posts__note { margin: 0; color: var(--leise); }
+.post { margin: 0 0 3.5rem; scroll-margin-top: 1.5rem; }
+.post__date { display: inline-block; margin: 0 0 0.5rem; color: var(--leise); }
+.post__text { margin: 0 0 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.post__media { display: block; width: 100%; height: auto; margin: 0 0 0.6rem; }
+.post__delete { float: right; }
+
+/* Editor (/post/): schreiben, absenden, loeschen */
+.editor { max-width: 34rem; margin: 0 auto; padding: 1.5rem 0 0; }
+.editor__token p { margin: 0 0 1.2rem; }
+.editor__label { display: block; margin: 0 0 0.4rem; color: var(--leise); }
+.editor__input {
+  display: block; width: 100%; margin: 0 0 1rem; padding: 0.7rem 0.8rem;
+  font: inherit; font-size: 16px; line-height: 1.5; color: var(--tinte);
+  background: #fff; border: 1px solid var(--leise); border-radius: 0;
+  -webkit-appearance: none; appearance: none;
+}
+.editor__input:focus { outline: 1px solid var(--blau); outline-offset: 0; border-color: var(--blau); }
+.editor__text { resize: vertical; min-height: 8rem; }
+.editor__row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.editor__file { color: var(--blau); cursor: pointer; }
+.editor__file:hover { text-decoration: underline; }
+.editor__file input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.editor__file:focus-within { outline: 1px solid var(--blau); outline-offset: 3px; }
+.editor__button {
+  font: inherit; color: var(--papier); background: var(--tinte);
+  border: 0; border-radius: 0; margin: 0; padding: 0.6rem 1.4rem; cursor: pointer;
+}
+.editor__button:disabled { background: var(--leise); cursor: default; }
+.editor__quiet { font: inherit; color: var(--leise); background: none; border: 0; margin: 0; padding: 0; cursor: pointer; }
+.editor__quiet:hover { color: var(--blau); text-decoration: underline; }
+.editor__quiet:disabled { visibility: hidden; }
+.editor__files { margin: 0.8rem 0 0; padding: 0; list-style: none; color: var(--leise); overflow-wrap: anywhere; }
+.editor__status { min-height: 1.55em; margin: 1.2rem 0 0; }
+.posts--editor { padding-top: 2.5rem; border-top: 1px solid #e4e2dc; margin-top: 1.5rem; }
+/* Als App auf dem Homescreen: Platz fuer die Statusleiste und den unteren Rand */
+.editor-page { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+
 /* Spiegelung: das Bild ist so zugeschnitten, dass die Spiegelachse (der Gehweg)
    genau in der Mitte liegt. Zugeklappt zeigt der Rahmen nur die obere Haelfte des
    um 180 Grad gedrehten Bildes, also die Spiegelung, aufrecht. Beim Aufklappen
