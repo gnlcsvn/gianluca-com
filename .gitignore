@@ -1,5 +1,4 @@
 .DS_Store
-node_modules/
-inspiration/
-pdf render pipeline/
-articles/research-template/
+# lokale Werkzeuge, gehoeren nicht zur Website
+.obsidian/
+.claude/

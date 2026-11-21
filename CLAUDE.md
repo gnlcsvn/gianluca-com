@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Personal website of Gianluca Savino: a business-card home page with a name and a few links, an art page, and a feed with its own editor. Vanilla HTML, CSS and a few small scripts, no build step, no dependencies. Hosted on GitHub Pages at gianlucasavino.com.
+Personal website of Gian-Luca Savino: a business-card home page with a name and a few links, an art page, and a feed with its own editor. Vanilla HTML, CSS and a few small scripts, no build step, no dependencies. Hosted on GitHub Pages at gianlucasavino.com.
 
 The site is deliberately maintenance-free. Do not add articles, a bio, or a resume unless asked. The only automation is the video workflow described under Feed. Earlier versions (articles, data insights, resume) live in the git history.
 
