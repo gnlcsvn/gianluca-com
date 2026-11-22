@@ -1,6 +1,19 @@
 {
   "posts": [
     {
+      "id": "20261122-170939",
+      "date": "2026-11-22T17:09:39+01:00",
+      "text": "KIDS @ Ebrietas Bar",
+      "media": [
+        {
+          "type": "image",
+          "src": "media/20261122-170939-1.jpg",
+          "width": 1500,
+          "height": 2000
+        }
+      ]
+    },
+    {
       "id": "20261121-150436",
       "date": "2026-11-21T15:04:36+01:00",
       "text": "Päffikersee",
