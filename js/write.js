@@ -20,6 +20,11 @@
   var LONGEST = 45000;                // spaetestens aber nach dieser Zeit, auch mitten im Schreiben
   var POLL = 30000;                   // so oft wird nachgesehen, ob der Text woanders geaendert wurde
   var COARSE = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);   // Finger statt Maus
+  // Neuere iPhones legen ueber die Tastatur eigene schwebende Knoepfe (Pfeile, Haken). Sie gehoeren
+  // nicht zur Tastatur und werden nicht mitgerechnet: die Leiste muss um ihre Hoehe darueber stehen.
+  // Erkannt wird das an einer Faehigkeit, die mit derselben Fassung von iOS kam.
+  var IOS = /iP(hone|ad|od)/.test(window.navigator.userAgent) || (/Macintosh/.test(window.navigator.userAgent) && window.navigator.maxTouchPoints > 1);
+  var LIFT = IOS && window.CSS && window.CSS.supports && window.CSS.supports('anchor-name', '--a') ? 46 : 0;
   var VERSION = ((document.currentScript && document.currentScript.src || '').match(/[?&]v=(\w+)/) || [])[1] || '';
 
   function byId(id) { return document.getElementById(id); }
@@ -881,9 +886,11 @@
   function placeFormat() {
     var view = window.visualViewport;
     var on = COARSE && mode === 'write' && document.activeElement === blocks;
+    var bottom = view ? view.offsetTop + view.height : window.innerHeight;
+    var keyboard = !!view && view.height < window.innerHeight - 120;   // die Tastatur ist offen
     formatBar.hidden = !on;
     if (!on) { return; }
-    formatBar.style.top = Math.round((view ? view.offsetTop + view.height : window.innerHeight) - formatBar.offsetHeight) + 'px';
+    formatBar.style.top = Math.round(bottom - formatBar.offsetHeight - (keyboard ? LIFT : 0)) + 'px';
     showFormat();
   }
 
