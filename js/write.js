@@ -1139,16 +1139,85 @@
   document.addEventListener('mousemove', function () { calm(false); });
   document.addEventListener('touchstart', function () { calm(false); }, { passive: true });
 
-  // cmd/ctrl + b und i setzen die Zeichen fuer fett und kursiv um die Auswahl.
-  // Pfeil hoch am Anfang und Pfeil runter am Ende eines Stuecks gehen ins Nachbarstueck.
+  // ---------- Tasten ----------
+
+  // Ersetzt ein Stueck im Feld so, wie es Tippen taete: dann nimmt "rueckgaengig" (cmd/ctrl + z)
+  // es wieder zurueck. Wo der Browser das nicht kann, wird der Text direkt gesetzt.
+  function put(field, start, end, text) {
+    var done = false;
+    if (start === end && !text) { return; }
+    field.focus();
+    field.setSelectionRange(start, end);
+    try { done = document.execCommand(text ? 'insertText' : 'delete', false, text); } catch (e) { /* dann direkt */ }
+    if (!done) {
+      field.setRangeText(text, start, end, 'end');
+      growOne(field);
+      typed();
+    }
+  }
+
+  function stars(text, at, step) {
+    var n = 0;
+    while (text.charAt(step < 0 ? at - 1 - n : at + n) === '*') { n++; }
+    return n;
+  }
+
+  // Fett (**) oder kursiv (*) um die Auswahl setzen, oder wieder wegnehmen, wenn es schon da ist.
+  function toggleMark(field, mark) {
+    var value = field.value;
+    var start = field.selectionStart, end = field.selectionEnd;
+    var around = Math.min(stars(value, start, -1), stars(value, end, 1));
+    var on = mark === '**' ? around >= 2 : around % 2 === 1;
+    var chosen = value.slice(start, end);
+    if (on) {
+      put(field, start - mark.length, end + mark.length, chosen);
+      if (!chosen) { field.setSelectionRange(start - mark.length, start - mark.length); return; }
+      field.setSelectionRange(start - mark.length, end - mark.length);
+    } else {
+      put(field, start, end, mark + chosen + mark);
+      field.setSelectionRange(start + mark.length, end + mark.length);
+    }
+  }
+
+  // Ein Link: [Auswahl](https://). Ist die Auswahl selbst eine Adresse, wird sie das Ziel.
+  function makeLink(field, url) {
+    var start = field.selectionStart, end = field.selectionEnd;
+    var chosen = field.value.slice(start, end);
+    if (!url && /^(https?:\/\/|mailto:)\S+$/.test(chosen)) {
+      put(field, start, end, '[](' + chosen + ')');
+      field.setSelectionRange(start + 1, start + 1);
+    } else if (url) {
+      put(field, start, end, '[' + chosen + '](' + url + ')');
+    } else {
+      put(field, start, end, '[' + chosen + '](https://)');
+      field.setSelectionRange(start + chosen.length + 3, start + chosen.length + 11);   // die Adresse ist markiert
+    }
+  }
+
+  // Eingabe in einer Liste oder einem Zitat: die naechste Zeile faengt gleich an.
+  // In einem leeren Punkt beendet die Eingabetaste die Liste.
+  function continueLine(field) {
+    var value = field.value;
+    var at = field.selectionStart;
+    var from = value.lastIndexOf('\n', at - 1) + 1;
+    var match = /^(- |> )(.*)$/.exec(value.slice(from, at));
+    if (!match || at !== field.selectionEnd) { return false; }
+    if (match[2]) { put(field, at, at, '\n' + match[1]); }
+    else { put(field, from, at, ''); }
+    return true;
+  }
+
+  // cmd/ctrl + b fett, + i kursiv, + k Link. Pfeil hoch am Anfang und Pfeil runter am Ende
+  // eines Stuecks gehen ins Nachbarstueck.
   blocks.addEventListener('keydown', function (event) {
     var field = event.target;
-    var mark, start, end, value, other;
-    if (!isText(field)) { return; }
+    var command = (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey;
+    var start, end, other;
+    if (!isText(field) || event.isComposing) { return; }
     start = field.selectionStart;
     end = field.selectionEnd;
-    value = field.value;
-    if ((event.key === 'ArrowUp' && start === 0 && end === 0) || (event.key === 'ArrowDown' && start === value.length && end === value.length)) {
+    if ((event.key === 'ArrowUp' && start === 0 && end === 0) ||
+        (event.key === 'ArrowDown' && start === field.value.length && end === field.value.length)) {
       other = field;
       do { other = event.key === 'ArrowUp' ? other.previousElementSibling : other.nextElementSibling; } while (other && !isText(other));
       if (!other) { return; }
@@ -1157,13 +1226,15 @@
       other.selectionStart = other.selectionEnd = event.key === 'ArrowUp' ? other.value.length : 0;
       return;
     }
-    mark = (event.metaKey || event.ctrlKey) && !event.altKey ? { b: '**', i: '*' }[event.key] : '';
-    if (!mark) { return; }
-    event.preventDefault();
-    field.value = value.slice(0, start) + mark + value.slice(start, end) + mark + value.slice(end);
-    field.selectionStart = start + mark.length;
-    field.selectionEnd = end + mark.length;
-    typed();
+    if (command && (event.key === 'b' || event.key === 'i')) {
+      event.preventDefault();
+      toggleMark(field, event.key === 'b' ? '**' : '*');
+    } else if (command && event.key === 'k') {
+      event.preventDefault();
+      makeLink(field, '');
+    } else if (event.key === 'Enter' && !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey) {
+      if (continueLine(field)) { event.preventDefault(); }
+    }
   });
 
   fileInput.addEventListener('change', function () {
@@ -1177,7 +1248,16 @@
   });
   blocks.addEventListener('paste', function (event) {
     var files = event.clipboardData && event.clipboardData.files;
-    if (files && files.length) { event.preventDefault(); addPictures(files); }
+    var field = event.target;
+    var pasted;
+    if (files && files.length) { event.preventDefault(); addPictures(files); return; }
+    // Eine Adresse auf markierten Text einfuegen macht daraus einen Link.
+    pasted = event.clipboardData ? event.clipboardData.getData('text/plain').trim() : '';
+    if (isText(field) && field.selectionStart !== field.selectionEnd && /^https?:\/\/\S+$/.test(pasted) &&
+        !/^https?:\/\//.test(field.value.slice(field.selectionStart, field.selectionEnd))) {
+      event.preventDefault();
+      makeLink(field, pasted);
+    }
   });
 
   statusLine.addEventListener('click', function () { say(''); });
