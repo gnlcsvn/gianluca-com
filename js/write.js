@@ -797,7 +797,7 @@
     if (mode !== 'write') { return; }
     blocks.focus();
     if ((!sel.rangeCount || !blocks.contains(sel.anchorNode)) && lastRange) { sel.removeAllRanges(); sel.addRange(lastRange); }
-    if (kind !== 'link') { document.execCommand(kind, false, null); placeFormat(); return; }
+    if (kind !== 'link') { document.execCommand(kind, false, null); showFormat(); return; }
     node = sel.anchorNode;
     while (node && node !== blocks && node.nodeName !== 'A') { node = node.parentNode; }
     if (node && node.nodeName === 'A') {            // steht schon in einem Link: der Link geht weg
@@ -818,23 +818,16 @@
     document.execCommand('createLink', false, url);
   }
 
-  // Die Leiste fuer fett, kursiv, Link gibt es nur, solange Text markiert ist: dann steht sie
-  // gleich unter der Auswahl. Sie haengt am Text, nicht am Fenster, und rollt deshalb mit.
+  // Die Leiste fuer fett, kursiv, Link und Medien gibt es nur am Telefon, und nur solange im
+  // Blatt geschrieben wird: dann sitzt sie direkt ueber der Tastatur. (Eine Leiste an der
+  // Auswahl kaeme den eigenen Menues von iOS und Firefox in die Quere.) Die Tastatur verkleinert
+  // nur den sichtbaren Ausschnitt, nicht die Seite: deshalb wird die Stelle ausgerechnet.
   function placeFormat() {
-    var sel = window.getSelection();
-    var rect, left, width;
-    if (mode !== 'write' || !sel.rangeCount || sel.isCollapsed || !blocks.contains(sel.anchorNode) || !blocks.contains(sel.focusNode)) {
-      formatBar.hidden = true;
-      return;
-    }
-    rect = sel.getRangeAt(0).getBoundingClientRect();
-    if (!rect.width && !rect.height) { formatBar.hidden = true; return; }
-    formatBar.hidden = false;
-    width = formatBar.offsetWidth;
-    left = Math.max(8, Math.min(rect.left + rect.width / 2 - width / 2, document.documentElement.clientWidth - width - 8));
-    formatBar.style.left = Math.round(left + window.pageXOffset) + 'px';
-    // am Telefon tiefer: unter der Auswahl haengt dort noch der Griff zum Ziehen
-    formatBar.style.top = Math.round(rect.bottom + window.pageYOffset + (COARSE ? 28 : 10)) + 'px';
+    var view = window.visualViewport;
+    var on = COARSE && mode === 'write' && document.activeElement === blocks;
+    formatBar.hidden = !on;
+    if (!on) { return; }
+    formatBar.style.top = Math.round((view ? view.offsetTop + view.height : window.innerHeight) - formatBar.offsetHeight) + 'px';
     showFormat();
   }
 
@@ -1201,8 +1194,7 @@
   // Die Schreibmarke merken: ein Tipp auf "media" oder auf die Leiste nimmt sie dem Blatt weg.
   document.addEventListener('selectionchange', function () {
     var sel = window.getSelection();
-    if (sel.rangeCount && blocks.contains(sel.anchorNode)) { lastRange = sel.getRangeAt(0).cloneRange(); }
-    placeFormat();
+    if (sel.rangeCount && blocks.contains(sel.anchorNode)) { lastRange = sel.getRangeAt(0).cloneRange(); showFormat(); }
   });
 
   // cmd/ctrl + b fett, + i kursiv, + k Link. Die Tasten werden hier selbst behandelt:
@@ -1214,6 +1206,15 @@
     event.preventDefault();
     format(kind);
   });
+
+  // Die Leiste kommt mit der Tastatur und geht mit ihr; sie folgt dem sichtbaren Ausschnitt.
+  blocks.addEventListener('focus', placeFormat);
+  blocks.addEventListener('blur', function () { window.setTimeout(placeFormat, 250); });
+  window.addEventListener('scroll', placeFormat, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', placeFormat);
+    window.visualViewport.addEventListener('scroll', placeFormat);
+  }
 
   // Ein Tipp auf die Leiste darf dem Blatt die Auswahl nicht nehmen.
   formatBar.addEventListener('mousedown', function (event) { event.preventDefault(); });

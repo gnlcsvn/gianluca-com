@@ -18,7 +18,7 @@
   <link rel="icon" href="/favicon.png" sizes="64x64" type="image/png">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <!-- Die Nummer hinter v= ist dieselbe wie in post/version.txt (siehe post/index.html). -->
-  <link rel="stylesheet" href="../css/style.css?v=30">
+  <link rel="stylesheet" href="../css/style.css?v=31">
 </head>
 <body class="editor-page write-page">
 
@@ -63,19 +63,20 @@
     </div>
   </main>
 
-  <!-- Fett, kursiv, Link: erscheint nur, solange Text markiert ist, gleich unter der Auswahl -->
+  <!-- Am Telefon, solange geschrieben wird: eine Leiste direkt ueber der Tastatur -->
   <div class="tools write__tools" id="format" hidden>
     <div class="tools__group" role="group" aria-label="format">
       <button type="button" data-format="bold" aria-pressed="false">bold</button>
       <button type="button" data-format="italic" aria-pressed="false">italic</button>
       <button type="button" data-format="link" aria-pressed="false">link</button>
     </div>
+    <label class="button" for="files">media</label>
   </div>
 
   <!-- Unten am Rand, leise: links der Stand, rechts die Zahl der Woerter -->
   <footer class="write__foot" id="foot" hidden><span id="state" role="status" aria-live="polite"></span><span id="count"></span></footer>
   <p class="editor__status" id="status" role="status" aria-live="polite"></p>
 
-  <script src="../js/write.js?v=30"></script>
+  <script src="../js/write.js?v=31"></script>
 </body>
 </html>
