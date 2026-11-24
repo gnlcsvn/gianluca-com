@@ -18,13 +18,21 @@
           "height": 2000
         },
         {
+          "type": "video",
+          "src": "media/20261122-170939-3.mp4",
+          "processing": true,
+          "width": 576,
+          "height": 1024,
+          "poster": "media/20261122-170939-3-poster.jpg"
+        },
+        {
           "type": "image",
           "src": "media/20261122-170939-1.jpg",
           "width": 1500,
           "height": 2000
         }
       ],
-      "edited": "2026-11-22T23:06:45+01:00"
+      "edited": "2026-11-24T20:57:03+01:00"
     },
     {
       "id": "20261121-150436",
