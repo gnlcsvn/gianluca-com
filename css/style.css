@@ -185,14 +185,14 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 
 /* Schreib-Editor (/write/): ein Blatt, sonst nichts. Kopfzeile und Fusszeile sind leise. */
 .write { max-width: 46rem; margin: 0 auto; }
-.write__head { position: sticky; top: 0; z-index: 1; align-items: baseline; background: var(--papier); }
+.write__head { align-items: baseline; }
 /* Der Platz fuer die Statusleiste gehoert hier zur Kopfzeile: sonst rollt der Text darueber sichtbar durch */
 .editor-page.write-page { padding-top: 0; }
 .write__head { padding-top: calc(1.4rem + env(safe-area-inset-top)); }
 @media (display-mode: standalone) { .write__head { padding-top: calc(3.15rem + env(safe-area-inset-top)); } }
 .write__head .site-header__nav > span { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0 1.3rem; }
 .write__back::before { content: "< "; }
-.write__head .editor__quiet[aria-pressed="true"], .write__head .editor__quiet[aria-expanded="true"] { color: var(--tinte); text-decoration: underline; }
+.write__head .editor__quiet[aria-pressed="true"] { color: var(--tinte); text-decoration: underline; }
 .write__file { position: relative; }
 .write__file input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
 .write__file:focus-within { outline: 1px solid var(--blau); outline-offset: 3px; }
@@ -213,12 +213,10 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .write__media img, .write__media video { display: block; max-width: 100%; max-height: 80vh; height: auto; }
 .write__mediacaption { display: flex; justify-content: space-between; gap: 1.3rem; margin-top: 0.4rem; color: var(--leise); overflow-wrap: anywhere; }
 .write__medianote { margin: 0; color: var(--leise); }
-/* Die Leiste fuer fett, kursiv, Link: nur wo getippt statt geklickt wird */
-.write__head { flex-wrap: wrap; }
-.write__tools { flex: 0 0 100%; margin-top: 0.9rem; }
-.write__formattoggle { display: none; }
+/* Die Leiste fuer fett, kursiv, Link: steht unter der Auswahl, solange Text markiert ist */
+.write__tools { position: absolute; z-index: 2; margin: 0; }
+.write__tools .tools__group { background: var(--papier); }
 .write__tools button[aria-pressed="true"] { background: var(--knopf); color: var(--papier); }
-@media (pointer: coarse) { .write__formattoggle { display: inline; } }
 .write__notice {
   display: flex; flex-wrap: wrap; gap: 0 1.3rem; margin: 0 0 1.5rem; padding: 0 0 0.9rem;
   border-bottom: 1px solid #e4e2dc; color: var(--leise);

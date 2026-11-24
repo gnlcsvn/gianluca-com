@@ -19,6 +19,7 @@
   var IDLE = 6000;                    // so lange nach dem letzten Tastendruck wird gespeichert
   var LONGEST = 45000;                // spaetestens aber nach dieser Zeit, auch mitten im Schreiben
   var POLL = 30000;                   // so oft wird nachgesehen, ob der Text woanders geaendert wurde
+  var COARSE = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);   // Finger statt Maus
   var VERSION = ((document.currentScript && document.currentScript.src || '').match(/[?&]v=(\w+)/) || [])[1] || '';
 
   function byId(id) { return document.getElementById(id); }
@@ -33,7 +34,6 @@
   var forgetButton = byId('forget');
   var fileInput = byId('files');
   var formatBar = byId('format');
-  var formatToggle = byId('format-toggle');
   var historyToggle = byId('history-toggle');
   var deleteButton = byId('delete');
   var listBox = byId('texts');
@@ -797,7 +797,7 @@
     if (mode !== 'write') { return; }
     blocks.focus();
     if ((!sel.rangeCount || !blocks.contains(sel.anchorNode)) && lastRange) { sel.removeAllRanges(); sel.addRange(lastRange); }
-    if (kind !== 'link') { document.execCommand(kind, false, null); showFormat(); return; }
+    if (kind !== 'link') { document.execCommand(kind, false, null); placeFormat(); return; }
     node = sel.anchorNode;
     while (node && node !== blocks && node.nodeName !== 'A') { node = node.parentNode; }
     if (node && node.nodeName === 'A') {            // steht schon in einem Link: der Link geht weg
@@ -818,6 +818,26 @@
     document.execCommand('createLink', false, url);
   }
 
+  // Die Leiste fuer fett, kursiv, Link gibt es nur, solange Text markiert ist: dann steht sie
+  // gleich unter der Auswahl. Sie haengt am Text, nicht am Fenster, und rollt deshalb mit.
+  function placeFormat() {
+    var sel = window.getSelection();
+    var rect, left, width;
+    if (mode !== 'write' || !sel.rangeCount || sel.isCollapsed || !blocks.contains(sel.anchorNode) || !blocks.contains(sel.focusNode)) {
+      formatBar.hidden = true;
+      return;
+    }
+    rect = sel.getRangeAt(0).getBoundingClientRect();
+    if (!rect.width && !rect.height) { formatBar.hidden = true; return; }
+    formatBar.hidden = false;
+    width = formatBar.offsetWidth;
+    left = Math.max(8, Math.min(rect.left + rect.width / 2 - width / 2, document.documentElement.clientWidth - width - 8));
+    formatBar.style.left = Math.round(left + window.pageXOffset) + 'px';
+    // am Telefon tiefer: unter der Auswahl haengt dort noch der Griff zum Ziehen
+    formatBar.style.top = Math.round(rect.bottom + window.pageYOffset + (COARSE ? 28 : 10)) + 'px';
+    showFormat();
+  }
+
   // Die Knoepfe der Leiste zeigen, was an der Schreibmarke gilt.
   function showFormat() {
     var buttons = formatBar.querySelectorAll('button[data-format]');
@@ -832,8 +852,7 @@
   function setMode(next) {
     mode = next;
     blocks.hidden = next !== 'write';
-    formatBar.hidden = next !== 'write' || formatToggle.getAttribute('aria-expanded') !== 'true';
-    formatToggle.hidden = next !== 'write';
+    if (next !== 'write') { formatBar.hidden = true; }
     pane.hidden = next === 'write';
     historyToggle.setAttribute('aria-pressed', next === 'history' || next === 'version' ? 'true' : 'false');
     fileInput.disabled = next !== 'write';
@@ -1182,27 +1201,21 @@
   // Die Schreibmarke merken: ein Tipp auf "media" oder auf die Leiste nimmt sie dem Blatt weg.
   document.addEventListener('selectionchange', function () {
     var sel = window.getSelection();
-    if (!sel.rangeCount || !blocks.contains(sel.anchorNode)) { return; }
-    lastRange = sel.getRangeAt(0).cloneRange();
-    showFormat();
+    if (sel.rangeCount && blocks.contains(sel.anchorNode)) { lastRange = sel.getRangeAt(0).cloneRange(); }
+    placeFormat();
   });
 
-  // cmd/ctrl + b und + i kann das Feld von selbst; + k macht einen Link.
+  // cmd/ctrl + b fett, + i kursiv, + k Link. Die Tasten werden hier selbst behandelt:
+  // sonst macht mancher Browser damit etwas Eigenes auf (Firefox: Lesezeichen, Seiteninfo).
   blocks.addEventListener('keydown', function (event) {
-    if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key === 'k') {
-      event.preventDefault();
-      format('link');
-    }
+    var kind = (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey
+      ? { b: 'bold', i: 'italic', k: 'link' }[String(event.key).toLowerCase()] : '';
+    if (!kind) { return; }
+    event.preventDefault();
+    format(kind);
   });
 
-  // Die Leiste (am Telefon) ist zu, bis man sie mit "format" aufmacht.
-  // Ein Tipp auf sie oder auf "format" darf dem Blatt die Auswahl nicht nehmen.
-  formatToggle.addEventListener('mousedown', function (event) { event.preventDefault(); });
-  formatToggle.addEventListener('click', function () {
-    var open = formatToggle.getAttribute('aria-expanded') !== 'true';
-    formatToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    formatBar.hidden = !open || mode !== 'write';
-  });
+  // Ein Tipp auf die Leiste darf dem Blatt die Auswahl nicht nehmen.
   formatBar.addEventListener('mousedown', function (event) { event.preventDefault(); });
   formatBar.addEventListener('click', function (event) {
     var button = event.target;
