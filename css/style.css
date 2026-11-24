@@ -194,22 +194,24 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .write__file:focus-within { outline: 1px solid var(--blau); outline-offset: 3px; }
 .write-page--typing .write__head, .write-page--typing .write__foot { opacity: 0.25; }
 .write__sheet { padding: 1rem 0 45vh; }
-.write__text, .write__preview, .write__diff { font-size: 17px; line-height: 1.65; }
-.write__text {
-  display: block; width: 100%; min-height: 50vh; margin: 0; padding: 0;
-  font-family: inherit; color: var(--tinte); background: none;
-  border: 0; outline: 0; resize: none; overflow: hidden;
-  -webkit-appearance: none; appearance: none;
+.write__rich, .write__diff { font-size: 17px; line-height: 1.65; }
+.write__rich {
+  position: relative; min-height: 50vh; outline: 0;
+  white-space: pre-wrap; overflow-wrap: anywhere;
 }
-.write__text::placeholder { color: #cfcdc6; }
-.write__text { min-height: 0; }
-.write__blocks > .write__text:last-child { min-height: 50vh; }
+.write__rich--empty::before { content: "write"; position: absolute; top: 0; left: 0; color: #cfcdc6; pointer-events: none; }
+.write__rich strong, .write__rich b { font-weight: 700; }
+.write__rich a { color: var(--blau); cursor: text; }
 /* Bilder und Videos stehen im Blatt an ihrer Stelle; darunter leise der Dateiname */
-.write__media { margin: 1rem 0; }
+.write__media { margin: 0.4rem 0; font-size: 1rem; line-height: 1.55; white-space: normal; -webkit-user-select: none; user-select: none; }
 .write__media img, .write__media video { display: block; max-width: 100%; max-height: 80vh; height: auto; }
 .write__mediacaption { display: flex; justify-content: space-between; gap: 1.3rem; margin-top: 0.4rem; color: var(--leise); overflow-wrap: anywhere; }
 .write__medianote { margin: 0; color: var(--leise); }
-.write__preview .write__media { margin: 0 0 0.8rem; }
+/* Die Leiste fuer fett, kursiv, Link: nur wo getippt statt geklickt wird */
+.write__head { flex-wrap: wrap; }
+.write__tools { display: none; flex: 0 0 100%; margin-top: 0.9rem; }
+.write__tools button[aria-pressed="true"] { background: var(--knopf); color: var(--papier); }
+@media (pointer: coarse) { .write__tools { display: block; } }
 .write__notice {
   display: flex; flex-wrap: wrap; gap: 0 1.3rem; margin: 0 0 1.5rem; padding: 0 0 0.9rem;
   border-bottom: 1px solid #e4e2dc; color: var(--leise);
@@ -221,11 +223,6 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
   margin: 0 0 1.5rem; padding: 0 0 0.9rem; border-bottom: 1px solid #e4e2dc;
 }
 .write__panetools { display: flex; flex-wrap: wrap; gap: 0 1.3rem; }
-.write__preview h1, .write__preview h2, .write__preview h3 { margin: 2rem 0 0.8rem; font: inherit; font-weight: 700; }
-.write__preview h1 { text-transform: uppercase; letter-spacing: 0.04em; }
-.write__preview h3 { font-weight: 400; text-decoration: underline; }
-.write__preview > :first-child { margin-top: 0; }
-.write__preview hr { margin: 2rem 0; border: 0; border-top: 1px solid var(--leise); }
 .write__diff { white-space: pre-wrap; overflow-wrap: anywhere; }
 .write__diff del { color: var(--rot); text-decoration: line-through; }
 .write__diff ins { background: #dfeedd; text-decoration: none; }
@@ -304,5 +301,6 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 
 @media (max-width: 640px) {
   html { font-size: 13px; }
+  .write__notice span { flex-basis: 100%; }
   .work { margin-bottom: 4rem; }
 }

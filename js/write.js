@@ -32,7 +32,7 @@
   var newButton = byId('new');
   var forgetButton = byId('forget');
   var fileInput = byId('files');
-  var previewToggle = byId('preview-toggle');
+  var formatBar = byId('format');
   var historyToggle = byId('history-toggle');
   var deleteButton = byId('delete');
   var listBox = byId('texts');
@@ -49,14 +49,14 @@
   var texts = {};                     // id -> {text, base, sha, changed, date}
                                       // text: was hier steht; base und sha: der letzte Stand von GitHub
   var openId = '';                    // der Text, der gerade offen ist
-  var mode = 'write';                 // write, preview, history oder diff
+  var mode = 'write';                 // write, history, version oder diff
   var pushTimer = null;
   var keepTimer = null;
   var pollTimer = null;
   var firstUnsaved = 0;               // seit wann Ungespeichertes da ist
   var uploads = 0;                    // Bilder, die gerade hochgehen
   var pictures = {};                  // '<id>/<name>' -> lokale Adresse des Bildes oder Videos
-  var lastCaret = -1;                 // wo die Schreibmarke zuletzt stand, als Stelle im ganzen Text
+  var lastRange = null;               // wo die Schreibmarke zuletzt im Blatt stand
   var line = Promise.resolve();       // alles, was zu GitHub schreibt, geht der Reihe nach
 
   // ---------- kleine Helfer ----------
@@ -453,9 +453,7 @@
     return box;
   }
 
-  // ---------- Vorschau ----------
-  // Dieselben Zeichen wie im Feed (**fett**, *kursiv*, `code`, Links, "> " Zitat, "- " Liste),
-  // dazu Ueberschriften (#, ##, ###), Bilder und Videos (![](datei.jpg)) und eine Linie (---).
+  // ---------- Bilder und Videos ----------
 
   // Ein Bild oder Video als Kasten. Dateien eines privaten Repositorys lassen sich nicht
   // per Adresse laden: sie kommen ueber die API und werden als lokale Adresse gezeigt.
@@ -497,58 +495,6 @@
     return box;
   }
 
-  function renderText(id, text) {
-    var box = el('div', 'post__text write__preview');
-    var lines = text.replace(/\r/g, '').split('\n');
-    var kind = '';
-    var group = [];
-    var i, lineText, next, match, node;
-
-    function flush() {
-      var block, j, item;
-      if (!group.length) { return; }
-      if (kind === 'list') {
-        block = document.createElement('ul');
-        for (j = 0; j < group.length; j++) {
-          item = document.createElement('li');
-          window.feedInline(item, group[j], false);
-          block.appendChild(item);
-        }
-      } else {
-        block = document.createElement(kind === 'quote' ? 'blockquote' : 'p');
-        for (j = 0; j < group.length; j++) {
-          if (j) { block.appendChild(document.createElement('br')); }
-          window.feedInline(block, group[j], false);
-        }
-      }
-      box.appendChild(block);
-      group = [];
-    }
-
-    for (i = 0; i < lines.length; i++) {
-      lineText = lines[i];
-      if (!lineText.trim()) { flush(); kind = ''; continue; }
-      match = /^(#{1,3})\s+(.*)$/.exec(lineText);
-      if (match) {
-        flush(); kind = '';
-        node = document.createElement('h' + match[1].length);
-        window.feedInline(node, match[2], false);
-        box.appendChild(node);
-        continue;
-      }
-      match = MEDIA_LINE.exec(lineText);
-      if (match) { flush(); kind = ''; box.appendChild(mediaBox(id, match[1], match[2])); continue; }
-      if (/^-{3,}\s*$/.test(lineText)) { flush(); kind = ''; box.appendChild(document.createElement('hr')); continue; }
-      next = lineText.indexOf('> ') === 0 ? 'quote' : (lineText.indexOf('- ') === 0 ? 'list' : 'text');
-      if (next !== kind) { flush(); kind = next; }
-      group.push(next === 'text' ? lineText : lineText.slice(2));
-    }
-    flush();
-    if (!box.firstChild) { box.appendChild(el('p', 'posts__note', 'Nothing here yet.')); }
-    return box;
-  }
-
-  // ---------- Bilder ----------
 
   // Verkleinert ein Bild und macht ein JPEG daraus (das wirft auch die Kameradaten weg).
   // GIF und SVG bleiben, wie sie sind; was der Browser nicht oeffnen kann, auch.
@@ -594,16 +540,21 @@
     });
   }
 
-  // Setzt ein Stueck Text an die Stelle der Schreibmarke, als eigenen Absatz.
-  function insertBlock(block) {
-    var value = currentText();
-    var at = caretOffset();
-    var before, after;
-    if (at < 0 || at > value.length) { at = value.length; }
-    before = value.slice(0, at).replace(/\s+$/, '');
-    after = value.slice(at).replace(/^\s+/, '');
-    render((before ? before + '\n\n' : '') + block + (after ? '\n\n' + after : ''));
-    setCaret((before ? before.length + 2 : 0) + block.length + 2, false);
+  // Setzt ein Bild oder Video unter die Zeile, in der die Schreibmarke steht,
+  // mit einer Leerzeile davor und danach.
+  function insertMedia(name) {
+    var figure = mediaBlock({ alt: '', src: name, line: '![](' + name + ')' });
+    var block = lastRange && blocks.contains(lastRange.startContainer) ? topBlock(lastRange.startContainer) : null;
+    function blank(node) { return !!node && node.nodeName === 'DIV' && !node.textContent; }
+    if (!block) { block = blocks.lastChild; }
+    if (block && !blank(block)) {
+      blocks.insertBefore(lineNode(''), block.nextSibling);
+      block = block.nextSibling;
+    }
+    blocks.insertBefore(figure, block ? block.nextSibling : null);
+    if (!blank(figure.nextSibling)) { blocks.insertBefore(lineNode(''), figure.nextSibling); }
+    blocks.focus();
+    placeCaret(Array.prototype.indexOf.call(blocks.childNodes, figure.nextSibling), 0);
     typed();
   }
 
@@ -622,7 +573,7 @@
         return function (ready) {
           var name = stamp + (number > 1 ? '-' + number : '') + '.' + ready.ext;
           pictures[id + '/' + name] = window.URL.createObjectURL(ready.blob);
-          if (id === openId) { insertBlock('![](' + name + ')'); }
+          if (id === openId) { insertMedia(name); }
           uploads++;
           setState('uploading ...');
           return queued(function () { return send(id, name, ready.blob, 3); }).then(function () {
@@ -656,76 +607,161 @@
   function calm(on) { document.body.className = 'editor-page write-page' + (on ? ' write-page--typing' : ''); }
 
   // ---------- Das Blatt ----------
-  // Der Text ist eine einzige Datei. Auf dem Blatt steht er in Stuecken: Textfelder und,
-  // wo eine Zeile ein Bild oder Video nennt, das Bild oder Video selbst.
+  // Gespeichert wird einfacher Text: Zeile fuer Zeile, **fett**, *kursiv*, [Text](Adresse),
+  // und ein Bild oder Video als eigene Zeile ![](datei). Auf dem Blatt sieht man davon nichts:
+  // fett ist fett, ein Bild ist das Bild. Das Blatt ist ein einziges Feld zum Schreiben,
+  // darin je Zeile ein <div> und je Bild oder Video ein <figure>.
 
-  function parse(value) {
-    var out = [];
-    var lines = value.split('\n');
-    var at = 0, from = 0, i, match;
-    function text(to, beforeMedia) {
-      var raw = value.slice(from, Math.max(from, to));
-      if (out.length) { raw = raw.replace(/^\n+/, ''); }
-      if (beforeMedia) { raw = raw.replace(/\n+$/, ''); }
-      out.push({ kind: 'text', value: raw });
-    }
-    for (i = 0; i < lines.length; i++) {
-      match = MEDIA_LINE.exec(lines[i]);
-      if (match) {
-        text(at - 1, true);
-        out.push({ kind: 'media', alt: match[1], src: match[2], line: lines[i] });
-        from = at + lines[i].length + 1;
+  var INLINE = /(\*\*\*[^*\n]+?\*\*\*|\*\*(?:[^*\n]|\*(?!\*))+?\*\*|\*(?![*\s])(?:[^*\n]|\*\*[^*\n]+?\*\*)*?[^*\s]\*(?!\*)|\[[^\]\n]+?\]\((?:https?:\/\/|mailto:)[^\s)]+\))/;
+
+  // Text einer Zeile -> Elemente.
+  function fillInline(node, text) {
+    var parts = text.split(INLINE);
+    var i, part, child, inner, match;
+    for (i = 0; i < parts.length; i++) {
+      part = parts[i];
+      if (!part) { continue; }
+      if (i % 2 === 0) { node.appendChild(document.createTextNode(part)); continue; }
+      if (part.charAt(0) === '[') {
+        match = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(part);
+        child = document.createElement('a');
+        child.setAttribute('href', match[2]);
+        fillInline(child, match[1]);
+      } else if (part.indexOf('***') === 0) {
+        child = document.createElement('strong');
+        inner = document.createElement('em');
+        fillInline(inner, part.slice(3, -3));
+        child.appendChild(inner);
+      } else if (part.indexOf('**') === 0) {
+        child = document.createElement('strong');
+        fillInline(child, part.slice(2, -2));
+      } else {
+        child = document.createElement('em');
+        fillInline(child, part.slice(1, -1));
       }
-      at += lines[i].length + 1;
+      node.appendChild(child);
     }
-    text(value.length, false);
-    return out;
   }
 
-  function isText(node) { return !!node && node.parentNode === blocks && node.tagName === 'TEXTAREA'; }
+  function lineNode(text) {
+    var div = document.createElement('div');
+    if (text) { fillInline(div, text); } else { div.appendChild(document.createElement('br')); }
+    return div;
+  }
 
-  // Der Text, wie er auf dem Blatt steht. Merkt sich dabei, wo jedes Stueck im Text anfaengt.
-  function currentText() {
+  // Die Zeichen kommen eng um den Text, Leerzeichen bleiben draussen: sonst gilt es nicht als fett.
+  function marked(mark, inner) {
+    var lines = inner.split('\n');
+    var i, m;
+    for (i = 0; i < lines.length; i++) {
+      m = /^(\s*)([\s\S]*?)(\s*)$/.exec(lines[i]);
+      if (m[2]) { lines[i] = m[1] + mark + m[2] + mark + m[3]; }
+    }
+    return lines.join('\n');
+  }
+
+  // Elemente -> Text. Ein Umbruch und ein eingeschachtelter Absatz werden eine neue Zeile.
+  function textOf(node) {
     var out = '';
-    var nodes = blocks.children;
-    var i, piece;
-    for (i = 0; i < nodes.length; i++) {
-      piece = isText(nodes[i]) ? nodes[i].value : nodes[i].line;
-      nodes[i].start = out.length + (out && piece ? 2 : 0);
-      if (piece) { out += (out ? '\n\n' : '') + piece; }
+    var kids = node.childNodes;
+    var i, child, tag, inner, href, weight;
+    for (i = 0; i < kids.length; i++) {
+      child = kids[i];
+      if (child.nodeType === 3) { out += child.nodeValue.replace(/ /g, ' ').replace(/[​﻿]/g, ''); continue; }
+      if (child.nodeType !== 1) { continue; }
+      tag = child.tagName;
+      if (tag === 'BR') { out += '\n'; continue; }
+      if (tag === 'FIGURE') { out += (out && !/\n$/.test(out) ? '\n' : '') + (child.line || '') + '\n'; continue; }
+      inner = textOf(child);
+      if (tag === 'DIV' || tag === 'P' || tag === 'LI' || tag === 'BLOCKQUOTE') {
+        if (child.lastChild && child.lastChild.nodeName === 'BR' && /\n$/.test(inner)) { inner = inner.slice(0, -1); }
+        out += (out && !/\n$/.test(out) ? '\n' : '') + inner + '\n';
+        continue;
+      }
+      weight = child.style ? child.style.fontWeight : '';
+      if (tag === 'B' || tag === 'STRONG' || weight === 'bold' || parseInt(weight, 10) >= 600) { inner = marked('**', inner); }
+      if (tag === 'I' || tag === 'EM' || (child.style && child.style.fontStyle === 'italic')) { inner = marked('*', inner); }
+      if (tag === 'A') {
+        href = child.getAttribute('href') || '';
+        if (inner && /^(https?:\/\/|mailto:)[^\s)]+$/.test(href)) { inner = '[' + inner.replace(/\n/g, ' ') + '](' + href + ')'; }
+      }
+      out += inner;
     }
     return out;
   }
 
-  function caretOffset() {
-    var node = document.activeElement;
-    if (!isText(node)) { return lastCaret; }
-    currentText();
-    return node.start + node.selectionStart;
+  // Der Text, wie er auf dem Blatt steht.
+  function currentText() {
+    var lines = [];
+    var stray = null;
+    var kids = blocks.childNodes;
+    var i, child, inner, holder;
+    function flush() { if (stray !== null) { lines.push(stray.replace(/\n$/, '')); stray = null; } }
+    for (i = 0; i < kids.length; i++) {
+      child = kids[i];
+      if (child.nodeType === 1 && child.tagName === 'FIGURE') { flush(); lines.push(child.line || ''); continue; }
+      if (child.nodeType === 1 && (child.tagName === 'DIV' || child.tagName === 'P')) {
+        flush();
+        inner = textOf(child);
+        if (child.lastChild && child.lastChild.nodeName === 'BR' && /\n$/.test(inner)) { inner = inner.slice(0, -1); }
+        lines.push(inner.replace(/\n$/, ''));   // endet die Zeile mit einem eingeschachtelten Absatz, bleibt sein Umbruch uebrig
+        continue;
+      }
+      // Text, der ohne Zeile direkt im Blatt steht (nach "alles loeschen")
+      holder = document.createElement('span');
+      holder.appendChild(child.cloneNode(true));
+      stray = (stray === null ? '' : stray) + textOf(holder);
+    }
+    flush();
+    return lines.join('\n');
   }
 
-  // Setzt die Schreibmarke an eine Stelle des ganzen Textes. quiet: ohne dorthin zu rollen.
-  function setCaret(offset, quiet) {
-    var nodes = blocks.children;
-    var target = null, i;
-    currentText();
-    for (i = 0; i < nodes.length; i++) {
-      if (isText(nodes[i]) && (!target || nodes[i].start <= offset)) { target = nodes[i]; }
+  function topBlock(node) {
+    while (node && node.parentNode !== blocks) { node = node.parentNode; }
+    return node;
+  }
+
+  // Wo die Schreibmarke steht: Nummer der Zeile und Stelle darin.
+  function caretPlace() {
+    var sel = window.getSelection();
+    var block, range;
+    if (document.activeElement !== blocks || !sel.rangeCount || !blocks.contains(sel.anchorNode)) { return null; }
+    block = topBlock(sel.anchorNode);
+    if (!block) { return null; }
+    range = document.createRange();
+    range.selectNodeContents(block);
+    range.setEnd(sel.anchorNode, sel.anchorOffset);
+    return { line: Array.prototype.indexOf.call(blocks.childNodes, block), at: range.toString().length };
+  }
+
+  function placeCaret(line, at) {
+    var block = blocks.childNodes[Math.max(0, Math.min(line, blocks.childNodes.length - 1))];
+    var sel = window.getSelection();
+    var range = document.createRange();
+    var walker, node, last = null;
+    while (block && block.nodeName === 'FIGURE' && block.nextSibling) { block = block.nextSibling; }
+    if (!block) { return; }
+    walker = document.createTreeWalker(block, 4, null, false);   // 4: nur Text
+    while ((node = walker.nextNode())) {
+      last = node;
+      if (at <= node.nodeValue.length) { break; }
+      at -= node.nodeValue.length;
     }
-    if (!target) { return; }
-    try { target.focus({ preventScroll: !!quiet }); } catch (e) { target.focus(); }
-    target.selectionStart = target.selectionEnd = Math.max(0, Math.min(target.value.length, offset - target.start));
-    lastCaret = offset;
+    if (last) { range.setStart(last, Math.min(at, last.nodeValue.length)); } else { range.setStart(block, 0); }
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    lastRange = range.cloneRange();
   }
 
   function mediaBlock(part) {
     var box = mediaBox(openId, part.alt, part.src);
     var caption = el('figcaption', 'write__mediacaption');
     box.line = part.line;
+    box.contentEditable = 'false';
     caption.appendChild(el('span', '', part.src));
     caption.appendChild(quiet('remove', function () {
       blocks.removeChild(box);
-      render(currentText());
       typed();
     }));
     box.appendChild(caption);
@@ -733,68 +769,91 @@
   }
 
   function render(value) {
-    var parts = parse(value);
-    var i, node;
+    var lines = value.split('\n');
+    var i, match;
     blocks.innerHTML = '';
-    for (i = 0; i < parts.length; i++) {
-      if (parts[i].kind === 'text') {
-        node = el('textarea', 'write__text');
-        node.rows = 1;
-        node.value = parts[i].value;
-        node.setAttribute('aria-label', 'text');
-        node.setAttribute('autocapitalize', 'sentences');
-      } else {
-        node = mediaBlock(parts[i]);
-      }
-      blocks.appendChild(node);
+    for (i = 0; i < lines.length; i++) {
+      match = MEDIA_LINE.exec(lines[i]);
+      blocks.appendChild(match ? mediaBlock({ alt: match[1], src: match[2], line: lines[i] }) : lineNode(lines[i]));
     }
-    if (parts.length === 1) { blocks.firstChild.placeholder = 'write'; }
-    lastCaret = -1;
-    grow();
-  }
-
-  function growOne(node) {
-    sheet.style.minHeight = sheet.offsetHeight + 'px';   // sonst springt die Seite, waehrend das Feld kurz klein ist
-    node.style.height = 'auto';
-    node.style.height = node.scrollHeight + 'px';
-    sheet.style.minHeight = '';
-  }
-
-  function grow() {
-    var nodes = blocks.children;
-    var i;
-    for (i = 0; i < nodes.length; i++) { if (isText(nodes[i])) { growOne(nodes[i]); } }
+    // ueber dem ersten und unter dem letzten Bild muss sich schreiben lassen
+    if (blocks.firstChild.nodeName === 'FIGURE') { blocks.insertBefore(lineNode(''), blocks.firstChild); }
+    if (blocks.lastChild.nodeName === 'FIGURE') { blocks.appendChild(lineNode('')); }
+    blocks.className = value ? 'write__rich' : 'write__rich write__rich--empty';
+    lastRange = null;
   }
 
   function count() {
-    var words = ((texts[openId] ? texts[openId].text : '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').match(/\S+/g) || []).length;
+    var plain = (texts[openId] ? texts[openId].text : '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\]\([^)\s]*\)/g, ' ').replace(/[*\[]/g, '');
+    var words = (plain.match(/\S+/g) || []).length;
     countLine.textContent = words ? words + (words === 1 ? ' word' : ' words') : '';
+  }
+
+  // Fett, kursiv, Link: der Browser setzt es an der Auswahl um, und "rueckgaengig" nimmt es zurueck.
+  function format(kind) {
+    var sel = window.getSelection();
+    var range, url, node;
+    if (mode !== 'write') { return; }
+    blocks.focus();
+    if ((!sel.rangeCount || !blocks.contains(sel.anchorNode)) && lastRange) { sel.removeAllRanges(); sel.addRange(lastRange); }
+    if (kind !== 'link') { document.execCommand(kind, false, null); showFormat(); return; }
+    node = sel.anchorNode;
+    while (node && node !== blocks && node.nodeName !== 'A') { node = node.parentNode; }
+    if (node && node.nodeName === 'A') {            // steht schon in einem Link: der Link geht weg
+      range = document.createRange();
+      range.selectNodeContents(node);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      document.execCommand('unlink', false, null);
+      return;
+    }
+    if (sel.isCollapsed) { say('Select the words for the link first.'); return; }
+    range = sel.getRangeAt(0).cloneRange();
+    url = (window.prompt('link address', 'https://') || '').trim();
+    if (!/^(https?:\/\/|mailto:)[^\s)]+$/.test(url) || url === 'https://') { return; }
+    blocks.focus();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand('createLink', false, url);
+  }
+
+  // Die Knoepfe der Leiste zeigen, was an der Schreibmarke gilt.
+  function showFormat() {
+    var buttons = formatBar.querySelectorAll('button[data-format]');
+    var i, on;
+    for (i = 0; i < buttons.length; i++) {
+      on = false;
+      try { on = buttons[i].getAttribute('data-format') !== 'link' && document.queryCommandState(buttons[i].getAttribute('data-format')); } catch (e) { /* dann eben aus */ }
+      buttons[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
   }
 
   function setMode(next) {
     mode = next;
     blocks.hidden = next !== 'write';
+    formatBar.hidden = next !== 'write';
     pane.hidden = next === 'write';
-    previewToggle.setAttribute('aria-pressed', next === 'preview' ? 'true' : 'false');
     historyToggle.setAttribute('aria-pressed', next === 'history' || next === 'version' ? 'true' : 'false');
     fileInput.disabled = next !== 'write';
     sheet.className = next === 'write' ? 'write__sheet' : 'write__sheet write__sheet--pane';
-    if (next === 'write') { pane.innerHTML = ''; grow(); }
+    if (next === 'write') { pane.innerHTML = ''; }
     window.scrollTo(0, 0);
   }
 
-  // Setzt einen neuen Text aufs Blatt und laesst die Schreibmarke moeglichst, wo sie war.
+  // Setzt einen neuen Text aufs Blatt und laesst die Schreibmarke moeglichst in ihrer Zeile.
   function replaceText(value) {
-    var old = currentText();
-    var live = isText(document.activeElement);
-    var at = caretOffset();
-    var front = 0, back = 0;
-    while (front < old.length && front < value.length && old.charAt(front) === value.charAt(front)) { front++; }
-    while (back < old.length - front && back < value.length - front &&
-      old.charAt(old.length - 1 - back) === value.charAt(value.length - 1 - back)) { back++; }
+    var place = caretPlace();
+    var old = currentText().split('\n');
+    var fresh = value.split('\n');
+    var front = 0, back = 0, line;
+    while (front < old.length && front < fresh.length && old[front] === fresh[front]) { front++; }
+    while (back < old.length - front && back < fresh.length - front && old[old.length - 1 - back] === fresh[fresh.length - 1 - back]) { back++; }
     render(value);
-    if (at > front) { at = at >= old.length - back ? at + value.length - old.length : front; }
-    if (live) { setCaret(at, true); }
+    if (place) {
+      line = place.line;
+      if (line >= front) { line = line >= old.length - back ? line + fresh.length - old.length : front; }
+      placeCaret(line, place.at);
+    }
     count();
   }
 
@@ -803,7 +862,6 @@
     var t = texts[id];
     if (id !== openId || !t) { return; }
     replaceText(t.text);
-    if (mode === 'preview') { showPreview(); }
     if (first) { setState('saved'); return; }
     api('GET', '/commits?path=' + id + '/' + FILE + '&sha=' + BRANCH + '&per_page=1').then(function (list) {
       var message = list[0] ? list[0].commit.message.split('\n')[0] : '';
@@ -843,11 +901,6 @@
     for (i = 0; i < buttons.length; i++) { tools.appendChild(buttons[i]); }
     head.appendChild(tools);
     return head;
-  }
-
-  function showPreview() {
-    pane.innerHTML = '';
-    pane.appendChild(renderText(openId, texts[openId].text));
   }
 
   // Verlauf: jede gespeicherte Fassung, neueste oben. Ein Tipp zeigt, was sie geaendert hat.
@@ -1009,7 +1062,7 @@
     render(texts[id].text);
     count();
     setState(unsaved(texts[id]) ? '' : (texts[id].sha ? 'saved' : ''));
-    if (!texts[id].text) { blocks.firstChild.focus(); }
+    if (!texts[id].text) { blocks.focus(); placeCaret(0, 0); }
     sync(id);
     pollTimer = window.setInterval(function () {
       var t = texts[openId];
@@ -1038,6 +1091,7 @@
     if (!t) { return; }
     t.text = currentText();
     t.changed = Date.now();
+    blocks.className = t.text ? 'write__rich' : 'write__rich write__rich--empty';
     keepSoon();
     count();
     setState('');
@@ -1115,126 +1169,36 @@
     window.location.hash = '';
   });
 
-  previewToggle.addEventListener('click', function () {
-    if (mode === 'preview') { setMode('write'); return; }
-    setMode('preview');
-    showPreview();
-  });
   historyToggle.addEventListener('click', function () {
     if (mode === 'history' || mode === 'version') { setMode('write'); return; }
     pushNow(false);
     showHistory();
   });
 
-  blocks.addEventListener('input', function (event) {
-    if (!isText(event.target)) { return; }
-    growOne(event.target);
-    typed();
-    calm(true);
+  blocks.addEventListener('input', function () { typed(); calm(true); });
+
+  // Die Schreibmarke merken: ein Tipp auf "media" oder auf die Leiste nimmt sie dem Blatt weg.
+  document.addEventListener('selectionchange', function () {
+    var sel = window.getSelection();
+    if (!sel.rangeCount || !blocks.contains(sel.anchorNode)) { return; }
+    lastRange = sel.getRangeAt(0).cloneRange();
+    showFormat();
   });
-  // Die Schreibmarke merken, bevor ein Tipp auf "media" sie dem Feld wegnimmt.
-  blocks.addEventListener('focusout', function (event) {
-    if (isText(event.target)) { currentText(); lastCaret = event.target.start + event.target.selectionStart; }
-  });
-  document.addEventListener('mousemove', function () { calm(false); });
-  document.addEventListener('touchstart', function () { calm(false); }, { passive: true });
 
-  // ---------- Tasten ----------
-
-  // Ersetzt ein Stueck im Feld so, wie es Tippen taete: dann nimmt "rueckgaengig" (cmd/ctrl + z)
-  // es wieder zurueck. Wo der Browser das nicht kann, wird der Text direkt gesetzt.
-  function put(field, start, end, text) {
-    var done = false;
-    if (start === end && !text) { return; }
-    field.focus();
-    field.setSelectionRange(start, end);
-    try { done = document.execCommand(text ? 'insertText' : 'delete', false, text); } catch (e) { /* dann direkt */ }
-    if (!done) {
-      field.setRangeText(text, start, end, 'end');
-      growOne(field);
-      typed();
-    }
-  }
-
-  function stars(text, at, step) {
-    var n = 0;
-    while (text.charAt(step < 0 ? at - 1 - n : at + n) === '*') { n++; }
-    return n;
-  }
-
-  // Fett (**) oder kursiv (*) um die Auswahl setzen, oder wieder wegnehmen, wenn es schon da ist.
-  function toggleMark(field, mark) {
-    var value = field.value;
-    var start = field.selectionStart, end = field.selectionEnd;
-    var around = Math.min(stars(value, start, -1), stars(value, end, 1));
-    var on = mark === '**' ? around >= 2 : around % 2 === 1;
-    var chosen = value.slice(start, end);
-    if (on) {
-      put(field, start - mark.length, end + mark.length, chosen);
-      if (!chosen) { field.setSelectionRange(start - mark.length, start - mark.length); return; }
-      field.setSelectionRange(start - mark.length, end - mark.length);
-    } else {
-      put(field, start, end, mark + chosen + mark);
-      field.setSelectionRange(start + mark.length, end + mark.length);
-    }
-  }
-
-  // Ein Link: [Auswahl](https://). Ist die Auswahl selbst eine Adresse, wird sie das Ziel.
-  function makeLink(field, url) {
-    var start = field.selectionStart, end = field.selectionEnd;
-    var chosen = field.value.slice(start, end);
-    if (!url && /^(https?:\/\/|mailto:)\S+$/.test(chosen)) {
-      put(field, start, end, '[](' + chosen + ')');
-      field.setSelectionRange(start + 1, start + 1);
-    } else if (url) {
-      put(field, start, end, '[' + chosen + '](' + url + ')');
-    } else {
-      put(field, start, end, '[' + chosen + '](https://)');
-      field.setSelectionRange(start + chosen.length + 3, start + chosen.length + 11);   // die Adresse ist markiert
-    }
-  }
-
-  // Eingabe in einer Liste oder einem Zitat: die naechste Zeile faengt gleich an.
-  // In einem leeren Punkt beendet die Eingabetaste die Liste.
-  function continueLine(field) {
-    var value = field.value;
-    var at = field.selectionStart;
-    var from = value.lastIndexOf('\n', at - 1) + 1;
-    var match = /^(- |> )(.*)$/.exec(value.slice(from, at));
-    if (!match || at !== field.selectionEnd) { return false; }
-    if (match[2]) { put(field, at, at, '\n' + match[1]); }
-    else { put(field, from, at, ''); }
-    return true;
-  }
-
-  // cmd/ctrl + b fett, + i kursiv, + k Link. Pfeil hoch am Anfang und Pfeil runter am Ende
-  // eines Stuecks gehen ins Nachbarstueck.
+  // cmd/ctrl + b und + i kann das Feld von selbst; + k macht einen Link.
   blocks.addEventListener('keydown', function (event) {
-    var field = event.target;
-    var command = (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey;
-    var start, end, other;
-    if (!isText(field) || event.isComposing) { return; }
-    start = field.selectionStart;
-    end = field.selectionEnd;
-    if ((event.key === 'ArrowUp' && start === 0 && end === 0) ||
-        (event.key === 'ArrowDown' && start === field.value.length && end === field.value.length)) {
-      other = field;
-      do { other = event.key === 'ArrowUp' ? other.previousElementSibling : other.nextElementSibling; } while (other && !isText(other));
-      if (!other) { return; }
+    if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key === 'k') {
       event.preventDefault();
-      other.focus();
-      other.selectionStart = other.selectionEnd = event.key === 'ArrowUp' ? other.value.length : 0;
-      return;
+      format('link');
     }
-    if (command && (event.key === 'b' || event.key === 'i')) {
-      event.preventDefault();
-      toggleMark(field, event.key === 'b' ? '**' : '*');
-    } else if (command && event.key === 'k') {
-      event.preventDefault();
-      makeLink(field, '');
-    } else if (event.key === 'Enter' && !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey) {
-      if (continueLine(field)) { event.preventDefault(); }
-    }
+  });
+
+  // Die Leiste (am Telefon): ein Tipp darf dem Blatt die Auswahl nicht nehmen.
+  formatBar.addEventListener('mousedown', function (event) { event.preventDefault(); });
+  formatBar.addEventListener('click', function (event) {
+    var button = event.target;
+    while (button && button !== formatBar && !button.getAttribute('data-format')) { button = button.parentNode; }
+    if (button && button !== formatBar) { format(button.getAttribute('data-format')); }
   });
 
   fileInput.addEventListener('change', function () {
@@ -1246,23 +1210,22 @@
     event.preventDefault();
     if (event.dataTransfer && event.dataTransfer.files.length) { addPictures(event.dataTransfer.files); }
   });
+  // Eingefuegt wird nur der reine Text: was er woanders an Form hatte, bleibt draussen.
+  // Eine Adresse auf markierten Worten macht daraus einen Link.
   blocks.addEventListener('paste', function (event) {
-    var files = event.clipboardData && event.clipboardData.files;
-    var field = event.target;
+    var data = event.clipboardData;
+    var sel = window.getSelection();
     var pasted;
-    if (files && files.length) { event.preventDefault(); addPictures(files); return; }
-    // Eine Adresse auf markierten Text einfuegen macht daraus einen Link.
-    pasted = event.clipboardData ? event.clipboardData.getData('text/plain').trim() : '';
-    if (isText(field) && field.selectionStart !== field.selectionEnd && /^https?:\/\/\S+$/.test(pasted) &&
-        !/^https?:\/\//.test(field.value.slice(field.selectionStart, field.selectionEnd))) {
-      event.preventDefault();
-      makeLink(field, pasted);
-    }
+    if (!data) { return; }
+    event.preventDefault();
+    if (data.files && data.files.length) { addPictures(data.files); return; }
+    pasted = data.getData('text/plain').replace(/\r/g, '');
+    if (!sel.isCollapsed && /^https?:\/\/[^\s)]+$/.test(pasted.trim())) { document.execCommand('createLink', false, pasted.trim()); return; }
+    document.execCommand('insertText', false, pasted);
   });
 
   statusLine.addEventListener('click', function () { say(''); });
   window.addEventListener('hashchange', route);
-  window.addEventListener('resize', function () { if (openId && mode === 'write') { grow(); } });
   window.addEventListener('online', function () { if (openId) { sync(openId); } });
 
   // Wird die Seite verlassen oder verdeckt, geht der Stand sofort hinaus;
@@ -1281,6 +1244,11 @@
   window.addEventListener('beforeunload', function (event) {
     if (uploads) { event.preventDefault(); event.returnValue = ''; }
   });
+
+  try {
+    document.execCommand('styleWithCSS', false, false);
+    document.execCommand('defaultParagraphSeparator', false, 'div');
+  } catch (e) { /* dann wie der Browser will */ }
 
   recallAll();
   token = recall(TOKEN_KEY);
