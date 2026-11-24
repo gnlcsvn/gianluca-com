@@ -20,7 +20,6 @@
         {
           "type": "video",
           "src": "media/20261122-170939-3.mp4",
-          "processing": true,
           "width": 576,
           "height": 1024,
           "poster": "media/20261122-170939-3-poster.jpg"
