@@ -18,7 +18,7 @@
   <link rel="icon" href="/favicon.png" sizes="64x64" type="image/png">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <!-- Die Nummer hinter v= ist dieselbe wie in post/version.txt (siehe post/index.html). -->
-  <link rel="stylesheet" href="../css/style.css?v=36">
+  <link rel="stylesheet" href="../css/style.css?v=37">
 </head>
 <body class="editor-page write-page">
 
@@ -30,6 +30,7 @@
       <span id="list-tools" hidden>
         <button class="editor__quiet" id="new" type="button">new</button>
         <button class="editor__quiet" id="forget" type="button">forget token</button>
+        <span class="write__version" id="version-list"></span>
       </span>
       <span id="text-tools" hidden>
         <label class="editor__quiet write__file"><span>media</span><input id="files" type="file" accept="image/*,video/*" multiple></label>
@@ -72,9 +73,9 @@
   </main>
 
   <!-- Unten am Rand, leise: links der Stand, rechts die Zahl der Woerter -->
-  <footer class="write__foot" id="foot" hidden><span id="state" role="status" aria-live="polite"></span><span id="count"></span></footer>
+  <footer class="write__foot" id="foot" hidden><span id="state" role="status" aria-live="polite"></span><span id="count"></span><span class="write__version" id="version"></span></footer>
   <p class="editor__status" id="status" role="status" aria-live="polite"></p>
 
-  <script src="../js/write.js?v=36"></script>
+  <script src="../js/write.js?v=37"></script>
 </body>
 </html>

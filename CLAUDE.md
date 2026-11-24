@@ -66,7 +66,7 @@ A quiet text editor for the owner at `write/` (`write/index.html` + `js/write.js
 - **Views:** the list of texts (`#` nothing), a text (`#<id>`), and in place of the sheet: history (every saved version, a tap shows what it changed, "restore this version") and the diff. Both compare the stored text, so they show the marks.
 - **Media:** file picker ("media"), drag and drop, paste; put below the line the cursor is in, with a blank line above and below. Pictures are shrunk to 2000 px and saved as JPEG like in the feed editor; videos go up unchanged, up to 50 MB (no compression workflow in that repository). Files are named `<id>/<YYYYMMDD-HHMMSS>.<ext>`. Files of a private repository cannot be loaded by address: the editor fetches them through the API and shows them as blob addresses, pictures by themselves, videos on a tap. Removing media from the text leaves the file in the repository, so older versions stay whole.
 - **Cropping:** every picture has "edit" beside "remove" (not videos, GIF, SVG). It opens a frame over the picture, dragged at its corners or moved as a whole (`showCrop`, pointer events). "save" writes the cut-out as a new JPEG under a new name and swaps the reference in the text; the original stays in the repository.
-- **Version:** the editor shares `post/version.txt` and the `?v=` number with the feed editor; raise it for changes to `js/write.js` too (also in `write/index.html`).
+- **Version:** the editor shares `post/version.txt` and the `?v=` number with the feed editor; raise it for changes to `js/write.js` too (also in `write/index.html`). The editor shows the number it runs ("v37") in the list's header and at the bottom right of a text, so a stale cache is visible.
 
 ## Code Conventions
 

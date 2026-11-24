@@ -1452,6 +1452,7 @@
     } else if (openId) {
       sync(openId);
     } else {
+      checkVersion();                 // in der Liste, nichts offen: eine neuere Fassung gleich holen
       refreshList().catch(function () { /* ohne Netz: die Liste bleibt, wie sie ist */ });
     }
   });
@@ -1464,6 +1465,10 @@
     document.execCommand('styleWithCSS', false, false);
     document.execCommand('defaultParagraphSeparator', false, 'div');
   } catch (e) { /* dann wie der Browser will */ }
+
+  // Die Fassung steht leise im Editor: daran ist zu sehen, ob die neueste geladen ist.
+  byId('version').textContent = VERSION ? 'v' + VERSION : '';
+  byId('version-list').textContent = VERSION ? 'v' + VERSION : '';
 
   recallAll();
   token = recall(TOKEN_KEY);

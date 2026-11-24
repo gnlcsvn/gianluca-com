@@ -224,6 +224,9 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .write__media img, .write__media video { display: block; max-width: 100%; max-height: 80vh; height: auto; }
 .write__mediacaption { display: flex; justify-content: space-between; gap: 1.3rem; margin-top: 0.4rem; color: var(--leise); overflow-wrap: anywhere; }
 .write__medianote { margin: 0; color: var(--leise); }
+.write__version { color: #cfcdc6; }
+.write__foot .write__version { margin-left: 1.3rem; }
+.write__foot #count { margin-left: auto; }
 .write__mediatools { flex: none; display: flex; gap: 0 1.3rem; }
 /* Bild zuschneiden: der Rahmen laesst den Ausschnitt hell, der Rest wird abgedunkelt */
 .write__crop { position: relative; display: inline-block; max-width: 100%; margin: 8px 0; line-height: 0; touch-action: none; -webkit-user-select: none; user-select: none; }
