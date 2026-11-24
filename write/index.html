@@ -18,7 +18,7 @@
   <link rel="icon" href="/favicon.png" sizes="64x64" type="image/png">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <!-- Die Nummer hinter v= ist dieselbe wie in post/version.txt (siehe post/index.html). -->
-  <link rel="stylesheet" href="../css/style.css?v=31">
+  <link rel="stylesheet" href="../css/style.css?v=32">
 </head>
 <body class="editor-page write-page">
 
@@ -32,6 +32,8 @@
         <button class="editor__quiet" id="forget" type="button">forget token</button>
       </span>
       <span id="text-tools" hidden>
+        <button class="editor__quiet write__desk" type="button" data-step="undo" disabled>undo</button>
+        <button class="editor__quiet write__desk" type="button" data-step="redo" disabled>redo</button>
         <label class="editor__quiet write__file"><span>media</span><input id="files" type="file" accept="image/*,video/*" multiple></label>
         <button class="editor__quiet" id="history-toggle" type="button" aria-pressed="false">history</button>
         <button class="editor__quiet" id="delete" type="button">delete</button>
@@ -70,6 +72,10 @@
       <button type="button" data-format="italic" aria-pressed="false">italic</button>
       <button type="button" data-format="link" aria-pressed="false">link</button>
     </div>
+    <div class="tools__group" role="group" aria-label="steps">
+      <button type="button" data-step="undo" disabled>undo</button>
+      <button type="button" data-step="redo" disabled>redo</button>
+    </div>
     <label class="button" for="files">media</label>
   </div>
 
@@ -77,6 +83,6 @@
   <footer class="write__foot" id="foot" hidden><span id="state" role="status" aria-live="polite"></span><span id="count"></span></footer>
   <p class="editor__status" id="status" role="status" aria-live="polite"></p>
 
-  <script src="../js/write.js?v=31"></script>
+  <script src="../js/write.js?v=32"></script>
 </body>
 </html>

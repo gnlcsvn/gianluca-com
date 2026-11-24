@@ -58,6 +58,10 @@
   var uploads = 0;                    // Bilder, die gerade hochgehen
   var pictures = {};                  // '<id>/<name>' -> lokale Adresse des Bildes oder Videos
   var lastRange = null;               // wo die Schreibmarke zuletzt im Blatt stand
+  var steps = [];                     // Staende des offenen Textes, zum Zuruecknehmen: {text, place}
+  var undone = [];                    // zurueckgenommene Staende, zum Wiederholen
+  var recordTimer = null;
+  var lastRecord = 0;
   var line = Promise.resolve();       // alles, was zu GitHub schreibt, geht der Reihe nach
 
   // ---------- kleine Helfer ----------
@@ -790,6 +794,58 @@
     countLine.textContent = words ? words + (words === 1 ? ' word' : ' words') : '';
   }
 
+  // ---------- Zuruecknehmen und wiederholen ----------
+  // Der Editor fuehrt die Staende selbst. Das eigene "rueckgaengig" des Browsers kommt
+  // durcheinander, sobald ein Bild eingesetzt wird oder eine Aenderung von aussen ankommt.
+
+  function record() {
+    var t = texts[openId];
+    var last = steps[steps.length - 1];
+    window.clearTimeout(recordTimer);
+    if (!t || (last && last.text === t.text)) { return; }
+    steps.push({ text: t.text, place: caretPlace() });
+    if (steps.length > 300) { steps.shift(); }
+    undone = [];
+    lastRecord = Date.now();
+    showFormat();
+  }
+
+  // Ein Stand je Schreibpause, bei langem Schreiben am Stueck alle paar Sekunden einer.
+  function recordSoon() {
+    window.clearTimeout(recordTimer);
+    if (Date.now() - lastRecord > 2500) { record(); return; }
+    recordTimer = window.setTimeout(record, 500);
+  }
+
+  function applyStep(step) {
+    var t = texts[openId];
+    t.text = step.text;
+    t.changed = Date.now();
+    render(step.text);
+    if (step.place) { blocks.focus(); placeCaret(step.place.line, step.place.at); }
+    keepSoon();
+    count();
+    setState('');
+    pushSoon();
+    showFormat();
+  }
+
+  function undo() {
+    if (mode !== 'write' || !texts[openId]) { return; }
+    record();
+    if (steps.length < 2) { return; }
+    undone.push(steps.pop());
+    applyStep(steps[steps.length - 1]);
+  }
+
+  function redo() {
+    var step;
+    if (mode !== 'write' || !texts[openId] || !undone.length) { return; }
+    step = undone.pop();
+    steps.push(step);
+    applyStep(step);
+  }
+
   // Fett, kursiv, Link: der Browser setzt es an der Auswahl um, und "rueckgaengig" nimmt es zurueck.
   function format(kind) {
     var sel = window.getSelection();
@@ -834,7 +890,14 @@
   // Die Knoepfe der Leiste zeigen, was an der Schreibmarke gilt.
   function showFormat() {
     var buttons = formatBar.querySelectorAll('button[data-format]');
+    var stepButtons = document.querySelectorAll('button[data-step]');
+    var t = texts[openId];
     var i, on;
+    for (i = 0; i < stepButtons.length; i++) {
+      stepButtons[i].disabled = stepButtons[i].getAttribute('data-step') === 'undo'
+        ? !(t && steps.length && (steps.length > 1 || steps[0].text !== t.text))
+        : !undone.length;
+    }
     for (i = 0; i < buttons.length; i++) {
       on = false;
       try { on = buttons[i].getAttribute('data-format') !== 'link' && document.queryCommandState(buttons[i].getAttribute('data-format')); } catch (e) { /* dann eben aus */ }
@@ -869,6 +932,8 @@
       placeCaret(line, place.at);
     }
     count();
+    if (!steps.length || steps[steps.length - 1].text !== value) { steps.push({ text: value, place: caretPlace() }); undone = []; }
+    showFormat();
   }
 
   // Der offene Text hat sich von aussen geaendert (anderes Geraet oder ein Agent).
@@ -876,7 +941,7 @@
     var t = texts[id];
     if (id !== openId || !t) { return; }
     replaceText(t.text);
-    if (first) { setState('saved'); return; }
+    if (first) { steps = [{ text: t.text, place: null }]; undone = []; setState('saved'); return; }   // der erste Stand ist der geladene Text, nicht das leere Blatt
     api('GET', '/commits?path=' + id + '/' + FILE + '&sha=' + BRANCH + '&per_page=1').then(function (list) {
       var message = list[0] ? list[0].commit.message.split('\n')[0] : '';
       var label = /^write: /.test(message) || !message ? 'changed on another device' : message;
@@ -1074,6 +1139,10 @@
     show('text');
     setMode('write');
     render(texts[id].text);
+    steps = [{ text: texts[id].text, place: null }];
+    undone = [];
+    lastRecord = 0;
+    showFormat();
     count();
     setState(unsaved(texts[id]) ? '' : (texts[id].sha ? 'saved' : ''));
     if (!texts[id].text) { blocks.focus(); placeCaret(0, 0); }
@@ -1104,6 +1173,7 @@
     var t = texts[openId];
     if (!t) { return; }
     t.text = currentText();
+    recordSoon();
     t.changed = Date.now();
     blocks.className = t.text ? 'write__rich' : 'write__rich write__rich--empty';
     keepSoon();
@@ -1200,8 +1270,15 @@
   // cmd/ctrl + b fett, + i kursiv, + k Link. Die Tasten werden hier selbst behandelt:
   // sonst macht mancher Browser damit etwas Eigenes auf (Firefox: Lesezeichen, Seiteninfo).
   blocks.addEventListener('keydown', function (event) {
-    var kind = (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey
-      ? { b: 'bold', i: 'italic', k: 'link' }[String(event.key).toLowerCase()] : '';
+    var command = (event.metaKey || event.ctrlKey) && !event.altKey;
+    var key = String(event.key).toLowerCase();
+    var kind = command && !event.shiftKey ? { b: 'bold', i: 'italic', k: 'link' }[key] : '';
+    // cmd/ctrl + z nimmt zurueck; mit Umschalttaste (oder ctrl + y) wird wiederholt
+    if (command && (key === 'z' || (key === 'y' && !event.shiftKey))) {
+      event.preventDefault();
+      if (key === 'y' || event.shiftKey) { redo(); } else { undo(); }
+      return;
+    }
     if (!kind) { return; }
     event.preventDefault();
     format(kind);
@@ -1215,6 +1292,20 @@
     window.visualViewport.addEventListener('resize', placeFormat);
     window.visualViewport.addEventListener('scroll', placeFormat);
   }
+
+  // Zuruecknehmen ueber das Menue des Browsers oder das Schuetteln am Telefon geht denselben Weg.
+  blocks.addEventListener('beforeinput', function (event) {
+    if (event.inputType !== 'historyUndo' && event.inputType !== 'historyRedo') { return; }
+    event.preventDefault();
+    if (event.inputType === 'historyUndo') { undo(); } else { redo(); }
+  });
+  document.addEventListener('click', function (event) {
+    var kind = event.target && event.target.getAttribute ? event.target.getAttribute('data-step') : '';
+    if (kind === 'undo') { undo(); } else if (kind === 'redo') { redo(); }
+  });
+  textTools.addEventListener('mousedown', function (event) {
+    if (event.target.getAttribute && event.target.getAttribute('data-step')) { event.preventDefault(); }
+  });
 
   // Ein Tipp auf die Leiste darf dem Blatt die Auswahl nicht nehmen.
   formatBar.addEventListener('mousedown', function (event) { event.preventDefault(); });
