@@ -990,14 +990,11 @@
     document.execCommand('createLink', false, url);
   }
 
-  // Die Kopfzeile steht fest am oberen Rand des Fensters (position: fixed); die Seite beginnt
-  // um ihre Hoehe tiefer. Am Telefon reicht "fest" allein nicht: ist die Tastatur offen,
-  // verschiebt der Browser den sichtbaren Ausschnitt innerhalb des Fensters, und dessen oberer
-  // Rand liegt dann ausserhalb des Bildes. Die Kopfzeile wird um genau dieses Stueck nachgeschoben.
+  // Die Kopfzeile steht fest am oberen Rand des Fensters (position: fixed, nur im Stylesheet);
+  // die Seite beginnt um ihre Hoehe tiefer. Mehr nicht: die Kopfzeile wird nie per Skript
+  // verschoben. Ein Nachschieben um visualViewport.offsetTop liess sie am Telefon wandern,
+  // weil der Browser sie dort schon selbst am sichtbaren Rand haelt.
   function pinHead() {
-    var view = window.visualViewport;
-    var shift = view ? Math.max(0, Math.round(view.offsetTop)) : 0;
-    head.style.transform = shift ? 'translateY(' + shift + 'px)' : '';
     page.style.paddingTop = head.offsetHeight + 'px';
   }
 
@@ -1399,12 +1396,7 @@
     format(kind);
   });
 
-  window.addEventListener('scroll', pinHead, { passive: true });
   window.addEventListener('resize', pinHead);
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', pinHead);
-    window.visualViewport.addEventListener('scroll', pinHead);
-  }
 
   // Zuruecknehmen ueber das Menue des Browsers oder das Schuetteln am Telefon geht denselben Weg.
   blocks.addEventListener('beforeinput', function (event) {
