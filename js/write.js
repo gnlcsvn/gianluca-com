@@ -33,13 +33,12 @@
   var forgetButton = byId('forget');
   var fileInput = byId('files');
   var formatTools = byId('format-tools');
-  var head = byId('head');
   var historyToggle = byId('history-toggle');
   var deleteButton = byId('delete');
   var listBox = byId('texts');
-  var sheet = byId('sheet');
+  var sheet = byId('sheet');             // alles zu einem Text: Hinweiszeile, Blatt, Verlauf
   var notice = byId('notice');
-  var blocks = byId('blocks');
+  var paper = byId('paper');             // das Blatt: das Feld, in dem geschrieben wird
   var pane = byId('pane');
   var foot = byId('foot');
   var stateLine = byId('state');
@@ -50,13 +49,14 @@
   var texts = {};                     // id -> {text, base, sha, changed, date}
                                       // text: was hier steht; base und sha: der letzte Stand von GitHub
   var openId = '';                    // der Text, der gerade offen ist
-  var mode = 'write';                 // write, history, version oder diff
+  var mode = 'write';                 // was an der Stelle des Blattes steht: write (das Blatt),
+                                      // history, version, diff oder crop
   var pushTimer = null;
   var keepTimer = null;
   var pollTimer = null;
   var firstUnsaved = 0;               // seit wann Ungespeichertes da ist
-  var uploads = 0;                    // Bilder, die gerade hochgehen
-  var pictures = {};                  // '<id>/<name>' -> lokale Adresse des Bildes oder Videos
+  var uploads = 0;                    // Dateien, die gerade hochgehen
+  var fileUrls = {};                  // '<id>/<name>' -> lokale Adresse des Bildes oder Videos
   var lastRange = null;               // wo die Schreibmarke zuletzt im Blatt stand
   var steps = [];                     // Staende des offenen Textes, zum Zuruecknehmen: {text, place}
   var undone = [];                    // zurueckgenommene Staende, zum Wiederholen
@@ -478,15 +478,15 @@
     function note(text) { box.insertBefore(el('p', 'write__medianote', text), box.firstChild); }
     function fetchIt() {
       return api('GET', path(id, src) + '?ref=' + BRANCH, null, 'blob').then(function (blob) {
-        pictures[key] = window.URL.createObjectURL(blob);
-        show(pictures[key]);
+        fileUrls[key] = window.URL.createObjectURL(blob);
+        show(fileUrls[key]);
       }, function () { note('(missing: ' + src + ')'); });
     }
 
     if (/^[a-z]+:|^\/|\.\./i.test(src)) {
       note('(only files of this text can be shown: ' + src + ')');
-    } else if (pictures[key]) {
-      show(pictures[key]);
+    } else if (fileUrls[key]) {
+      show(fileUrls[key]);
     } else if (video) {
       box.insertBefore(quiet('load video ' + src, function (event) {
         var button = event.currentTarget;
@@ -499,7 +499,6 @@
     }
     return box;
   }
-
 
   // Verkleinert ein Bild und macht ein JPEG daraus (das wirft auch die Kameradaten weg).
   // GIF und SVG bleiben, wie sie sind; was der Browser nicht oeffnen kann, auch.
@@ -549,17 +548,17 @@
   // mit einer Leerzeile davor und danach.
   function insertMedia(name) {
     var figure = mediaBlock({ alt: '', src: name, line: '![](' + name + ')' });
-    var block = lastRange && blocks.contains(lastRange.startContainer) ? topBlock(lastRange.startContainer) : null;
+    var block = lastRange && paper.contains(lastRange.startContainer) ? topBlock(lastRange.startContainer) : null;
     function blank(node) { return !!node && node.nodeName === 'DIV' && !node.textContent; }
-    if (!block) { block = blocks.lastChild; }
+    if (!block) { block = paper.lastChild; }
     if (block && !blank(block)) {
-      blocks.insertBefore(lineNode(''), block.nextSibling);
+      paper.insertBefore(lineNode(''), block.nextSibling);
       block = block.nextSibling;
     }
-    blocks.insertBefore(figure, block ? block.nextSibling : null);
-    if (!blank(figure.nextSibling)) { blocks.insertBefore(lineNode(''), figure.nextSibling); }
-    blocks.focus();
-    placeCaret(Array.prototype.indexOf.call(blocks.childNodes, figure.nextSibling), 0);
+    paper.insertBefore(figure, block ? block.nextSibling : null);
+    if (!blank(figure.nextSibling)) { paper.insertBefore(lineNode(''), figure.nextSibling); }
+    paper.focus();
+    placeCaret(Array.prototype.indexOf.call(paper.childNodes, figure.nextSibling), 0);
     typed();
   }
 
@@ -575,7 +574,7 @@
     });
   }
 
-  function addPictures(files) {
+  function addFiles(files) {
     var id = openId;
     var stamp = idNow(new Date());
     var chain = Promise.resolve();
@@ -583,13 +582,13 @@
     var i;
     if (!id || mode !== 'write') { return; }
     function one(file) {
-      if (!/^(image|video)\//.test(file.type)) { say('Only pictures and videos can be added to a text.'); return; }
+      if (!/^(image|video)\//.test(file.type)) { say('Only fileUrls and videos can be added to a text.'); return; }
       if (file.size > MAX_FILE) { say(file.name + ' is larger than 50 mb.', true); return; }
       count++;
       chain = chain.then(function () { return prepare(file); }).then((function (number) {
         return function (ready) {
           var name = stamp + (number > 1 ? '-' + number : '') + '.' + ready.ext;
-          pictures[id + '/' + name] = window.URL.createObjectURL(ready.blob);
+          fileUrls[id + '/' + name] = window.URL.createObjectURL(ready.blob);
           if (id === openId) { insertMedia(name); }
           return upload(id, name, ready.blob);
         };
@@ -611,7 +610,6 @@
     textTools.hidden = view !== 'text';
     formatTools.hidden = view !== 'text';
     calm(false);
-    pinHead();
   }
 
   // Beim Schreiben tritt die Kopfzeile zurueck; jede Bewegung holt sie wieder.
@@ -705,7 +703,7 @@
   function currentText() {
     var lines = [];
     var stray = null;
-    var kids = blocks.childNodes;
+    var kids = paper.childNodes;
     var i, child, inner, holder;
     function flush() { if (stray !== null) { lines.push(stray.replace(/\n$/, '')); stray = null; } }
     for (i = 0; i < kids.length; i++) {
@@ -728,7 +726,7 @@
   }
 
   function topBlock(node) {
-    while (node && node.parentNode !== blocks) { node = node.parentNode; }
+    while (node && node.parentNode !== paper) { node = node.parentNode; }
     return node;
   }
 
@@ -736,17 +734,17 @@
   function caretPlace() {
     var sel = window.getSelection();
     var block, range;
-    if (document.activeElement !== blocks || !sel.rangeCount || !blocks.contains(sel.anchorNode)) { return null; }
+    if (document.activeElement !== paper || !sel.rangeCount || !paper.contains(sel.anchorNode)) { return null; }
     block = topBlock(sel.anchorNode);
     if (!block) { return null; }
     range = document.createRange();
     range.selectNodeContents(block);
     range.setEnd(sel.anchorNode, sel.anchorOffset);
-    return { line: Array.prototype.indexOf.call(blocks.childNodes, block), at: range.toString().length };
+    return { line: Array.prototype.indexOf.call(paper.childNodes, block), at: range.toString().length };
   }
 
   function placeCaret(line, at) {
-    var block = blocks.childNodes[Math.max(0, Math.min(line, blocks.childNodes.length - 1))];
+    var block = paper.childNodes[Math.max(0, Math.min(line, paper.childNodes.length - 1))];
     var sel = window.getSelection();
     var range = document.createRange();
     var walker, node, last = null;
@@ -776,7 +774,7 @@
       tools.appendChild(quiet('edit', function () { showCrop(box, part); }));
     }
     tools.appendChild(quiet('remove', function () {
-      blocks.removeChild(box);
+      paper.removeChild(box);
       typed();
     }));
     caption.appendChild(tools);
@@ -784,123 +782,18 @@
     return box;
   }
 
-  // ---------- Bild zuschneiden ----------
-  // Ein Rahmen ueber dem Bild, an den Ecken zu ziehen und als Ganzes zu verschieben.
-  // Gespeichert wird der Ausschnitt als neue Datei; das Original bleibt fuer aeltere Fassungen liegen.
-  function showCrop(box, part) {
-    var id = openId;
-    var key = id + '/' + part.src;
-    var crop = { x: 0, y: 0, w: 1, h: 1 };       // Anteile des Bildes
-    var SMALLEST = 0.05;
-    var corners = ['nw', 'ne', 'sw', 'se'];
-    var drag = null;
-    var stage, clip, shade, img, frame, handle, i;
-
-    if (!pictures[key]) { say('The picture is still loading.'); return; }
-
-    function limit(value, low, high) { return Math.max(low, Math.min(high, value)); }
-    function place() {
-      var both = [frame, shade];
-      var k;
-      for (k = 0; k < both.length; k++) {
-        both[k].style.left = (crop.x * 100) + '%';
-        both[k].style.top = (crop.y * 100) + '%';
-        both[k].style.width = (crop.w * 100) + '%';
-        both[k].style.height = (crop.h * 100) + '%';
-      }
-    }
-    function move(event) {
-      var rect = stage.getBoundingClientRect();
-      var dx = (event.clientX - drag.x) / rect.width;
-      var dy = (event.clientY - drag.y) / rect.height;
-      var from = drag.from;
-      var right = from.x + from.w, bottom = from.y + from.h;
-      if (!drag.corner) {
-        crop.x = limit(from.x + dx, 0, 1 - from.w);
-        crop.y = limit(from.y + dy, 0, 1 - from.h);
-      } else {
-        if (drag.corner.charAt(1) === 'w') { crop.x = limit(from.x + dx, 0, right - SMALLEST); crop.w = right - crop.x; }
-        else { crop.w = limit(from.w + dx, SMALLEST, 1 - from.x); }
-        if (drag.corner.charAt(0) === 'n') { crop.y = limit(from.y + dy, 0, bottom - SMALLEST); crop.h = bottom - crop.y; }
-        else { crop.h = limit(from.h + dy, SMALLEST, 1 - from.y); }
-      }
-      place();
-    }
-    function drop() {
-      drag = null;
-      document.removeEventListener('pointermove', move);
-      document.removeEventListener('pointerup', drop);
-      document.removeEventListener('pointercancel', drop);
-    }
-    function save() {
-      var canvas = document.createElement('canvas');
-      if (crop.w > 0.995 && crop.h > 0.995) { setMode('write'); return; }   // nichts weggeschnitten
-      canvas.width = Math.max(1, Math.round(crop.w * img.naturalWidth));
-      canvas.height = Math.max(1, Math.round(crop.h * img.naturalHeight));
-      canvas.getContext('2d').drawImage(img, Math.round(crop.x * img.naturalWidth), Math.round(crop.y * img.naturalHeight),
-        canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(function (blob) {
-        var name = idNow(new Date()) + '.jpg';
-        var fresh;
-        if (!blob) { say('The picture cannot be cropped.', true); return; }
-        if (name === part.src) { name = name.replace('.jpg', '-2.jpg'); }
-        fresh = { alt: part.alt, src: name, line: '![' + part.alt + '](' + name + ')' };
-        pictures[id + '/' + name] = window.URL.createObjectURL(blob);
-        if (id !== openId) { return; }
-        setMode('write');
-        if (box.parentNode === blocks) { blocks.replaceChild(mediaBlock(fresh), box); }
-        else { render(texts[id].text.split(part.line).join(fresh.line)); }   // das Blatt wurde inzwischen neu gesetzt
-        typed();
-        upload(id, name, blob);
-      }, 'image/jpeg', 0.9);
-    }
-
-    setMode('crop');
-    stage = el('div', 'write__crop');
-    img = document.createElement('img');
-    img.alt = '';
-    img.draggable = false;
-    img.src = pictures[key];
-    frame = el('div', 'write__cropframe');
-    for (i = 0; i < corners.length; i++) {
-      handle = el('div', 'write__crophandle write__crophandle--' + corners[i]);
-      handle.setAttribute('data-corner', corners[i]);
-      frame.appendChild(handle);
-    }
-    // Das Abdunkeln ist auf das Bild beschnitten, der Rahmen mit seinen Griffen nicht:
-    // sonst waeren die Griffe am Bildrand nur halb zu sehen.
-    clip = el('div', 'write__cropclip');
-    shade = el('div', 'write__cropshade');
-    clip.appendChild(img);
-    clip.appendChild(shade);
-    stage.appendChild(clip);
-    stage.appendChild(frame);
-    stage.addEventListener('pointerdown', function (event) {
-      var corner = event.target.getAttribute('data-corner') || '';
-      if (!corner && event.target !== frame) { return; }
-      event.preventDefault();
-      drag = { x: event.clientX, y: event.clientY, corner: corner, from: { x: crop.x, y: crop.y, w: crop.w, h: crop.h } };
-      document.addEventListener('pointermove', move);
-      document.addEventListener('pointerup', drop);
-      document.addEventListener('pointercancel', drop);
-    });
-    pane.appendChild(paneHead('crop', [quiet('cancel', function () { setMode('write'); }), quiet('save', save)]));
-    pane.appendChild(stage);
-    place();
-  }
-
   function render(value) {
     var lines = value.split('\n');
     var i, match;
-    blocks.innerHTML = '';
+    paper.innerHTML = '';
     for (i = 0; i < lines.length; i++) {
       match = MEDIA_LINE.exec(lines[i]);
-      blocks.appendChild(match ? mediaBlock({ alt: match[1], src: match[2], line: lines[i] }) : lineNode(lines[i]));
+      paper.appendChild(match ? mediaBlock({ alt: match[1], src: match[2], line: lines[i] }) : lineNode(lines[i]));
     }
     // ueber dem ersten und unter dem letzten Bild muss sich schreiben lassen
-    if (blocks.firstChild.nodeName === 'FIGURE') { blocks.insertBefore(lineNode(''), blocks.firstChild); }
-    if (blocks.lastChild.nodeName === 'FIGURE') { blocks.appendChild(lineNode('')); }
-    blocks.className = value ? 'write__rich' : 'write__rich write__rich--empty';
+    if (paper.firstChild.nodeName === 'FIGURE') { paper.insertBefore(lineNode(''), paper.firstChild); }
+    if (paper.lastChild.nodeName === 'FIGURE') { paper.appendChild(lineNode('')); }
+    paper.className = value ? 'write__rich' : 'write__rich write__rich--empty';
     lastRange = null;
   }
 
@@ -908,6 +801,20 @@
     var plain = (texts[openId] ? texts[openId].text : '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\]\([^)\s]*\)/g, ' ').replace(/[*\[]/g, '');
     var words = (plain.match(/\S+/g) || []).length;
     countLine.textContent = words ? words + (words === 1 ? ' word' : ' words') : '';
+  }
+
+  // Nach jeder Aenderung am Blatt: den Text daraus lesen, hier behalten, spaeter speichern.
+  function typed() {
+    var t = texts[openId];
+    if (!t) { return; }
+    t.text = currentText();
+    recordSoon();
+    t.changed = Date.now();
+    paper.className = t.text ? 'write__rich' : 'write__rich write__rich--empty';
+    keepSoon();
+    count();
+    setState('');
+    pushSoon();
   }
 
   // ---------- Zuruecknehmen und wiederholen ----------
@@ -938,7 +845,7 @@
     t.text = step.text;
     t.changed = Date.now();
     render(step.text);
-    if (step.place) { blocks.focus(); placeCaret(step.place.line, step.place.at); }
+    if (step.place) { paper.focus(); placeCaret(step.place.line, step.place.at); }
     keepSoon();
     count();
     setState('');
@@ -962,16 +869,18 @@
     applyStep(step);
   }
 
-  // Fett, kursiv, Link: der Browser setzt es an der Auswahl um, und "rueckgaengig" nimmt es zurueck.
+  // ---------- Fett, kursiv, Link ----------
+
+  // Der Browser setzt es an der Auswahl um (execCommand).
   function format(kind) {
     var sel = window.getSelection();
     var range, url, node;
     if (mode !== 'write') { return; }
-    blocks.focus();
-    if ((!sel.rangeCount || !blocks.contains(sel.anchorNode)) && lastRange) { sel.removeAllRanges(); sel.addRange(lastRange); }
+    paper.focus();
+    if ((!sel.rangeCount || !paper.contains(sel.anchorNode)) && lastRange) { sel.removeAllRanges(); sel.addRange(lastRange); }
     if (kind !== 'link') { document.execCommand(kind, false, null); showFormat(); return; }
     node = sel.anchorNode;
-    while (node && node !== blocks && node.nodeName !== 'A') { node = node.parentNode; }
+    while (node && node !== paper && node.nodeName !== 'A') { node = node.parentNode; }
     if (node && node.nodeName === 'A') {            // steht schon in einem Link: der Link geht weg
       range = document.createRange();
       range.selectNodeContents(node);
@@ -984,21 +893,14 @@
     range = sel.getRangeAt(0).cloneRange();
     url = (window.prompt('link address', 'https://') || '').trim();
     if (!/^(https?:\/\/|mailto:)[^\s)]+$/.test(url) || url === 'https://') { return; }
-    blocks.focus();
+    paper.focus();
     sel.removeAllRanges();
     sel.addRange(range);
     document.execCommand('createLink', false, url);
   }
 
-  // Die Kopfzeile steht fest am oberen Rand des Fensters (position: fixed, nur im Stylesheet);
-  // die Seite beginnt um ihre Hoehe tiefer. Mehr nicht: die Kopfzeile wird nie per Skript
-  // verschoben. Ein Nachschieben um visualViewport.offsetTop liess sie am Telefon wandern,
-  // weil der Browser sie dort schon selbst am sichtbaren Rand haelt.
-  function pinHead() {
-    page.style.paddingTop = head.offsetHeight + 'px';
-  }
-
-  // Die Knoepfe der Leiste zeigen, was an der Schreibmarke gilt.
+  // Die Knoepfe in der Kopfzeile zeigen, was an der Schreibmarke gilt
+  // und ob es etwas zurueckzunehmen oder zu wiederholen gibt.
   function showFormat() {
     var buttons = formatTools.querySelectorAll('button[data-format]');
     var stepButtons = document.querySelectorAll('button[data-step]');
@@ -1016,11 +918,13 @@
     }
   }
 
+  // ---------- Blatt, Verlauf oder Zuschnitt ----------
+
+  // Was an der Stelle des Blattes steht: das Blatt selbst oder eine der anderen Ansichten.
   function setMode(next) {
     mode = next;
-    blocks.hidden = next !== 'write';
+    paper.hidden = next !== 'write';
     formatTools.hidden = next !== 'write';
-    pinHead();
     pane.hidden = next === 'write';
     historyToggle.setAttribute('aria-pressed', next === 'history' || next === 'version' ? 'true' : 'false');
     fileInput.disabled = next !== 'write';
@@ -1047,6 +951,8 @@
     if (!steps.length || steps[steps.length - 1].text !== value) { steps.push({ text: value, place: caretPlace() }); undone = []; }
     showFormat();
   }
+
+  // ---------- Aenderungen von aussen ----------
 
   // Der offene Text hat sich von aussen geaendert (anderes Geraet oder ein Agent).
   function arrived(id, before, first) {
@@ -1094,7 +1000,9 @@
     return head;
   }
 
-  // Verlauf: jede gespeicherte Fassung, neueste oben. Ein Tipp zeigt, was sie geaendert hat.
+  // ---------- Verlauf ----------
+
+  // Jede gespeicherte Fassung, neueste oben. Ein Tipp zeigt, was sie geaendert hat.
   function showHistory() {
     var id = openId;
     setMode('history');
@@ -1156,6 +1064,111 @@
       pane.innerHTML = '';
       pane.appendChild(paneHead(explain(error), [quiet('back', showHistory)]));
     });
+  }
+
+  // ---------- Bild zuschneiden ----------
+  // Ein Rahmen ueber dem Bild, an den Ecken zu ziehen und als Ganzes zu verschieben.
+  // Gespeichert wird der Ausschnitt als neue Datei; das Original bleibt fuer aeltere Fassungen liegen.
+  function showCrop(box, part) {
+    var id = openId;
+    var key = id + '/' + part.src;
+    var crop = { x: 0, y: 0, w: 1, h: 1 };       // Anteile des Bildes
+    var SMALLEST = 0.05;
+    var corners = ['nw', 'ne', 'sw', 'se'];
+    var drag = null;
+    var stage, clip, shade, img, frame, handle, i;
+
+    if (!fileUrls[key]) { say('The picture is still loading.'); return; }
+
+    function limit(value, low, high) { return Math.max(low, Math.min(high, value)); }
+    function place() {
+      var both = [frame, shade];
+      var k;
+      for (k = 0; k < both.length; k++) {
+        both[k].style.left = (crop.x * 100) + '%';
+        both[k].style.top = (crop.y * 100) + '%';
+        both[k].style.width = (crop.w * 100) + '%';
+        both[k].style.height = (crop.h * 100) + '%';
+      }
+    }
+    function move(event) {
+      var rect = stage.getBoundingClientRect();
+      var dx = (event.clientX - drag.x) / rect.width;
+      var dy = (event.clientY - drag.y) / rect.height;
+      var from = drag.from;
+      var right = from.x + from.w, bottom = from.y + from.h;
+      if (!drag.corner) {
+        crop.x = limit(from.x + dx, 0, 1 - from.w);
+        crop.y = limit(from.y + dy, 0, 1 - from.h);
+      } else {
+        if (drag.corner.charAt(1) === 'w') { crop.x = limit(from.x + dx, 0, right - SMALLEST); crop.w = right - crop.x; }
+        else { crop.w = limit(from.w + dx, SMALLEST, 1 - from.x); }
+        if (drag.corner.charAt(0) === 'n') { crop.y = limit(from.y + dy, 0, bottom - SMALLEST); crop.h = bottom - crop.y; }
+        else { crop.h = limit(from.h + dy, SMALLEST, 1 - from.y); }
+      }
+      place();
+    }
+    function drop() {
+      drag = null;
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', drop);
+      document.removeEventListener('pointercancel', drop);
+    }
+    function save() {
+      var canvas = document.createElement('canvas');
+      if (crop.w > 0.995 && crop.h > 0.995) { setMode('write'); return; }   // nichts weggeschnitten
+      canvas.width = Math.max(1, Math.round(crop.w * img.naturalWidth));
+      canvas.height = Math.max(1, Math.round(crop.h * img.naturalHeight));
+      canvas.getContext('2d').drawImage(img, Math.round(crop.x * img.naturalWidth), Math.round(crop.y * img.naturalHeight),
+        canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(function (blob) {
+        var name = idNow(new Date()) + '.jpg';
+        var fresh;
+        if (!blob) { say('The picture cannot be cropped.', true); return; }
+        if (name === part.src) { name = name.replace('.jpg', '-2.jpg'); }
+        fresh = { alt: part.alt, src: name, line: '![' + part.alt + '](' + name + ')' };
+        fileUrls[id + '/' + name] = window.URL.createObjectURL(blob);
+        if (id !== openId) { return; }
+        setMode('write');
+        if (box.parentNode === paper) { paper.replaceChild(mediaBlock(fresh), box); }
+        else { render(texts[id].text.split(part.line).join(fresh.line)); }   // das Blatt wurde inzwischen neu gesetzt
+        typed();
+        upload(id, name, blob);
+      }, 'image/jpeg', 0.9);
+    }
+
+    setMode('crop');
+    stage = el('div', 'write__crop');
+    img = document.createElement('img');
+    img.alt = '';
+    img.draggable = false;
+    img.src = fileUrls[key];
+    frame = el('div', 'write__cropframe');
+    for (i = 0; i < corners.length; i++) {
+      handle = el('div', 'write__crophandle write__crophandle--' + corners[i]);
+      handle.setAttribute('data-corner', corners[i]);
+      frame.appendChild(handle);
+    }
+    // Das Abdunkeln ist auf das Bild beschnitten, der Rahmen mit seinen Griffen nicht:
+    // sonst waeren die Griffe am Bildrand nur halb zu sehen.
+    clip = el('div', 'write__cropclip');
+    shade = el('div', 'write__cropshade');
+    clip.appendChild(img);
+    clip.appendChild(shade);
+    stage.appendChild(clip);
+    stage.appendChild(frame);
+    stage.addEventListener('pointerdown', function (event) {
+      var corner = event.target.getAttribute('data-corner') || '';
+      if (!corner && event.target !== frame) { return; }
+      event.preventDefault();
+      drag = { x: event.clientX, y: event.clientY, corner: corner, from: { x: crop.x, y: crop.y, w: crop.w, h: crop.h } };
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', drop);
+      document.addEventListener('pointercancel', drop);
+    });
+    pane.appendChild(paneHead('crop', [quiet('cancel', function () { setMode('write'); }), quiet('save', save)]));
+    pane.appendChild(stage);
+    place();
   }
 
   // ---------- Liste ----------
@@ -1257,7 +1270,7 @@
     showFormat();
     count();
     setState(unsaved(texts[id]) ? '' : (texts[id].sha ? 'saved' : ''));
-    if (!texts[id].text) { blocks.focus(); placeCaret(0, 0); }
+    if (!texts[id].text) { paper.focus(); placeCaret(0, 0); }
     sync(id);
     pollTimer = window.setInterval(function () {
       var t = texts[openId];
@@ -1279,19 +1292,6 @@
     show('list');
     showList();
     refreshList().catch(function (error) { say(explain(error), true); });
-  }
-
-  function typed() {
-    var t = texts[openId];
-    if (!t) { return; }
-    t.text = currentText();
-    recordSoon();
-    t.changed = Date.now();
-    blocks.className = t.text ? 'write__rich' : 'write__rich write__rich--empty';
-    keepSoon();
-    count();
-    setState('');
-    pushSoon();
   }
 
   // Der Editor prueft bei jedem Start, ob es eine neuere Fassung von sich gibt.
@@ -1371,17 +1371,17 @@
     showHistory();
   });
 
-  blocks.addEventListener('input', function () { typed(); calm(true); });
+  paper.addEventListener('input', function () { typed(); calm(true); });
 
-  // Die Schreibmarke merken: ein Tipp auf "media" oder auf die Leiste nimmt sie dem Blatt weg.
+  // Die Schreibmarke merken: ein Tipp auf "media" nimmt sie dem Blatt weg.
   document.addEventListener('selectionchange', function () {
     var sel = window.getSelection();
-    if (sel.rangeCount && blocks.contains(sel.anchorNode)) { lastRange = sel.getRangeAt(0).cloneRange(); showFormat(); }
+    if (sel.rangeCount && paper.contains(sel.anchorNode)) { lastRange = sel.getRangeAt(0).cloneRange(); showFormat(); }
   });
 
   // cmd/ctrl + b fett, + i kursiv, + k Link. Die Tasten werden hier selbst behandelt:
   // sonst macht mancher Browser damit etwas Eigenes auf (Firefox: Lesezeichen, Seiteninfo).
-  blocks.addEventListener('keydown', function (event) {
+  paper.addEventListener('keydown', function (event) {
     var command = (event.metaKey || event.ctrlKey) && !event.altKey;
     var key = String(event.key).toLowerCase();
     var kind = command && !event.shiftKey ? { b: 'bold', i: 'italic', k: 'link' }[key] : '';
@@ -1396,14 +1396,13 @@
     format(kind);
   });
 
-  window.addEventListener('resize', pinHead);
-
   // Zuruecknehmen ueber das Menue des Browsers oder das Schuetteln am Telefon geht denselben Weg.
-  blocks.addEventListener('beforeinput', function (event) {
+  paper.addEventListener('beforeinput', function (event) {
     if (event.inputType !== 'historyUndo' && event.inputType !== 'historyRedo') { return; }
     event.preventDefault();
     if (event.inputType === 'historyUndo') { undo(); } else { redo(); }
   });
+
   // Die Knoepfe in der Kopfzeile: fett, kursiv, Link, zurueck, vor.
   // Ein Tipp auf sie darf dem Blatt die Auswahl nicht nehmen.
   formatTools.addEventListener('mousedown', function (event) { event.preventDefault(); });
@@ -1417,23 +1416,23 @@
   });
 
   fileInput.addEventListener('change', function () {
-    addPictures(fileInput.files || []);
+    addFiles(fileInput.files || []);
     fileInput.value = '';
   });
   sheet.addEventListener('dragover', function (event) { event.preventDefault(); });
   sheet.addEventListener('drop', function (event) {
     event.preventDefault();
-    if (event.dataTransfer && event.dataTransfer.files.length) { addPictures(event.dataTransfer.files); }
+    if (event.dataTransfer && event.dataTransfer.files.length) { addFiles(event.dataTransfer.files); }
   });
   // Eingefuegt wird nur der reine Text: was er woanders an Form hatte, bleibt draussen.
   // Eine Adresse auf markierten Worten macht daraus einen Link.
-  blocks.addEventListener('paste', function (event) {
+  paper.addEventListener('paste', function (event) {
     var data = event.clipboardData;
     var sel = window.getSelection();
     var pasted;
     if (!data) { return; }
     event.preventDefault();
-    if (data.files && data.files.length) { addPictures(data.files); return; }
+    if (data.files && data.files.length) { addFiles(data.files); return; }
     pasted = data.getData('text/plain').replace(/\r/g, '');
     if (!sel.isCollapsed && /^https?:\/\/[^\s)]+$/.test(pasted.trim())) { document.execCommand('createLink', false, pasted.trim()); return; }
     document.execCommand('insertText', false, pasted);
@@ -1465,10 +1464,6 @@
     document.execCommand('styleWithCSS', false, false);
     document.execCommand('defaultParagraphSeparator', false, 'div');
   } catch (e) { /* dann wie der Browser will */ }
-
-  // Die Fassung steht leise im Editor: daran ist zu sehen, ob die neueste geladen ist.
-  byId('version').textContent = VERSION ? 'v' + VERSION : '';
-  byId('version-list').textContent = VERSION ? 'v' + VERSION : '';
 
   recallAll();
   token = recall(TOKEN_KEY);

@@ -185,54 +185,75 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 
 /* Schreib-Editor (/write/): ein Blatt, sonst nichts. Kopfzeile und Fusszeile sind leise. */
 .write { max-width: 46rem; margin: 0 auto; }
-/* Die Kopfzeile steht fest: deckender Grund, nur ihr Inhalt tritt beim Schreiben zurueck */
+
+/* Kopfzeile: links zurueck, dann die Werkzeuge fuer den Text, rechts Medien, Verlauf, Loeschen.
+   Sie steht fest am oberen Rand. Der Platz fuer die Statusleiste des Telefons gehoert zu ihr,
+   nicht zur Seite: sonst rollte der Text darueber sichtbar durch. */
+.editor-page.write-page { padding-top: 0; }
 .write__head {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 2; max-width: none;
+  position: sticky; top: 0; z-index: 2;
   flex-wrap: wrap; align-items: baseline; gap: 0 1.6rem;
-  padding-bottom: 1rem; padding-left: max(1.25rem, calc((100% - 46rem) / 2)); padding-right: max(1.25rem, calc((100% - 46rem) / 2));
+  padding-top: calc(1.4rem + env(safe-area-inset-top)); padding-bottom: 1rem;
   background: var(--papier);
 }
-.write__head .site-header__nav { order: 3; margin-left: auto; }
-.write__format { order: 2; display: flex; align-items: baseline; gap: 0 1.3rem; }
+@media (display-mode: standalone) { .write__head { padding-top: calc(3.15rem + env(safe-area-inset-top)); } }
+.write__head .site-header__nav { margin-left: auto; }
+.write__head .site-header__nav > span, .write__format { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 1.3rem; }
+.write__head .site-header__nav > span { justify-content: flex-end; }
+.write__head .editor__quiet[aria-pressed="true"] { color: var(--tinte); text-decoration: underline; }
+.write__back::before { content: "< "; }
+/* Zurueck und vor: zwei geschwungene Pfeile */
 .write__step { align-self: center; height: 17px; line-height: 0; }
 .write__step svg { display: block; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
-.write__step:hover { text-decoration: none; }
-/* Der Platz fuer die Statusleiste gehoert hier zur Kopfzeile: sonst rollt der Text darueber sichtbar durch */
-.editor-page.write-page { padding-top: 0; }
-.write__head { padding-top: calc(1.4rem + env(safe-area-inset-top)); }
-@media (display-mode: standalone) { .write__head { padding-top: calc(3.15rem + env(safe-area-inset-top)); } }
-.write__head .site-header__nav > span { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0 1.3rem; }
-.write__back::before { content: "< "; }
-.write__head .editor__quiet[aria-pressed="true"] { color: var(--tinte); text-decoration: underline; }
+/* "media" ist das Etikett eines unsichtbaren Dateifelds */
 .write__file { position: relative; }
 .write__file input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
 .write__file:focus-within { outline: 1px solid var(--blau); outline-offset: 3px; }
-/* Nur der Inhalt tritt zurueck: der Grund bleibt deckend, damit beim Rollen kein Text durchscheint */
+/* Beim Schreiben tritt der Inhalt von Kopf- und Fusszeile zurueck; ihr Grund bleibt deckend */
 .write__head > *, .write__foot > * { transition: opacity 0.4s; }
 .write-page--typing .write__head > *, .write-page--typing .write__foot > * { opacity: 0.25; }
-.write__sheet { padding: 1rem 0 45vh; }
-.write__rich, .write__diff { font-size: 17px; line-height: 1.65; }
-.write__rich {
-  position: relative; min-height: 50vh; outline: 0;
-  white-space: pre-wrap; overflow-wrap: anywhere;
+@media (prefers-reduced-motion: reduce) { .write__head > *, .write__foot > * { transition: none; } }
+/* Am Telefon wird nur geschrieben: kein fett, kursiv, Link, und die Kopfzeile rollt mit dem
+   Text weg. Eine feste Leiste laesst sich dort nicht halten, sobald die Tastatur offen ist. */
+@media (pointer: coarse) {
+  .write__head { position: static; }
+  .write__head .write__format { order: 0; flex: none; margin-top: 0; }
+  .write__format [data-format] { display: none; }
 }
+
+/* Das Blatt: ein Feld zum Schreiben. Darunter viel Luft, damit die letzte Zeile nicht am Rand klebt. */
+.write__sheet { padding: 1rem 0 45vh; }
+.write__rich, .write__diff { font-size: 17px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.write__rich { position: relative; min-height: 50vh; outline: 0; }
 .write__rich--empty::before { content: "write"; position: absolute; top: 0; left: 0; color: #cfcdc6; pointer-events: none; }
 .write__rich strong, .write__rich b { font-weight: 700; }
 .write__rich a { color: var(--blau); cursor: text; }
-/* Bilder und Videos stehen im Blatt an ihrer Stelle; darunter leise der Dateiname */
+/* Bilder und Videos stehen im Blatt an ihrer Stelle; darunter leise der Dateiname, "edit" und "remove" */
 .write__media { margin: 0.4rem 0; font-size: 1rem; line-height: 1.55; white-space: normal; -webkit-user-select: none; user-select: none; }
 .write__media img, .write__media video { display: block; max-width: 100%; max-height: 80vh; height: auto; }
 .write__mediacaption { display: flex; justify-content: space-between; gap: 1.3rem; margin-top: 0.4rem; color: var(--leise); overflow-wrap: anywhere; }
-.write__medianote { margin: 0; color: var(--leise); }
-.write__version { color: #cfcdc6; }
-.write__foot .write__version { margin-left: 1.3rem; }
-.write__foot #count { margin-left: auto; }
 .write__mediatools { flex: none; display: flex; gap: 0 1.3rem; }
-/* Bild zuschneiden: der Rahmen laesst den Ausschnitt hell, der Rest wird abgedunkelt */
+.write__medianote { margin: 0; color: var(--leise); }
+
+/* Ueber dem Blatt: die Zeile, wenn der Text woanders geaendert wurde */
+.write__notice, .write__panehead {
+  display: flex; flex-wrap: wrap; gap: 0 1.3rem; margin: 0 0 1.5rem; padding: 0 0 0.9rem;
+  border-bottom: 1px solid #e4e2dc;
+}
+.write__notice { color: var(--leise); }
+.write__notice span { flex: 1 1 14rem; color: var(--tinte); }
+.write__sheet--pane .write__notice { display: none; }
+/* An der Stelle des Blattes: Verlauf, Vergleich, Zuschnitt, je mit einer Zeile darueber */
+.write__panehead { justify-content: space-between; }
+.write__panetools { display: flex; flex-wrap: wrap; gap: 0 1.3rem; }
+.write__diff del { color: var(--rot); text-decoration: line-through; }
+.write__diff ins { background: #dfeedd; text-decoration: none; }
+/* Bild zuschneiden: der Rahmen laesst den Ausschnitt hell, der Rest wird abgedunkelt.
+   Das Abdunkeln ist auf das Bild beschnitten, der Rahmen mit seinen Griffen nicht. */
 .write__crop { position: relative; display: inline-block; max-width: 100%; margin: 8px 0; line-height: 0; touch-action: none; -webkit-user-select: none; user-select: none; }
+.write__crop img { display: block; max-width: 100%; max-height: 70vh; }
 .write__cropclip { position: relative; overflow: hidden; }
 .write__cropshade { position: absolute; box-shadow: 0 0 0 200vmax rgba(27, 27, 29, 0.6); }
-.write__crop img { display: block; max-width: 100%; max-height: 70vh; }
 .write__cropframe { position: absolute; border: 1px solid var(--papier); cursor: move; }
 .write__crophandle { position: absolute; width: 32px; height: 32px; margin: -16px; }
 .write__crophandle::after { content: ""; position: absolute; left: 10px; top: 10px; width: 12px; height: 12px; background: var(--papier); border: 1px solid var(--knopf); }
@@ -240,25 +261,14 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .write__crophandle--ne { left: 100%; top: 0; cursor: nesw-resize; }
 .write__crophandle--sw { left: 0; top: 100%; cursor: nesw-resize; }
 .write__crophandle--se { left: 100%; top: 100%; cursor: nwse-resize; }
-.write__notice {
-  display: flex; flex-wrap: wrap; gap: 0 1.3rem; margin: 0 0 1.5rem; padding: 0 0 0.9rem;
-  border-bottom: 1px solid #e4e2dc; color: var(--leise);
-}
-.write__notice span { flex: 1 1 14rem; color: var(--tinte); }
-.write__sheet--pane .write__notice { display: none; }
-.write__panehead {
-  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 1.3rem;
-  margin: 0 0 1.5rem; padding: 0 0 0.9rem; border-bottom: 1px solid #e4e2dc;
-}
-.write__panetools { display: flex; flex-wrap: wrap; gap: 0 1.3rem; }
-.write__diff { white-space: pre-wrap; overflow-wrap: anywhere; }
-.write__diff del { color: var(--rot); text-decoration: line-through; }
-.write__diff ins { background: #dfeedd; text-decoration: none; }
+
+/* Fusszeile: links der Stand ("saved"), rechts die Zahl der Woerter */
 .write__foot {
   position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 1rem;
   padding: 0.6rem 1.25rem calc(0.6rem + env(safe-area-inset-bottom));
   color: var(--leise); background: var(--papier);
 }
+
 /* Liste der Texte (und der Fassungen im Verlauf): links der Titel, rechts leise das Datum */
 .texts { padding: 1.5rem 0 6rem; }
 .write__pane .texts { padding: 0; }
@@ -270,7 +280,6 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .texts__item:hover .texts__title, .texts__item:focus-visible .texts__title { color: var(--blau); text-decoration: underline; }
 .texts__title { overflow-wrap: anywhere; }
 .texts__meta { flex: none; color: var(--leise); }
-@media (prefers-reduced-motion: reduce) { .write__head > *, .write__foot > * { transition: none; } }
 
 /* Werkzeuge fuer den Text: eine zusammenhaengende Leiste, wie der Umschalter bei z-fighting */
 .tools { margin-top: 0.7rem; }
@@ -329,7 +338,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 
 @media (max-width: 640px) {
   html { font-size: 13px; }
-  .write__format { order: 4; flex: 0 0 100%; margin-top: 0.8rem; }
+  .write__format { order: 1; flex: 0 0 100%; margin-top: 0.8rem; }   /* schmales Fenster: eine zweite Zeile */
   .write__notice span { flex-basis: 100%; }
   .work { margin-bottom: 4rem; }
 }
