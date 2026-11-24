@@ -6,6 +6,35 @@
   --knopf: #29292c;
   --blau: #2d3c96;
   --rot: #d7463c;
+  /* Abstufungen des Papiers: Felder, unterlegter Text, feine Linien, Ausgegrautes */
+  --feld: #fff;
+  --flaeche: #efede7;
+  --linie: #e4e2dc;
+  --matt: #cfcdc6;
+  --neu: #dfeedd;                       /* Eingefuegtes im Vergleich zweier Fassungen */
+  --hauch: rgba(41, 41, 44, 0.1);       /* Knopf unter dem Mauszeiger */
+  --papier-klar: rgba(251, 250, 247, 0);
+  color-scheme: light dark;             /* Rollbalken und Eingabefelder des Browsers gehen mit */
+}
+/* Dunkel, wenn das Geraet dunkel ist (prefers-color-scheme): dieselben zwei Farben, vertauscht.
+   Der Grund ist die Tinte der hellen Seite, die Schrift ein gebrochenes Papierweiss.
+   Wann umgeschaltet wird, entscheidet das Geraet; die Seite hat dafuer kein Skript. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --papier: #1b1b1d;
+    --tinte: #e8e6e0;
+    --leise: #8a8985;
+    --knopf: #d9d7d1;
+    --blau: #9aa7ee;
+    --rot: #e8675d;
+    --feld: #252528;
+    --flaeche: #2a2a2d;
+    --linie: #333336;
+    --matt: #4a4a4d;
+    --neu: #23382a;
+    --hauch: rgba(232, 230, 224, 0.1);
+    --papier-klar: rgba(27, 27, 29, 0);
+  }
 }
 * { box-sizing: border-box; }
 html { font-size: 14px; }
@@ -60,7 +89,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .button:disabled { color: var(--leise); border-color: var(--leise); cursor: default; }
 .button:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 @media (hover: hover) {
-  .button:not(:disabled):not([aria-expanded="true"]):not([aria-pressed="true"]):hover { background: rgba(41, 41, 44, 0.1); }
+  .button:not(:disabled):not([aria-expanded="true"]):not([aria-pressed="true"]):hover { background: var(--hauch); }
 }
 @media (pointer: coarse) { .button { height: 36px; padding: 0 0.9rem; } }
 
@@ -104,14 +133,14 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .post__text--clamped { position: relative; overflow: hidden; }
 .post__text--clamped::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3.1em;
-  background: linear-gradient(rgba(251, 250, 247, 0), var(--papier));
+  background: linear-gradient(var(--papier-klar), var(--papier));
 }
 .post__text blockquote { padding-left: 1rem; border-left: 1px solid var(--leise); color: var(--leise); }
 .post__text ul { padding: 0; list-style: none; }
 .post__text li { position: relative; padding-left: 1.3rem; }
 .post__text li::before { content: "-"; position: absolute; left: 0; color: var(--leise); }
 .post__text strong { font-weight: 700; }
-.post__text code { font: inherit; background: #efede7; padding: 0.05rem 0.3rem; }
+.post__text code { font: inherit; background: var(--flaeche); padding: 0.05rem 0.3rem; }
 
 .post__media { display: block; width: 100%; height: auto; margin: 0 0 0.6rem; }
 
@@ -131,7 +160,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
   font: inherit; line-height: 1; color: var(--tinte); background: none; border: 0;
   margin: 0; padding: 0.4rem 0.5rem; cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
-.carousel__step:disabled { color: #cfcdc6; cursor: default; }
+.carousel__step:disabled { color: var(--matt); cursor: default; }
 .carousel__step:focus-visible { outline: 1px solid var(--blau); }
 .carousel__count { min-width: 3.2rem; text-align: center; }
 
@@ -152,7 +181,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .editor__input {
   display: block; width: 100%; margin: 0 0 1rem; padding: 0.7rem 0.8rem;
   font: inherit; font-size: 16px; line-height: 1.5; color: var(--tinte);
-  background: #fff; border: 1px solid var(--leise); border-radius: 2px;
+  background: var(--feld); border: 1px solid var(--leise); border-radius: 2px;
   -webkit-appearance: none; appearance: none;
 }
 .editor__input:focus { outline: 0; border-color: var(--knopf); }
@@ -164,7 +193,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .editor__file--off { color: var(--leise); border-color: var(--leise); cursor: default; pointer-events: none; }
 .editor__quiet { font: inherit; color: var(--leise); background: none; border: 0; margin: 0; padding: 0; cursor: pointer; }
 .editor__quiet:hover { color: var(--blau); text-decoration: underline; }
-.editor__quiet:disabled { color: #cfcdc6; text-decoration: none; cursor: default; }
+.editor__quiet:disabled { color: var(--matt); text-decoration: none; cursor: default; }
 /* Was gerade passiert: unten am Fensterrand, damit es ueberall auf der Seite zu sehen ist */
 .editor__status {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 2; margin: 0;
@@ -173,7 +202,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 }
 .editor__status:empty { display: none; }
 .editor-page .editor { padding-bottom: 4rem; }
-.editor__live { margin: 1.5rem 0 0; padding-top: 1.2rem; border-top: 1px solid #e4e2dc; color: var(--leise); min-height: 1.55em; box-sizing: content-box; }
+.editor__live { margin: 1.5rem 0 0; padding-top: 1.2rem; border-top: 1px solid var(--linie); color: var(--leise); min-height: 1.55em; box-sizing: content-box; }
 .posts--editor { padding-top: 1.8rem; }
 /* Als App auf dem Homescreen: Platz fuer die Statusleiste und den unteren Rand */
 .editor-page { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
@@ -225,7 +254,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .write__sheet { padding: 1rem 0 45vh; }
 .write__rich, .write__diff { font-size: 17px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
 .write__rich { position: relative; min-height: 50vh; outline: 0; }
-.write__rich--empty::before { content: "write"; position: absolute; top: 0; left: 0; color: #cfcdc6; pointer-events: none; }
+.write__rich--empty::before { content: "write"; position: absolute; top: 0; left: 0; color: var(--matt); pointer-events: none; }
 .write__rich strong, .write__rich b { font-weight: 700; }
 .write__rich a { color: var(--blau); cursor: text; }
 /* Bilder und Videos stehen im Blatt an ihrer Stelle; darunter leise der Dateiname, "edit" und "remove" */
@@ -238,7 +267,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 /* Ueber dem Blatt: die Zeile, wenn der Text woanders geaendert wurde */
 .write__notice, .write__panehead {
   display: flex; flex-wrap: wrap; gap: 0 1.3rem; margin: 0 0 1.5rem; padding: 0 0 0.9rem;
-  border-bottom: 1px solid #e4e2dc;
+  border-bottom: 1px solid var(--linie);
 }
 .write__notice { color: var(--leise); }
 .write__notice span { flex: 1 1 14rem; color: var(--tinte); }
@@ -247,16 +276,17 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .write__panehead { justify-content: space-between; }
 .write__panetools { display: flex; flex-wrap: wrap; gap: 0 1.3rem; }
 .write__diff del { color: var(--rot); text-decoration: line-through; }
-.write__diff ins { background: #dfeedd; text-decoration: none; }
+.write__diff ins { background: var(--neu); text-decoration: none; }
 /* Bild zuschneiden: der Rahmen laesst den Ausschnitt hell, der Rest wird abgedunkelt.
-   Das Abdunkeln ist auf das Bild beschnitten, der Rahmen mit seinen Griffen nicht. */
+   Das Abdunkeln ist auf das Bild beschnitten, der Rahmen mit seinen Griffen nicht.
+   Rahmen und Griffe liegen auf dem Bild und sind deshalb in beiden Farbwelten gleich. */
 .write__crop { position: relative; display: inline-block; max-width: 100%; margin: 8px 0; line-height: 0; touch-action: none; -webkit-user-select: none; user-select: none; }
 .write__crop img { display: block; max-width: 100%; max-height: 70vh; }
 .write__cropclip { position: relative; overflow: hidden; }
 .write__cropshade { position: absolute; box-shadow: 0 0 0 200vmax rgba(27, 27, 29, 0.6); }
-.write__cropframe { position: absolute; border: 1px solid var(--papier); cursor: move; }
+.write__cropframe { position: absolute; border: 1px solid #fbfaf7; cursor: move; }
 .write__crophandle { position: absolute; width: 32px; height: 32px; margin: -16px; }
-.write__crophandle::after { content: ""; position: absolute; left: 10px; top: 10px; width: 12px; height: 12px; background: var(--papier); border: 1px solid var(--knopf); }
+.write__crophandle::after { content: ""; position: absolute; left: 10px; top: 10px; width: 12px; height: 12px; background: #fbfaf7; border: 1px solid #29292c; }
 .write__crophandle--nw { left: 0; top: 0; cursor: nwse-resize; }
 .write__crophandle--ne { left: 100%; top: 0; cursor: nesw-resize; }
 .write__crophandle--sw { left: 0; top: 100%; cursor: nesw-resize; }
@@ -292,7 +322,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 }
 .tools__group button[aria-expanded="true"] { background: var(--knopf); color: var(--papier); }
 .tools__group button:focus-visible { outline: 1px solid var(--blau); outline-offset: -3px; }
-@media (hover: hover) { .tools__group button:not([aria-expanded="true"]):hover { background: rgba(41, 41, 44, 0.1); } }
+@media (hover: hover) { .tools__group button:not([aria-expanded="true"]):hover { background: var(--hauch); } }
 @media (pointer: coarse) { .tools__group button { height: 34px; padding: 0 0.8rem; } }
 .tools__link { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.7rem; }
 .tools__link .editor__input { flex: 1 1 10rem; width: auto; margin: 0; padding: 0.35rem 0.6rem; }
@@ -302,13 +332,13 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .attachments__item { width: 6.5rem; }
 .attachments__item--dragging { position: relative; z-index: 2; opacity: 0.85; }
 .attachments__item--dragging .attachments__thumb { cursor: grabbing; box-shadow: 0 2px 10px rgba(27, 27, 29, 0.25); }
-.attachments__thumb { cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; display: block; width: 6.5rem; height: 6.5rem; object-fit: cover; background: #efede7; }
+.attachments__thumb { cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; display: block; width: 6.5rem; height: 6.5rem; object-fit: cover; background: var(--flaeche); }
 .attachments__thumb--name { display: flex; align-items: center; justify-content: center; color: var(--leise); }
 .attachments__bar { display: flex; justify-content: space-between; padding-top: 0.2rem; }
 .attachments__size { display: block; padding-top: 0.2rem; color: var(--leise); }
 
 /* Vorschau */
-.editor__preview { margin-top: 1.2rem; padding: 1.2rem 0 0; border-top: 1px solid #e4e2dc; }
+.editor__preview { margin-top: 1.2rem; padding: 1.2rem 0 0; border-top: 1px solid var(--linie); }
 .editor__preview .post { margin-bottom: 0; }
 
 /* Spiegelung: das Bild ist so zugeschnitten, dass die Spiegelachse (der Gehweg)

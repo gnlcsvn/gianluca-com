@@ -74,6 +74,7 @@ A quiet text editor for the owner at `write/` (`write/index.html` + `js/write.js
 - Style follows the z-fighting project (`pen plotting/zfighting_web/stil.css`): one typeface, two colors.
 - Typeface: `"Courier Prime", "Courier New", Courier, monospace`. No web fonts are loaded.
 - Palette as custom properties: `--papier` (#fbfaf7), `--tinte` (#1b1b1d), `--leise` (#8a8985), `--knopf` (#29292c, buttons), `--blau` (#2d3c96, links).
+- **Dark mode** follows the device (`@media (prefers-color-scheme: dark)` at the top of `css/style.css`, no script, no switch): the same custom properties with other values, the ground being the light page's ink (`--papier` #1b1b1d, `--tinte` #e8e6e0, `--knopf` #d9d7d1, `--blau` #9aa7ee). So `--papier` means "the ground" and `--tinte` "the writing", whatever their values. Never write a literal color into a rule: use the properties, including the shades `--feld` (input fields), `--flaeche` (code), `--linie` (fine rules), `--matt` (disabled, placeholder), `--neu`, `--hauch`. The only literals are the crop frame and its handles, which lie on a picture. Pictures are not changed. `post/` and `write/` carry a `theme-color` for each scheme.
 - Link labels are lowercase.
 - BEM-style CSS class naming (e.g., `card__links`).
 - JavaScript: ES5 (`var`, no arrow functions), one IIFE per file that checks for its DOM element first.
