@@ -18,11 +18,11 @@
   <link rel="icon" href="/favicon.png" sizes="64x64" type="image/png">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <!-- Die Nummer hinter v= ist dieselbe wie in post/version.txt (siehe post/index.html). -->
-  <link rel="stylesheet" href="../css/style.css?v=33">
+  <link rel="stylesheet" href="../css/style.css?v=34">
 </head>
 <body class="editor-page write-page">
 
-  <header class="site-header write__head">
+  <header class="site-header write__head" id="head">
     <!-- In der Liste steht links der Weg nach Hause, im Text der Weg zurueck zur Liste. -->
     <a href="../" class="site-header__home" id="home">Gian-Luca Savino</a>
     <button class="editor__quiet write__back" id="back" type="button" hidden>texts</button>
@@ -32,12 +32,18 @@
         <button class="editor__quiet" id="forget" type="button">forget token</button>
       </span>
       <span id="text-tools" hidden>
-        <button class="editor__quiet write__desk" type="button" data-step="undo" disabled>undo</button>
-        <button class="editor__quiet write__desk" type="button" data-step="redo" disabled>redo</button>
         <label class="editor__quiet write__file"><span>media</span><input id="files" type="file" accept="image/*,video/*" multiple></label>
         <button class="editor__quiet" id="history-toggle" type="button" aria-pressed="false">history</button>
         <button class="editor__quiet" id="delete" type="button">delete</button>
       </span>
+    </span>
+    <!-- Fuer den Text: fett, kursiv, Link, zurueck, vor. Auf schmalen Schirmen eine zweite Zeile. -->
+    <span class="write__format" id="format-tools" hidden>
+      <button class="editor__quiet" type="button" data-format="bold" aria-pressed="false">bold</button>
+      <button class="editor__quiet" type="button" data-format="italic" aria-pressed="false">italic</button>
+      <button class="editor__quiet" type="button" data-format="link" aria-pressed="false">link</button>
+      <button class="editor__quiet write__step" type="button" data-step="undo" aria-label="undo" title="undo" disabled><svg viewBox="0 0 16 17" width="16" height="17" aria-hidden="true"><path d="M3 7h7a4 4 0 0 1 0 8H7"/><path d="M6 4L3 7l3 3"/></svg></button>
+      <button class="editor__quiet write__step" type="button" data-step="redo" aria-label="redo" title="redo" disabled><svg viewBox="0 0 16 17" width="16" height="17" aria-hidden="true"><path d="M13 7H6a4 4 0 0 0 0 8h3"/><path d="M10 4l3 3-3 3"/></svg></button>
     </span>
   </header>
 
@@ -65,24 +71,10 @@
     </div>
   </main>
 
-  <!-- Am Telefon, solange geschrieben wird: eine Leiste direkt ueber der Tastatur -->
-  <div class="tools write__tools" id="format" hidden>
-    <div class="tools__group" role="group" aria-label="format">
-      <button type="button" data-format="bold" aria-pressed="false">bold</button>
-      <button type="button" data-format="italic" aria-pressed="false">italic</button>
-      <button type="button" data-format="link" aria-pressed="false">link</button>
-    </div>
-    <div class="tools__group" role="group" aria-label="steps">
-      <button type="button" data-step="undo" disabled>undo</button>
-      <button type="button" data-step="redo" disabled>redo</button>
-    </div>
-    <label class="button" for="files">media</label>
-  </div>
-
   <!-- Unten am Rand, leise: links der Stand, rechts die Zahl der Woerter -->
   <footer class="write__foot" id="foot" hidden><span id="state" role="status" aria-live="polite"></span><span id="count"></span></footer>
   <p class="editor__status" id="status" role="status" aria-live="polite"></p>
 
-  <script src="../js/write.js?v=33"></script>
+  <script src="../js/write.js?v=34"></script>
 </body>
 </html>

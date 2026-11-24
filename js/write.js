@@ -19,12 +19,6 @@
   var IDLE = 6000;                    // so lange nach dem letzten Tastendruck wird gespeichert
   var LONGEST = 45000;                // spaetestens aber nach dieser Zeit, auch mitten im Schreiben
   var POLL = 30000;                   // so oft wird nachgesehen, ob der Text woanders geaendert wurde
-  var COARSE = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);   // Finger statt Maus
-  // Neuere iPhones legen ueber die Tastatur eigene schwebende Knoepfe (Pfeile, Haken). Sie gehoeren
-  // nicht zur Tastatur und werden nicht mitgerechnet: die Leiste muss um ihre Hoehe darueber stehen.
-  // Erkannt wird das an einer Faehigkeit, die mit derselben Fassung von iOS kam.
-  var IOS = /iP(hone|ad|od)/.test(window.navigator.userAgent) || (/Macintosh/.test(window.navigator.userAgent) && window.navigator.maxTouchPoints > 1);
-  var LIFT = IOS && window.CSS && window.CSS.supports && window.CSS.supports('anchor-name', '--a') ? 46 : 0;
   var VERSION = ((document.currentScript && document.currentScript.src || '').match(/[?&]v=(\w+)/) || [])[1] || '';
 
   function byId(id) { return document.getElementById(id); }
@@ -38,7 +32,8 @@
   var newButton = byId('new');
   var forgetButton = byId('forget');
   var fileInput = byId('files');
-  var formatBar = byId('format');
+  var formatTools = byId('format-tools');
+  var head = byId('head');
   var historyToggle = byId('history-toggle');
   var deleteButton = byId('delete');
   var listBox = byId('texts');
@@ -568,6 +563,18 @@
     typed();
   }
 
+  function upload(id, name, blob) {
+    uploads++;
+    setState('uploading ...');
+    return queued(function () { return send(id, name, blob, 3); }).then(function () {
+      uploads--;
+      if (!uploads && id === openId && !unsaved(texts[id])) { setState('saved'); }
+    }, function (error) {
+      uploads--;
+      say(name + ' was not uploaded (' + explain(error) + '). Add it again.', true);
+    });
+  }
+
   function addPictures(files) {
     var id = openId;
     var stamp = idNow(new Date());
@@ -584,15 +591,7 @@
           var name = stamp + (number > 1 ? '-' + number : '') + '.' + ready.ext;
           pictures[id + '/' + name] = window.URL.createObjectURL(ready.blob);
           if (id === openId) { insertMedia(name); }
-          uploads++;
-          setState('uploading ...');
-          return queued(function () { return send(id, name, ready.blob, 3); }).then(function () {
-            uploads--;
-            if (!uploads && id === openId && !unsaved(texts[id])) { setState('saved'); }
-          }, function (error) {
-            uploads--;
-            say(name + ' was not uploaded (' + explain(error) + '). Add it again.', true);
-          });
+          return upload(id, name, ready.blob);
         };
       }(count)));
     }
@@ -610,6 +609,7 @@
     backButton.hidden = view !== 'text';
     listTools.hidden = view !== 'list';
     textTools.hidden = view !== 'text';
+    formatTools.hidden = view !== 'text';
     calm(false);
   }
 
@@ -769,13 +769,123 @@
     var caption = el('figcaption', 'write__mediacaption');
     box.line = part.line;
     box.contentEditable = 'false';
+    var tools = el('span', 'write__mediatools');
     caption.appendChild(el('span', '', part.src));
-    caption.appendChild(quiet('remove', function () {
+    if (!VIDEO.test(part.src) && !/\.(gif|svg)$/i.test(part.src)) {
+      tools.appendChild(quiet('edit', function () { showCrop(box, part); }));
+    }
+    tools.appendChild(quiet('remove', function () {
       blocks.removeChild(box);
       typed();
     }));
+    caption.appendChild(tools);
     box.appendChild(caption);
     return box;
+  }
+
+  // ---------- Bild zuschneiden ----------
+  // Ein Rahmen ueber dem Bild, an den Ecken zu ziehen und als Ganzes zu verschieben.
+  // Gespeichert wird der Ausschnitt als neue Datei; das Original bleibt fuer aeltere Fassungen liegen.
+  function showCrop(box, part) {
+    var id = openId;
+    var key = id + '/' + part.src;
+    var crop = { x: 0, y: 0, w: 1, h: 1 };       // Anteile des Bildes
+    var SMALLEST = 0.05;
+    var corners = ['nw', 'ne', 'sw', 'se'];
+    var drag = null;
+    var stage, clip, shade, img, frame, handle, i;
+
+    if (!pictures[key]) { say('The picture is still loading.'); return; }
+
+    function limit(value, low, high) { return Math.max(low, Math.min(high, value)); }
+    function place() {
+      var both = [frame, shade];
+      var k;
+      for (k = 0; k < both.length; k++) {
+        both[k].style.left = (crop.x * 100) + '%';
+        both[k].style.top = (crop.y * 100) + '%';
+        both[k].style.width = (crop.w * 100) + '%';
+        both[k].style.height = (crop.h * 100) + '%';
+      }
+    }
+    function move(event) {
+      var rect = stage.getBoundingClientRect();
+      var dx = (event.clientX - drag.x) / rect.width;
+      var dy = (event.clientY - drag.y) / rect.height;
+      var from = drag.from;
+      var right = from.x + from.w, bottom = from.y + from.h;
+      if (!drag.corner) {
+        crop.x = limit(from.x + dx, 0, 1 - from.w);
+        crop.y = limit(from.y + dy, 0, 1 - from.h);
+      } else {
+        if (drag.corner.charAt(1) === 'w') { crop.x = limit(from.x + dx, 0, right - SMALLEST); crop.w = right - crop.x; }
+        else { crop.w = limit(from.w + dx, SMALLEST, 1 - from.x); }
+        if (drag.corner.charAt(0) === 'n') { crop.y = limit(from.y + dy, 0, bottom - SMALLEST); crop.h = bottom - crop.y; }
+        else { crop.h = limit(from.h + dy, SMALLEST, 1 - from.y); }
+      }
+      place();
+    }
+    function drop() {
+      drag = null;
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', drop);
+      document.removeEventListener('pointercancel', drop);
+    }
+    function save() {
+      var canvas = document.createElement('canvas');
+      if (crop.w > 0.995 && crop.h > 0.995) { setMode('write'); return; }   // nichts weggeschnitten
+      canvas.width = Math.max(1, Math.round(crop.w * img.naturalWidth));
+      canvas.height = Math.max(1, Math.round(crop.h * img.naturalHeight));
+      canvas.getContext('2d').drawImage(img, Math.round(crop.x * img.naturalWidth), Math.round(crop.y * img.naturalHeight),
+        canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(function (blob) {
+        var name = idNow(new Date()) + '.jpg';
+        var fresh;
+        if (!blob) { say('The picture cannot be cropped.', true); return; }
+        if (name === part.src) { name = name.replace('.jpg', '-2.jpg'); }
+        fresh = { alt: part.alt, src: name, line: '![' + part.alt + '](' + name + ')' };
+        pictures[id + '/' + name] = window.URL.createObjectURL(blob);
+        if (id !== openId) { return; }
+        setMode('write');
+        if (box.parentNode === blocks) { blocks.replaceChild(mediaBlock(fresh), box); }
+        else { render(texts[id].text.split(part.line).join(fresh.line)); }   // das Blatt wurde inzwischen neu gesetzt
+        typed();
+        upload(id, name, blob);
+      }, 'image/jpeg', 0.9);
+    }
+
+    setMode('crop');
+    stage = el('div', 'write__crop');
+    img = document.createElement('img');
+    img.alt = '';
+    img.draggable = false;
+    img.src = pictures[key];
+    frame = el('div', 'write__cropframe');
+    for (i = 0; i < corners.length; i++) {
+      handle = el('div', 'write__crophandle write__crophandle--' + corners[i]);
+      handle.setAttribute('data-corner', corners[i]);
+      frame.appendChild(handle);
+    }
+    // Das Abdunkeln ist auf das Bild beschnitten, der Rahmen mit seinen Griffen nicht:
+    // sonst waeren die Griffe am Bildrand nur halb zu sehen.
+    clip = el('div', 'write__cropclip');
+    shade = el('div', 'write__cropshade');
+    clip.appendChild(img);
+    clip.appendChild(shade);
+    stage.appendChild(clip);
+    stage.appendChild(frame);
+    stage.addEventListener('pointerdown', function (event) {
+      var corner = event.target.getAttribute('data-corner') || '';
+      if (!corner && event.target !== frame) { return; }
+      event.preventDefault();
+      drag = { x: event.clientX, y: event.clientY, corner: corner, from: { x: crop.x, y: crop.y, w: crop.w, h: crop.h } };
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', drop);
+      document.addEventListener('pointercancel', drop);
+    });
+    pane.appendChild(paneHead('crop', [quiet('cancel', function () { setMode('write'); }), quiet('save', save)]));
+    pane.appendChild(stage);
+    place();
   }
 
   function render(value) {
@@ -879,24 +989,23 @@
     document.execCommand('createLink', false, url);
   }
 
-  // Die Leiste fuer fett, kursiv, Link und Medien gibt es nur am Telefon, und nur solange im
-  // Blatt geschrieben wird: dann sitzt sie direkt ueber der Tastatur. (Eine Leiste an der
-  // Auswahl kaeme den eigenen Menues von iOS und Firefox in die Quere.) Die Tastatur verkleinert
-  // nur den sichtbaren Ausschnitt, nicht die Seite: deshalb wird die Stelle ausgerechnet.
-  function placeFormat() {
+  // Die Kopfzeile steht fest am oberen Rand (position: sticky). Am Telefon reicht das nicht:
+  // ist die Tastatur offen, verschiebt iOS den sichtbaren Ausschnitt innerhalb der Seite, und
+  // der obere Rand der Seite liegt dann ausserhalb des Bildes. Die Kopfzeile wird deshalb um
+  // genau dieses Stueck nachgeschoben.
+  var headShift = 0;
+  function pinHead() {
     var view = window.visualViewport;
-    var on = COARSE && mode === 'write' && document.activeElement === blocks;
-    var bottom = view ? view.offsetTop + view.height : window.innerHeight;
-    var keyboard = !!view && view.height < window.innerHeight - 120;   // die Tastatur ist offen
-    formatBar.hidden = !on;
-    if (!on) { return; }
-    formatBar.style.top = Math.round(bottom - formatBar.offsetHeight - (keyboard ? LIFT : 0)) + 'px';
-    showFormat();
+    var top;
+    if (!view) { return; }
+    top = head.getBoundingClientRect().top - headShift;
+    headShift = Math.max(0, Math.round(view.offsetTop - top));
+    head.style.transform = headShift ? 'translateY(' + headShift + 'px)' : '';
   }
 
   // Die Knoepfe der Leiste zeigen, was an der Schreibmarke gilt.
   function showFormat() {
-    var buttons = formatBar.querySelectorAll('button[data-format]');
+    var buttons = formatTools.querySelectorAll('button[data-format]');
     var stepButtons = document.querySelectorAll('button[data-step]');
     var t = texts[openId];
     var i, on;
@@ -915,7 +1024,7 @@
   function setMode(next) {
     mode = next;
     blocks.hidden = next !== 'write';
-    if (next !== 'write') { formatBar.hidden = true; }
+    formatTools.hidden = next !== 'write';
     pane.hidden = next === 'write';
     historyToggle.setAttribute('aria-pressed', next === 'history' || next === 'version' ? 'true' : 'false');
     fileInput.disabled = next !== 'write';
@@ -1291,13 +1400,10 @@
     format(kind);
   });
 
-  // Die Leiste kommt mit der Tastatur und geht mit ihr; sie folgt dem sichtbaren Ausschnitt.
-  blocks.addEventListener('focus', placeFormat);
-  blocks.addEventListener('blur', function () { window.setTimeout(placeFormat, 250); });
-  window.addEventListener('scroll', placeFormat, { passive: true });
+  window.addEventListener('scroll', pinHead, { passive: true });
   if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', placeFormat);
-    window.visualViewport.addEventListener('scroll', placeFormat);
+    window.visualViewport.addEventListener('resize', pinHead);
+    window.visualViewport.addEventListener('scroll', pinHead);
   }
 
   // Zuruecknehmen ueber das Menue des Browsers oder das Schuetteln am Telefon geht denselben Weg.
@@ -1306,20 +1412,16 @@
     event.preventDefault();
     if (event.inputType === 'historyUndo') { undo(); } else { redo(); }
   });
-  document.addEventListener('click', function (event) {
-    var kind = event.target && event.target.getAttribute ? event.target.getAttribute('data-step') : '';
-    if (kind === 'undo') { undo(); } else if (kind === 'redo') { redo(); }
-  });
-  textTools.addEventListener('mousedown', function (event) {
-    if (event.target.getAttribute && event.target.getAttribute('data-step')) { event.preventDefault(); }
-  });
-
-  // Ein Tipp auf die Leiste darf dem Blatt die Auswahl nicht nehmen.
-  formatBar.addEventListener('mousedown', function (event) { event.preventDefault(); });
-  formatBar.addEventListener('click', function (event) {
+  // Die Knoepfe in der Kopfzeile: fett, kursiv, Link, zurueck, vor.
+  // Ein Tipp auf sie darf dem Blatt die Auswahl nicht nehmen.
+  formatTools.addEventListener('mousedown', function (event) { event.preventDefault(); });
+  formatTools.addEventListener('click', function (event) {
     var button = event.target;
-    while (button && button !== formatBar && !button.getAttribute('data-format')) { button = button.parentNode; }
-    if (button && button !== formatBar) { format(button.getAttribute('data-format')); }
+    while (button && button !== formatTools && button.nodeName !== 'BUTTON') { button = button.parentNode; }
+    if (!button || button === formatTools || button.disabled) { return; }
+    if (button.getAttribute('data-step') === 'undo') { undo(); }
+    else if (button.getAttribute('data-step') === 'redo') { redo(); }
+    else if (button.getAttribute('data-format')) { format(button.getAttribute('data-format')); }
   });
 
   fileInput.addEventListener('change', function () {
