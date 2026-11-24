@@ -202,6 +202,14 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
   -webkit-appearance: none; appearance: none;
 }
 .write__text::placeholder { color: #cfcdc6; }
+.write__text { min-height: 0; }
+.write__blocks > .write__text:last-child { min-height: 50vh; }
+/* Bilder und Videos stehen im Blatt an ihrer Stelle; darunter leise der Dateiname */
+.write__media { margin: 1rem 0; }
+.write__media img, .write__media video { display: block; max-width: 100%; max-height: 80vh; height: auto; }
+.write__mediacaption { display: flex; justify-content: space-between; gap: 1.3rem; margin-top: 0.4rem; color: var(--leise); overflow-wrap: anywhere; }
+.write__medianote { margin: 0; color: var(--leise); }
+.write__preview .write__media { margin: 0 0 0.8rem; }
 .write__notice {
   display: flex; flex-wrap: wrap; gap: 0 1.3rem; margin: 0 0 1.5rem; padding: 0 0 0.9rem;
   border-bottom: 1px solid #e4e2dc; color: var(--leise);
@@ -218,8 +226,6 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .write__preview h3 { font-weight: 400; text-decoration: underline; }
 .write__preview > :first-child { margin-top: 0; }
 .write__preview hr { margin: 2rem 0; border: 0; border-top: 1px solid var(--leise); }
-.write__picture { color: var(--leise); }
-.write__picture img { display: block; max-width: 100%; height: auto; }
 .write__diff { white-space: pre-wrap; overflow-wrap: anywhere; }
 .write__diff del { color: var(--rot); text-decoration: line-through; }
 .write__diff ins { background: #dfeedd; text-decoration: none; }

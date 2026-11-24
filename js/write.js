@@ -13,6 +13,9 @@
   var TOKEN_KEY = 'feed-token';       // dasselbe Token wie im Feed-Editor
   var STORE = 'write:';               // davor: je Text ein Eintrag im Speicher des Browsers
   var MAX_EDGE = 2000;                // Bilder werden auf diese Kantenlaenge verkleinert
+  var MAX_FILE = 50 * 1024 * 1024;    // groessere Videos lehnt der Editor ab
+  var MEDIA_LINE = /^!\[([^\]]*)\]\(([^)\s]+)\)\s*$/;   // ein Bild oder Video: allein auf seiner Zeile
+  var VIDEO = /\.(mp4|mov|m4v|webm)$/i;
   var IDLE = 6000;                    // so lange nach dem letzten Tastendruck wird gespeichert
   var LONGEST = 45000;                // spaetestens aber nach dieser Zeit, auch mitten im Schreiben
   var POLL = 30000;                   // so oft wird nachgesehen, ob der Text woanders geaendert wurde
@@ -35,7 +38,7 @@
   var listBox = byId('texts');
   var sheet = byId('sheet');
   var notice = byId('notice');
-  var textInput = byId('text');
+  var blocks = byId('blocks');
   var pane = byId('pane');
   var foot = byId('foot');
   var stateLine = byId('state');
@@ -52,7 +55,8 @@
   var pollTimer = null;
   var firstUnsaved = 0;               // seit wann Ungespeichertes da ist
   var uploads = 0;                    // Bilder, die gerade hochgehen
-  var pictures = {};                  // '<id>/<name>' -> lokale Adresse des Bildes
+  var pictures = {};                  // '<id>/<name>' -> lokale Adresse des Bildes oder Videos
+  var lastCaret = -1;                 // wo die Schreibmarke zuletzt stand, als Stelle im ganzen Text
   var line = Promise.resolve();       // alles, was zu GitHub schreibt, geht der Reihe nach
 
   // ---------- kleine Helfer ----------
@@ -451,25 +455,44 @@
 
   // ---------- Vorschau ----------
   // Dieselben Zeichen wie im Feed (**fett**, *kursiv*, `code`, Links, "> " Zitat, "- " Liste),
-  // dazu Ueberschriften (#, ##, ###), Bilder (![](datei.jpg)) und eine Linie (---).
+  // dazu Ueberschriften (#, ##, ###), Bilder und Videos (![](datei.jpg)) und eine Linie (---).
 
-  function picture(id, alt, src) {
-    var box = el('p', 'write__picture');
-    var img = document.createElement('img');
+  // Ein Bild oder Video als Kasten. Dateien eines privaten Repositorys lassen sich nicht
+  // per Adresse laden: sie kommen ueber die API und werden als lokale Adresse gezeigt.
+  // Bilder laden von selbst, Videos erst auf einen Tipp (sie koennen gross sein).
+  function mediaBox(id, alt, src) {
+    var box = el('figure', 'write__media');
     var key = id + '/' + src;
-    img.alt = alt;
-    function show(url) { img.src = url; box.appendChild(img); }
-    if (/^[a-z]+:|^\/|\.\./i.test(src)) {
-      box.appendChild(document.createTextNode('(only pictures of this text can be shown: ' + src + ')'));
-    } else if (pictures[key]) {
-      show(pictures[key]);
-    } else {
-      api('GET', path(id, src) + '?ref=' + BRANCH, null, 'blob').then(function (blob) {
+    var video = VIDEO.test(src);
+
+    function show(url) {
+      var node = document.createElement(video ? 'video' : 'img');
+      if (video) { node.controls = true; node.preload = 'metadata'; node.setAttribute('playsinline', ''); }
+      else { node.alt = alt; }
+      node.src = url;
+      box.insertBefore(node, box.firstChild);
+    }
+    function note(text) { box.insertBefore(el('p', 'write__medianote', text), box.firstChild); }
+    function fetchIt() {
+      return api('GET', path(id, src) + '?ref=' + BRANCH, null, 'blob').then(function (blob) {
         pictures[key] = window.URL.createObjectURL(blob);
         show(pictures[key]);
-      }).catch(function () {
-        box.appendChild(document.createTextNode('(missing picture: ' + src + ')'));
-      });
+      }, function () { note('(missing: ' + src + ')'); });
+    }
+
+    if (/^[a-z]+:|^\/|\.\./i.test(src)) {
+      note('(only files of this text can be shown: ' + src + ')');
+    } else if (pictures[key]) {
+      show(pictures[key]);
+    } else if (video) {
+      box.insertBefore(quiet('load video ' + src, function (event) {
+        var button = event.currentTarget;
+        button.disabled = true;
+        button.textContent = 'loading ...';
+        fetchIt().then(function () { box.removeChild(button); });
+      }), box.firstChild);
+    } else {
+      fetchIt();
     }
     return box;
   }
@@ -513,8 +536,8 @@
         box.appendChild(node);
         continue;
       }
-      match = /^!\[([^\]]*)\]\(([^)\s]+)\)\s*$/.exec(lineText);
-      if (match) { flush(); kind = ''; box.appendChild(picture(id, match[1], match[2])); continue; }
+      match = MEDIA_LINE.exec(lineText);
+      if (match) { flush(); kind = ''; box.appendChild(mediaBox(id, match[1], match[2])); continue; }
       if (/^-{3,}\s*$/.test(lineText)) { flush(); kind = ''; box.appendChild(document.createElement('hr')); continue; }
       next = lineText.indexOf('> ') === 0 ? 'quote' : (lineText.indexOf('- ') === 0 ? 'list' : 'text');
       if (next !== kind) { flush(); kind = next; }
@@ -531,6 +554,10 @@
   // GIF und SVG bleiben, wie sie sind; was der Browser nicht oeffnen kann, auch.
   function prepare(file) {
     var asIs = { blob: file, ext: (String(file.name).split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg' };
+    if (/^video\//.test(file.type)) {
+      if (!VIDEO.test('.' + asIs.ext)) { asIs.ext = 'mp4'; }
+      return Promise.resolve(asIs);
+    }
     if (/gif|svg/.test(file.type)) { return Promise.resolve(asIs); }
     return new Promise(function (resolve) {
       var url = window.URL.createObjectURL(file);
@@ -560,7 +587,7 @@
 
   function send(id, name, blob, tries) {
     return base64Of(blob).then(function (content) {
-      return api('PUT', path(id, name), { message: 'write: add picture to ' + titleOf(texts[id] ? texts[id].text : ''), content: content, branch: BRANCH });
+      return api('PUT', path(id, name), { message: 'write: add file to ' + titleOf(texts[id] ? texts[id].text : ''), content: content, branch: BRANCH });
     }).catch(function (error) {
       if (error.status === 409 && tries > 1) { return send(id, name, blob, tries - 1); }
       throw error;
@@ -569,14 +596,14 @@
 
   // Setzt ein Stueck Text an die Stelle der Schreibmarke, als eigenen Absatz.
   function insertBlock(block) {
-    var value = textInput.value;
-    var at = textInput.selectionStart;
-    var before = value.slice(0, at);
-    var after = value.slice(textInput.selectionEnd);
-    if (before && !/\n\n$/.test(before)) { before += /\n$/.test(before) ? '\n' : '\n\n'; }
-    if (!/^\n\n/.test(after)) { block += /^\n/.test(after) ? '\n' : '\n\n'; }
-    textInput.value = before + block + after;
-    textInput.selectionStart = textInput.selectionEnd = (before + block).length;
+    var value = currentText();
+    var at = caretOffset();
+    var before, after;
+    if (at < 0 || at > value.length) { at = value.length; }
+    before = value.slice(0, at).replace(/\s+$/, '');
+    after = value.slice(at).replace(/^\s+/, '');
+    render((before ? before + '\n\n' : '') + block + (after ? '\n\n' + after : ''));
+    setCaret((before ? before.length + 2 : 0) + block.length + 2, false);
     typed();
   }
 
@@ -588,7 +615,8 @@
     var i;
     if (!id || mode !== 'write') { return; }
     function one(file) {
-      if (!/^image\//.test(file.type)) { say('Only pictures can be added to a text.'); return; }
+      if (!/^(image|video)\//.test(file.type)) { say('Only pictures and videos can be added to a text.'); return; }
+      if (file.size > MAX_FILE) { say(file.name + ' is larger than 50 mb.', true); return; }
       count++;
       chain = chain.then(function () { return prepare(file); }).then((function (number) {
         return function (ready) {
@@ -596,13 +624,13 @@
           pictures[id + '/' + name] = window.URL.createObjectURL(ready.blob);
           if (id === openId) { insertBlock('![](' + name + ')'); }
           uploads++;
-          setState('uploading picture ...');
+          setState('uploading ...');
           return queued(function () { return send(id, name, ready.blob, 3); }).then(function () {
             uploads--;
             if (!uploads && id === openId && !unsaved(texts[id])) { setState('saved'); }
           }, function (error) {
             uploads--;
-            say('The picture ' + name + ' was not uploaded (' + explain(error) + '). Add it again.', true);
+            say(name + ' was not uploaded (' + explain(error) + '). Add it again.', true);
           });
         };
       }(count)));
@@ -627,21 +655,125 @@
   // Beim Schreiben tritt die Kopfzeile zurueck; jede Bewegung holt sie wieder.
   function calm(on) { document.body.className = 'editor-page write-page' + (on ? ' write-page--typing' : ''); }
 
-  function grow() {
+  // ---------- Das Blatt ----------
+  // Der Text ist eine einzige Datei. Auf dem Blatt steht er in Stuecken: Textfelder und,
+  // wo eine Zeile ein Bild oder Video nennt, das Bild oder Video selbst.
+
+  function parse(value) {
+    var out = [];
+    var lines = value.split('\n');
+    var at = 0, from = 0, i, match;
+    function text(to, beforeMedia) {
+      var raw = value.slice(from, Math.max(from, to));
+      if (out.length) { raw = raw.replace(/^\n+/, ''); }
+      if (beforeMedia) { raw = raw.replace(/\n+$/, ''); }
+      out.push({ kind: 'text', value: raw });
+    }
+    for (i = 0; i < lines.length; i++) {
+      match = MEDIA_LINE.exec(lines[i]);
+      if (match) {
+        text(at - 1, true);
+        out.push({ kind: 'media', alt: match[1], src: match[2], line: lines[i] });
+        from = at + lines[i].length + 1;
+      }
+      at += lines[i].length + 1;
+    }
+    text(value.length, false);
+    return out;
+  }
+
+  function isText(node) { return !!node && node.parentNode === blocks && node.tagName === 'TEXTAREA'; }
+
+  // Der Text, wie er auf dem Blatt steht. Merkt sich dabei, wo jedes Stueck im Text anfaengt.
+  function currentText() {
+    var out = '';
+    var nodes = blocks.children;
+    var i, piece;
+    for (i = 0; i < nodes.length; i++) {
+      piece = isText(nodes[i]) ? nodes[i].value : nodes[i].line;
+      nodes[i].start = out.length + (out && piece ? 2 : 0);
+      if (piece) { out += (out ? '\n\n' : '') + piece; }
+    }
+    return out;
+  }
+
+  function caretOffset() {
+    var node = document.activeElement;
+    if (!isText(node)) { return lastCaret; }
+    currentText();
+    return node.start + node.selectionStart;
+  }
+
+  // Setzt die Schreibmarke an eine Stelle des ganzen Textes. quiet: ohne dorthin zu rollen.
+  function setCaret(offset, quiet) {
+    var nodes = blocks.children;
+    var target = null, i;
+    currentText();
+    for (i = 0; i < nodes.length; i++) {
+      if (isText(nodes[i]) && (!target || nodes[i].start <= offset)) { target = nodes[i]; }
+    }
+    if (!target) { return; }
+    try { target.focus({ preventScroll: !!quiet }); } catch (e) { target.focus(); }
+    target.selectionStart = target.selectionEnd = Math.max(0, Math.min(target.value.length, offset - target.start));
+    lastCaret = offset;
+  }
+
+  function mediaBlock(part) {
+    var box = mediaBox(openId, part.alt, part.src);
+    var caption = el('figcaption', 'write__mediacaption');
+    box.line = part.line;
+    caption.appendChild(el('span', '', part.src));
+    caption.appendChild(quiet('remove', function () {
+      blocks.removeChild(box);
+      render(currentText());
+      typed();
+    }));
+    box.appendChild(caption);
+    return box;
+  }
+
+  function render(value) {
+    var parts = parse(value);
+    var i, node;
+    blocks.innerHTML = '';
+    for (i = 0; i < parts.length; i++) {
+      if (parts[i].kind === 'text') {
+        node = el('textarea', 'write__text');
+        node.rows = 1;
+        node.value = parts[i].value;
+        node.setAttribute('aria-label', 'text');
+        node.setAttribute('autocapitalize', 'sentences');
+      } else {
+        node = mediaBlock(parts[i]);
+      }
+      blocks.appendChild(node);
+    }
+    if (parts.length === 1) { blocks.firstChild.placeholder = 'write'; }
+    lastCaret = -1;
+    grow();
+  }
+
+  function growOne(node) {
     sheet.style.minHeight = sheet.offsetHeight + 'px';   // sonst springt die Seite, waehrend das Feld kurz klein ist
-    textInput.style.height = 'auto';
-    textInput.style.height = textInput.scrollHeight + 'px';
+    node.style.height = 'auto';
+    node.style.height = node.scrollHeight + 'px';
     sheet.style.minHeight = '';
   }
 
+  function grow() {
+    var nodes = blocks.children;
+    var i;
+    for (i = 0; i < nodes.length; i++) { if (isText(nodes[i])) { growOne(nodes[i]); } }
+  }
+
   function count() {
-    var words = (textInput.value.match(/\S+/g) || []).length;
+    var words = ((texts[openId] ? texts[openId].text : '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').match(/\S+/g) || []).length;
     countLine.textContent = words ? words + (words === 1 ? ' word' : ' words') : '';
   }
 
   function setMode(next) {
     mode = next;
-    textInput.hidden = next !== 'write';
+    blocks.hidden = next !== 'write';
     pane.hidden = next === 'write';
     previewToggle.setAttribute('aria-pressed', next === 'preview' ? 'true' : 'false');
     historyToggle.setAttribute('aria-pressed', next === 'history' || next === 'version' ? 'true' : 'false');
@@ -651,18 +783,18 @@
     window.scrollTo(0, 0);
   }
 
-  // Setzt einen neuen Text ins Feld und laesst die Schreibmarke moeglichst, wo sie war.
+  // Setzt einen neuen Text aufs Blatt und laesst die Schreibmarke moeglichst, wo sie war.
   function replaceText(value) {
-    var old = textInput.value;
-    var at = textInput.selectionStart;
+    var old = currentText();
+    var live = isText(document.activeElement);
+    var at = caretOffset();
     var front = 0, back = 0;
     while (front < old.length && front < value.length && old.charAt(front) === value.charAt(front)) { front++; }
     while (back < old.length - front && back < value.length - front &&
       old.charAt(old.length - 1 - back) === value.charAt(value.length - 1 - back)) { back++; }
-    textInput.value = value;
+    render(value);
     if (at > front) { at = at >= old.length - back ? at + value.length - old.length : front; }
-    if (document.activeElement === textInput) { textInput.selectionStart = textInput.selectionEnd = at; }
-    if (mode === 'write') { grow(); }
+    if (live) { setCaret(at, true); }
     count();
   }
 
@@ -874,11 +1006,10 @@
     openId = id;
     show('text');
     setMode('write');
-    textInput.value = texts[id].text;
-    grow();
+    render(texts[id].text);
     count();
     setState(unsaved(texts[id]) ? '' : (texts[id].sha ? 'saved' : ''));
-    if (!texts[id].text) { textInput.focus(); }
+    if (!texts[id].text) { blocks.firstChild.focus(); }
     sync(id);
     pollTimer = window.setInterval(function () {
       var t = texts[openId];
@@ -905,10 +1036,9 @@
   function typed() {
     var t = texts[openId];
     if (!t) { return; }
-    t.text = textInput.value;
+    t.text = currentText();
     t.changed = Date.now();
     keepSoon();
-    grow();
     count();
     setState('');
     pushSoon();
@@ -996,22 +1126,43 @@
     showHistory();
   });
 
-  textInput.addEventListener('input', function () { typed(); calm(true); });
+  blocks.addEventListener('input', function (event) {
+    if (!isText(event.target)) { return; }
+    growOne(event.target);
+    typed();
+    calm(true);
+  });
+  // Die Schreibmarke merken, bevor ein Tipp auf "media" sie dem Feld wegnimmt.
+  blocks.addEventListener('focusout', function (event) {
+    if (isText(event.target)) { currentText(); lastCaret = event.target.start + event.target.selectionStart; }
+  });
   document.addEventListener('mousemove', function () { calm(false); });
   document.addEventListener('touchstart', function () { calm(false); }, { passive: true });
 
   // cmd/ctrl + b und i setzen die Zeichen fuer fett und kursiv um die Auswahl.
-  textInput.addEventListener('keydown', function (event) {
-    var mark = (event.metaKey || event.ctrlKey) && !event.altKey ? { b: '**', i: '*' }[event.key] : '';
-    var start, end, value;
+  // Pfeil hoch am Anfang und Pfeil runter am Ende eines Stuecks gehen ins Nachbarstueck.
+  blocks.addEventListener('keydown', function (event) {
+    var field = event.target;
+    var mark, start, end, value, other;
+    if (!isText(field)) { return; }
+    start = field.selectionStart;
+    end = field.selectionEnd;
+    value = field.value;
+    if ((event.key === 'ArrowUp' && start === 0 && end === 0) || (event.key === 'ArrowDown' && start === value.length && end === value.length)) {
+      other = field;
+      do { other = event.key === 'ArrowUp' ? other.previousElementSibling : other.nextElementSibling; } while (other && !isText(other));
+      if (!other) { return; }
+      event.preventDefault();
+      other.focus();
+      other.selectionStart = other.selectionEnd = event.key === 'ArrowUp' ? other.value.length : 0;
+      return;
+    }
+    mark = (event.metaKey || event.ctrlKey) && !event.altKey ? { b: '**', i: '*' }[event.key] : '';
     if (!mark) { return; }
     event.preventDefault();
-    start = textInput.selectionStart;
-    end = textInput.selectionEnd;
-    value = textInput.value;
-    textInput.value = value.slice(0, start) + mark + value.slice(start, end) + mark + value.slice(end);
-    textInput.selectionStart = start + mark.length;
-    textInput.selectionEnd = end + mark.length;
+    field.value = value.slice(0, start) + mark + value.slice(start, end) + mark + value.slice(end);
+    field.selectionStart = start + mark.length;
+    field.selectionEnd = end + mark.length;
     typed();
   });
 
@@ -1024,7 +1175,7 @@
     event.preventDefault();
     if (event.dataTransfer && event.dataTransfer.files.length) { addPictures(event.dataTransfer.files); }
   });
-  textInput.addEventListener('paste', function (event) {
+  blocks.addEventListener('paste', function (event) {
     var files = event.clipboardData && event.clipboardData.files;
     if (files && files.length) { event.preventDefault(); addPictures(files); }
   });
