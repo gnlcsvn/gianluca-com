@@ -320,6 +320,7 @@
   window.feedRender = render;
   window.feedBuildPost = buildPost;
   window.feedRelease = release;
+  window.feedInline = fillInline;      // fuer den Schreib-Editor (/write/)
 
   var container = document.getElementById('posts');
   if (!container) { return; }

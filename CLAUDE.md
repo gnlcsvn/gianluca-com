@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Personal website of Gian-Luca Savino: a business-card home page with a name and a few links, an art page, and a feed with its own editor. Vanilla HTML, CSS and a few small scripts, no build step, no dependencies. Hosted on GitHub Pages at gianlucasavino.com.
+Personal website of Gian-Luca Savino: a business-card home page with a name and a few links, an art page, a feed with its own editor, and a private text editor. Vanilla HTML, CSS and a few small scripts, no build step, no dependencies. Hosted on GitHub Pages at gianlucasavino.com.
 
 The site is deliberately maintenance-free. Do not add articles, a bio, or a resume unless asked. The only automation is the video workflow described under Feed. Earlier versions (articles, data insights, resume) live in the git history.
 
@@ -46,10 +46,23 @@ An X-style feed with only the owner's posts.
 - **Feed page extras** (only on `feed/` and the post pages, not in the editor): every post has a "share" button that copies the address of the post's own page, `feed/p/<post id>/`; the button itself reads "link copied" for two seconds; inside the feed, a click on a post's date shows that post alone under `feed/#<post id>` without reloading, with a link back; texts much longer than 14 lines are cut in the feed and get a "more" button.
 - **Editor features:** attach any files (file picker, drag and drop, paste), reorder and remove them; a format bar that inserts the markdown characters (hidden behind "format" on the phone, open on wide screens); a live preview that uses the feed's own renderer; edit an existing post (text, and its files: reorder by dragging with mouse or finger, remove, add; new files continue the numbering after the post's highest `<n>`); save a draft instead of posting; delete a post with its files. After every change it polls the website and marks each post as "publishing ..." or "live".
 - **Editor safeguards:** while it works, the draft, attachments and list are locked; a post keeps its id across retries, so a retry after a lost response finds the post already there instead of posting twice; uploads retry on a broken or stalled connection and finished uploads are not sent again; editing a post is refused while an unsent draft exists.
-- **Editor version:** `post/version.txt` holds a number. The same number is the `?v=` on the stylesheet and the two scripts in `post/index.html` (and in `feed/index.html`). On start, the editor fetches `version.txt` fresh and reloads itself under `?v=<number>` if it differs, which gets around the browser and home screen cache. **Whenever the editor, `js/feed.js` or `css/style.css` changes, raise the number in all of these places.**
+- **Editor version:** `post/version.txt` holds a number. The same number is the `?v=` on the stylesheet and the two scripts in `post/index.html` (and in `feed/index.html` and `write/index.html`). On start, the editor fetches `version.txt` fresh and reloads itself under `?v=<number>` if it differs, which gets around the browser and home screen cache. **Whenever the editor, `js/feed.js` or `css/style.css` changes, raise the number in all of these places.**
 - **Access:** the editor page is public but can do nothing without a GitHub fine-grained personal access token (only this repository, permission "Contents: read and write"). The token is typed into the editor once per device and kept in that browser's `localStorage` under `feed-token`. It must never be written into any file of this repository.
 - The editor shrinks pictures to 2000 px on the long edge and saves them as JPEG (this also drops camera metadata); GIF and SVG stay as they are; pictures the browser cannot open, and all other files, are uploaded unchanged, up to 50 MB each.
 - Posts made through the editor arrive as commits on `origin/main`. Pull before working on the site.
+
+## Write
+
+A quiet text editor for the owner at `write/` (`write/index.html` + `js/write.js`, installable like the feed editor, same icons). The page is public but shows nothing without the token.
+
+- **Storage:** the texts live in the private repository `gnlcsvn/texte`, not here: one folder `<id>/` per text (`YYYYMMDD-HHMMSS`, the moment it was started) with `text.md` (first line is the title) and its pictures beside it. That repository's README describes the layout and how an agent works on a text.
+- **Token:** the same `feed-token` in `localStorage` as the feed editor; it must cover both repositories (Contents: read and write).
+- **Local first:** every keystroke goes into `localStorage` (`write:<id>` holds `text`, plus `base` and `sha`, the last state from GitHub). Six seconds after the last keystroke, at the latest after 45 seconds, and when the page is hidden, the text is saved as one commit through the contents API (`write: <title>`). Writing works offline; the list marks such texts "not synced".
+- **Changes from elsewhere** (another device, or an agent committing to `gnlcsvn/texte`): the open text is checked every 30 seconds and when the page comes back. A change is taken over; if the text was changed here too, both are merged line by line (`merge3`), and where both changed the same line, both versions stay, one below the other. A line above the text then names the commit message and time, with "show changes" (word diff), "undo" and "ok". Commit messages starting with `write: ` are the editor's own and show as "changed on another device".
+- **Views:** the list of texts (`#` nothing), a text (`#<id>`), and in place of the sheet: preview, history (every saved version, a tap shows what it changed, "restore this version"), and the diff.
+- **Preview** uses the feed's inline renderer (`window.feedInline`) plus headings (`#`, `##`, `###`), pictures (`![](file.jpg)`, own line) and `---`. Pictures of a private repository cannot be loaded by address; the editor fetches them through the API and shows them as blob addresses.
+- **Pictures:** file picker, drag and drop, paste; shrunk to 2000 px and saved as JPEG like in the feed editor, uploaded as `<id>/<YYYYMMDD-HHMMSS>.jpg`, and `![](name)` is put at the cursor.
+- **Version:** the editor shares `post/version.txt` and the `?v=` number with the feed editor; raise it for changes to `js/write.js` too (also in `write/index.html`).
 
 ## Code Conventions
 

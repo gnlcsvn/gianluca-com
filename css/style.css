@@ -183,6 +183,64 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
   .editor-page { padding-top: calc(env(safe-area-inset-top) + 1.75rem); }
 }
 
+/* Schreib-Editor (/write/): ein Blatt, sonst nichts. Kopfzeile und Fusszeile sind leise. */
+.write { max-width: 46rem; margin: 0 auto; }
+.write__head { position: sticky; top: 0; z-index: 1; align-items: baseline; background: var(--papier); transition: opacity 0.4s; }
+.write__head .site-header__nav > span { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0 1.3rem; }
+.write__back::before { content: "< "; }
+.write__head .editor__quiet[aria-pressed="true"] { color: var(--tinte); text-decoration: underline; }
+.write__file { position: relative; }
+.write__file input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.write__file:focus-within { outline: 1px solid var(--blau); outline-offset: 3px; }
+.write-page--typing .write__head, .write-page--typing .write__foot { opacity: 0.25; }
+.write__sheet { padding: 1rem 0 45vh; }
+.write__text, .write__preview, .write__diff { font-size: 17px; line-height: 1.65; }
+.write__text {
+  display: block; width: 100%; min-height: 50vh; margin: 0; padding: 0;
+  font-family: inherit; color: var(--tinte); background: none;
+  border: 0; outline: 0; resize: none; overflow: hidden;
+  -webkit-appearance: none; appearance: none;
+}
+.write__text::placeholder { color: #cfcdc6; }
+.write__notice {
+  display: flex; flex-wrap: wrap; gap: 0 1.3rem; margin: 0 0 1.5rem; padding: 0 0 0.9rem;
+  border-bottom: 1px solid #e4e2dc; color: var(--leise);
+}
+.write__notice span { flex: 1 1 14rem; color: var(--tinte); }
+.write__sheet--pane .write__notice { display: none; }
+.write__panehead {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 1.3rem;
+  margin: 0 0 1.5rem; padding: 0 0 0.9rem; border-bottom: 1px solid #e4e2dc;
+}
+.write__panetools { display: flex; flex-wrap: wrap; gap: 0 1.3rem; }
+.write__preview h1, .write__preview h2, .write__preview h3 { margin: 2rem 0 0.8rem; font: inherit; font-weight: 700; }
+.write__preview h1 { text-transform: uppercase; letter-spacing: 0.04em; }
+.write__preview h3 { font-weight: 400; text-decoration: underline; }
+.write__preview > :first-child { margin-top: 0; }
+.write__preview hr { margin: 2rem 0; border: 0; border-top: 1px solid var(--leise); }
+.write__picture { color: var(--leise); }
+.write__picture img { display: block; max-width: 100%; height: auto; }
+.write__diff { white-space: pre-wrap; overflow-wrap: anywhere; }
+.write__diff del { color: var(--rot); text-decoration: line-through; }
+.write__diff ins { background: #dfeedd; text-decoration: none; }
+.write__foot {
+  position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 1rem;
+  padding: 0.6rem 1.25rem calc(0.6rem + env(safe-area-inset-bottom));
+  color: var(--leise); background: var(--papier); transition: opacity 0.4s;
+}
+/* Liste der Texte (und der Fassungen im Verlauf): links der Titel, rechts leise das Datum */
+.texts { padding: 1.5rem 0 6rem; }
+.write__pane .texts { padding: 0; }
+.texts__item {
+  display: flex; justify-content: space-between; gap: 1.5rem; width: 100%; margin: 0; padding: 0.45rem 0;
+  font: inherit; text-align: left; color: var(--tinte); background: none; border: 0; cursor: pointer;
+}
+.texts__item:hover, .texts__item:focus-visible { text-decoration: none; }
+.texts__item:hover .texts__title, .texts__item:focus-visible .texts__title { color: var(--blau); text-decoration: underline; }
+.texts__title { overflow-wrap: anywhere; }
+.texts__meta { flex: none; color: var(--leise); }
+@media (prefers-reduced-motion: reduce) { .write__head, .write__foot { transition: none; } }
+
 /* Werkzeuge fuer den Text: eine zusammenhaengende Leiste, wie der Umschalter bei z-fighting */
 .tools { margin-top: 0.7rem; }
 .tools__group { display: inline-flex; max-width: 100%; border: 1px solid var(--knopf); border-radius: 2px; overflow-x: auto; scrollbar-width: none; }

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>write</title>
+  <meta name="robots" content="noindex">
+  <!-- Der Editor laedt nichts von fremden Seiten und spricht nur mit der GitHub-API. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.github.com; img-src 'self' blob:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+  <!-- Als App auf dem Homescreen (iPhone: Teilen, Zum Home-Bildschirm) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="write">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#fbfaf7">
+  <link rel="apple-touch-icon" href="../post/icon-180.png?v=6">
+  <link rel="icon" href="/favicon.png" sizes="64x64" type="image/png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <!-- Die Nummer hinter v= ist dieselbe wie in post/version.txt (siehe post/index.html). -->
+  <link rel="stylesheet" href="../css/style.css?v=24">
+</head>
+<body class="editor-page write-page">
+
+  <header class="site-header write__head">
+    <!-- In der Liste steht links der Weg nach Hause, im Text der Weg zurueck zur Liste. -->
+    <a href="../" class="site-header__home" id="home">Gian-Luca Savino</a>
+    <button class="editor__quiet write__back" id="back" type="button" hidden>texts</button>
+    <span class="site-header__nav">
+      <span id="list-tools" hidden>
+        <button class="editor__quiet" id="new" type="button">new</button>
+        <button class="editor__quiet" id="forget" type="button">forget token</button>
+      </span>
+      <span id="text-tools" hidden>
+        <label class="editor__quiet write__file"><span>image</span><input id="files" type="file" accept="image/*" multiple></label>
+        <button class="editor__quiet" id="preview-toggle" type="button" aria-pressed="false">preview</button>
+        <button class="editor__quiet" id="history-toggle" type="button" aria-pressed="false">history</button>
+        <button class="editor__quiet" id="delete" type="button">delete</button>
+      </span>
+    </span>
+  </header>
+
+  <main class="write" id="write">
+    <noscript><p class="posts__note">The editor needs JavaScript.</p></noscript>
+
+    <!-- Einmal je Geraet: das GitHub-Token eintragen (dasselbe wie im Feed-Editor) -->
+    <form class="editor editor__token" id="token-form" hidden>
+      <p>Paste your GitHub token. It is stored in this browser only and is sent to GitHub and nowhere else. It needs access to the repository gnlcsvn/texte (Contents: read and write).</p>
+      <label class="editor__label" for="token">token</label>
+      <input class="editor__input" id="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+      <button class="button" type="submit">save</button>
+    </form>
+
+    <!-- Die Liste aller Texte, zuletzt geaenderter oben -->
+    <div class="texts" id="texts" hidden></div>
+
+    <!-- Ein Text: oben eine Zeile, wenn er woanders geaendert wurde, darunter das Blatt -->
+    <div class="write__sheet" id="sheet" hidden>
+      <p class="write__notice" id="notice" hidden></p>
+      <textarea class="write__text" id="text" rows="1" placeholder="write" aria-label="text" autocapitalize="sentences"></textarea>
+      <!-- Vorschau, Verlauf und Vergleich stehen an der Stelle des Blattes -->
+      <div class="write__pane" id="pane" hidden></div>
+    </div>
+  </main>
+
+  <!-- Unten am Rand, leise: links der Stand, rechts die Zahl der Woerter -->
+  <footer class="write__foot" id="foot" hidden><span id="state" role="status" aria-live="polite"></span><span id="count"></span></footer>
+  <p class="editor__status" id="status" role="status" aria-live="polite"></p>
+
+  <script src="../js/feed.js?v=24"></script>
+  <script src="../js/write.js?v=24"></script>
+</body>
+</html>

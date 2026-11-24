@@ -1,0 +1,15 @@
+{
+  "name": "write",
+  "short_name": "write",
+  "description": "Text editor on gianlucasavino.com",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbfaf7",
+  "theme_color": "#fbfaf7",
+  "icons": [
+    { "src": "../post/icon-192.png?v=6", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "../post/icon-512.png?v=6", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "../post/icon-maskable-512.png?v=6", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
