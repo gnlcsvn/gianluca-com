@@ -33,6 +33,7 @@
   var forgetButton = byId('forget');
   var fileInput = byId('files');
   var formatBar = byId('format');
+  var formatToggle = byId('format-toggle');
   var historyToggle = byId('history-toggle');
   var deleteButton = byId('delete');
   var listBox = byId('texts');
@@ -831,7 +832,8 @@
   function setMode(next) {
     mode = next;
     blocks.hidden = next !== 'write';
-    formatBar.hidden = next !== 'write';
+    formatBar.hidden = next !== 'write' || formatToggle.getAttribute('aria-expanded') !== 'true';
+    formatToggle.hidden = next !== 'write';
     pane.hidden = next === 'write';
     historyToggle.setAttribute('aria-pressed', next === 'history' || next === 'version' ? 'true' : 'false');
     fileInput.disabled = next !== 'write';
@@ -1193,7 +1195,14 @@
     }
   });
 
-  // Die Leiste (am Telefon): ein Tipp darf dem Blatt die Auswahl nicht nehmen.
+  // Die Leiste (am Telefon) ist zu, bis man sie mit "format" aufmacht.
+  // Ein Tipp auf sie oder auf "format" darf dem Blatt die Auswahl nicht nehmen.
+  formatToggle.addEventListener('mousedown', function (event) { event.preventDefault(); });
+  formatToggle.addEventListener('click', function () {
+    var open = formatToggle.getAttribute('aria-expanded') !== 'true';
+    formatToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    formatBar.hidden = !open || mode !== 'write';
+  });
   formatBar.addEventListener('mousedown', function (event) { event.preventDefault(); });
   formatBar.addEventListener('click', function (event) {
     var button = event.target;

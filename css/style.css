@@ -185,14 +185,20 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 
 /* Schreib-Editor (/write/): ein Blatt, sonst nichts. Kopfzeile und Fusszeile sind leise. */
 .write { max-width: 46rem; margin: 0 auto; }
-.write__head { position: sticky; top: 0; z-index: 1; align-items: baseline; background: var(--papier); transition: opacity 0.4s; }
+.write__head { position: sticky; top: 0; z-index: 1; align-items: baseline; background: var(--papier); }
+/* Der Platz fuer die Statusleiste gehoert hier zur Kopfzeile: sonst rollt der Text darueber sichtbar durch */
+.editor-page.write-page { padding-top: 0; }
+.write__head { padding-top: calc(1.4rem + env(safe-area-inset-top)); }
+@media (display-mode: standalone) { .write__head { padding-top: calc(3.15rem + env(safe-area-inset-top)); } }
 .write__head .site-header__nav > span { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0 1.3rem; }
 .write__back::before { content: "< "; }
-.write__head .editor__quiet[aria-pressed="true"] { color: var(--tinte); text-decoration: underline; }
+.write__head .editor__quiet[aria-pressed="true"], .write__head .editor__quiet[aria-expanded="true"] { color: var(--tinte); text-decoration: underline; }
 .write__file { position: relative; }
 .write__file input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
 .write__file:focus-within { outline: 1px solid var(--blau); outline-offset: 3px; }
-.write-page--typing .write__head, .write-page--typing .write__foot { opacity: 0.25; }
+/* Nur der Inhalt tritt zurueck: der Grund bleibt deckend, damit beim Rollen kein Text durchscheint */
+.write__head > *, .write__foot > * { transition: opacity 0.4s; }
+.write-page--typing .write__head > *, .write-page--typing .write__foot > * { opacity: 0.25; }
 .write__sheet { padding: 1rem 0 45vh; }
 .write__rich, .write__diff { font-size: 17px; line-height: 1.65; }
 .write__rich {
@@ -209,9 +215,10 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .write__medianote { margin: 0; color: var(--leise); }
 /* Die Leiste fuer fett, kursiv, Link: nur wo getippt statt geklickt wird */
 .write__head { flex-wrap: wrap; }
-.write__tools { display: none; flex: 0 0 100%; margin-top: 0.9rem; }
+.write__tools { flex: 0 0 100%; margin-top: 0.9rem; }
+.write__formattoggle { display: none; }
 .write__tools button[aria-pressed="true"] { background: var(--knopf); color: var(--papier); }
-@media (pointer: coarse) { .write__tools { display: block; } }
+@media (pointer: coarse) { .write__formattoggle { display: inline; } }
 .write__notice {
   display: flex; flex-wrap: wrap; gap: 0 1.3rem; margin: 0 0 1.5rem; padding: 0 0 0.9rem;
   border-bottom: 1px solid #e4e2dc; color: var(--leise);
@@ -229,7 +236,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .write__foot {
   position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 1rem;
   padding: 0.6rem 1.25rem calc(0.6rem + env(safe-area-inset-bottom));
-  color: var(--leise); background: var(--papier); transition: opacity 0.4s;
+  color: var(--leise); background: var(--papier);
 }
 /* Liste der Texte (und der Fassungen im Verlauf): links der Titel, rechts leise das Datum */
 .texts { padding: 1.5rem 0 6rem; }
@@ -242,7 +249,7 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 .texts__item:hover .texts__title, .texts__item:focus-visible .texts__title { color: var(--blau); text-decoration: underline; }
 .texts__title { overflow-wrap: anywhere; }
 .texts__meta { flex: none; color: var(--leise); }
-@media (prefers-reduced-motion: reduce) { .write__head, .write__foot { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .write__head > *, .write__foot > * { transition: none; } }
 
 /* Werkzeuge fuer den Text: eine zusammenhaengende Leiste, wie der Umschalter bei z-fighting */
 .tools { margin-top: 0.7rem; }
