@@ -611,6 +611,7 @@
     textTools.hidden = view !== 'text';
     formatTools.hidden = view !== 'text';
     calm(false);
+    pinHead();
   }
 
   // Beim Schreiben tritt die Kopfzeile zurueck; jede Bewegung holt sie wieder.
@@ -989,18 +990,15 @@
     document.execCommand('createLink', false, url);
   }
 
-  // Die Kopfzeile steht fest am oberen Rand (position: sticky). Am Telefon reicht das nicht:
-  // ist die Tastatur offen, verschiebt iOS den sichtbaren Ausschnitt innerhalb der Seite, und
-  // der obere Rand der Seite liegt dann ausserhalb des Bildes. Die Kopfzeile wird deshalb um
-  // genau dieses Stueck nachgeschoben.
-  var headShift = 0;
+  // Die Kopfzeile steht fest am oberen Rand des Fensters (position: fixed); die Seite beginnt
+  // um ihre Hoehe tiefer. Am Telefon reicht "fest" allein nicht: ist die Tastatur offen,
+  // verschiebt der Browser den sichtbaren Ausschnitt innerhalb des Fensters, und dessen oberer
+  // Rand liegt dann ausserhalb des Bildes. Die Kopfzeile wird um genau dieses Stueck nachgeschoben.
   function pinHead() {
     var view = window.visualViewport;
-    var top;
-    if (!view) { return; }
-    top = head.getBoundingClientRect().top - headShift;
-    headShift = Math.max(0, Math.round(view.offsetTop - top));
-    head.style.transform = headShift ? 'translateY(' + headShift + 'px)' : '';
+    var shift = view ? Math.max(0, Math.round(view.offsetTop)) : 0;
+    head.style.transform = shift ? 'translateY(' + shift + 'px)' : '';
+    page.style.paddingTop = head.offsetHeight + 'px';
   }
 
   // Die Knoepfe der Leiste zeigen, was an der Schreibmarke gilt.
@@ -1025,6 +1023,7 @@
     mode = next;
     blocks.hidden = next !== 'write';
     formatTools.hidden = next !== 'write';
+    pinHead();
     pane.hidden = next === 'write';
     historyToggle.setAttribute('aria-pressed', next === 'history' || next === 'version' ? 'true' : 'false');
     fileInput.disabled = next !== 'write';
@@ -1401,6 +1400,7 @@
   });
 
   window.addEventListener('scroll', pinHead, { passive: true });
+  window.addEventListener('resize', pinHead);
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', pinHead);
     window.visualViewport.addEventListener('scroll', pinHead);

@@ -186,7 +186,12 @@ a:focus-visible { outline: 1px solid var(--blau); outline-offset: 3px; }
 /* Schreib-Editor (/write/): ein Blatt, sonst nichts. Kopfzeile und Fusszeile sind leise. */
 .write { max-width: 46rem; margin: 0 auto; }
 /* Die Kopfzeile steht fest: deckender Grund, nur ihr Inhalt tritt beim Schreiben zurueck */
-.write__head { position: sticky; top: 0; z-index: 2; flex-wrap: wrap; align-items: baseline; gap: 0 1.6rem; padding-bottom: 1rem; background: var(--papier); }
+.write__head {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 2; max-width: none;
+  flex-wrap: wrap; align-items: baseline; gap: 0 1.6rem;
+  padding-bottom: 1rem; padding-left: max(1.25rem, calc((100% - 46rem) / 2)); padding-right: max(1.25rem, calc((100% - 46rem) / 2));
+  background: var(--papier);
+}
 .write__head .site-header__nav { order: 3; margin-left: auto; }
 .write__format { order: 2; display: flex; align-items: baseline; gap: 0 1.3rem; }
 .write__step { align-self: center; height: 17px; line-height: 0; }
