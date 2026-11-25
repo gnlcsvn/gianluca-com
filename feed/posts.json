@@ -3,7 +3,7 @@
     {
       "id": "20261125-132912",
       "date": "2026-11-25T13:29:12+01:00",
-      "text": "",
+      "text": "copy & waste\nalbum cover idee\n[original image link](https://www.midjourney.com/jobs/f9f82a1c-1372-4380-a0e7-628c29b09e04?index=2)",
       "media": [
         {
           "type": "image",
@@ -16,9 +16,21 @@
           "src": "media/20261125-132912-3.jpg",
           "width": 1536,
           "height": 1024
+        },
+        {
+          "type": "image",
+          "src": "media/20261125-132912-4.jpg",
+          "width": 1199,
+          "height": 1312
+        },
+        {
+          "type": "image",
+          "src": "media/20261125-132912-5.jpg",
+          "width": 928,
+          "height": 1232
         }
       ],
-      "edited": "2026-11-25T13:41:43+01:00"
+      "edited": "2026-11-25T13:43:46+01:00"
     },
     {
       "id": "20261124-152115",
