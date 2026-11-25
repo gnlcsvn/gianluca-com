@@ -7,11 +7,18 @@
       "media": [
         {
           "type": "image",
-          "src": "media/20261125-132912-1.jpg",
-          "width": 1199,
-          "height": 1312
+          "src": "media/20261125-132912-2.jpg",
+          "width": 1254,
+          "height": 1254
+        },
+        {
+          "type": "image",
+          "src": "media/20261125-132912-3.jpg",
+          "width": 1536,
+          "height": 1024
         }
-      ]
+      ],
+      "edited": "2026-11-25T13:41:43+01:00"
     },
     {
       "id": "20261124-152115",
