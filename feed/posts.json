@@ -1,6 +1,37 @@
 {
   "posts": [
     {
+      "id": "20261127-194911",
+      "date": "2026-11-27T19:49:11+01:00",
+      "text": "penplotting project that visualizes z-fighting. I learned about z-fighting in my digital media studies. Found the slides, they still teach it. \n\nZ-fighting basically is when two planes in a 3-dimensional space occupy the same z-coordinates and the renderer has to decide which one is “on top” and then you get this flickering. \n\nIn this example you can see two objects one red one blue that are pretty much at the exact same coordinates in 3d space but one is slightly shifted. \n\nI first render them in the browser and then have Claude build a lined based counterpart that can be pen plotted.",
+      "media": [
+        {
+          "type": "image",
+          "src": "media/20261127-194911-1.jpg",
+          "width": 2000,
+          "height": 1597
+        },
+        {
+          "type": "image",
+          "src": "media/20261127-194911-2.jpg",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "type": "image",
+          "src": "media/20261127-194911-3.jpg",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "type": "image",
+          "src": "media/20261127-194911-4.jpg",
+          "width": 1539,
+          "height": 2000
+        }
+      ]
+    },
+    {
       "id": "20261125-132912",
       "date": "2026-11-25T13:29:12+01:00",
       "text": "copy & waste\nalbum cover idee\n[original image link](https://www.midjourney.com/jobs/f9f82a1c-1372-4380-a0e7-628c29b09e04?index=2)",
