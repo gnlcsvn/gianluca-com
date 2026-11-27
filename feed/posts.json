@@ -1,6 +1,19 @@
 {
   "posts": [
     {
+      "id": "20261128-003125",
+      "date": "2026-11-28T00:31:25+01:00",
+      "text": "It's-a Me (plotter concept)",
+      "media": [
+        {
+          "type": "image",
+          "src": "media/20261128-003125-1.jpg",
+          "width": 2000,
+          "height": 1414
+        }
+      ]
+    },
+    {
       "id": "20261127-194911",
       "date": "2026-11-27T19:49:11+01:00",
       "text": "penplotting project that visualizes z-fighting. I learned about z-fighting in my digital media studies. Found the slides, they still teach it. \n\nZ-fighting basically is when two planes in a 3-dimensional space occupy the same z-coordinates and the renderer has to decide which one is “on top” and then you get this flickering. \n\nIn this example you can see two objects one red one blue that are pretty much at the exact same coordinates in 3d space but one is slightly shifted. \n\nI first render them in the browser and then have Claude build a lined based counterpart that can be pen plotted.",
